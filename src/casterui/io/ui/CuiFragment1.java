@@ -198,4 +198,38 @@ public class CuiFragment1 {
         BuildBlockInfo(parent);
         BuildUnitPlayerCounter(parent);
     }
+    /*
+            unitTable.clear();
+            Seq<Unit> allUnits = new Seq<>();
+            Groups.unit.each(unit -> {
+                if (unitTableCollapse) return;
+                if (unit.spawnedByCore && unitTableCoreUnits) return;
+                allUnits.add(unit);
+            });
+
+            allUnits.sort(unit -> unit.team.id);
+
+            AtomicInteger heldCount = new AtomicInteger();
+            AtomicInteger icons = new AtomicInteger();
+
+            unitTable.table(unitsSubTable -> allUnits.forEach(unit ->{
+                if(heldUnit == null)heldUnit = unit;
+
+                if(heldUnit.type != unit.type && heldUnit.team == unit.team){
+                    unitsSubTable.add(new Image(unit.icon()).setScaling(Scaling.bounded)).size(Core.settings.getInt("cui-unitsIconSize")).tooltip("[#" +unit.team.color.toString() + "]" +unit.type.localizedName);
+                    unitsSubTable.add(new Label( () -> "[#" +unit.team.color.toString() + "]" + heldCount + "[white]"));
+
+                    if (icons.get() >= tableSize){
+                        unitsSubTable.row();
+                        icons.set(0);
+                    } else icons.getAndIncrement();
+
+                    heldCount.set(1);
+                }else {
+                    heldCount.getAndIncrement();
+                }
+            }));
+            heldUnit = null;
+            heldCount.set(1);
+    */
 }

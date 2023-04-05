@@ -1,4 +1,7 @@
-apply plugin: "java"
+plugins {
+    id 'java'
+    id("fr.xpdustry.toxopid") version "3.0.0"
+}
 
 version '1.0'
 
@@ -14,9 +17,16 @@ repositories{
 
 ext{
     //the build number that this mod is made for
-    mindustryVersion = 'v141'
+    mindustryVersion = 'v143'
     jabelVersion = "93fde537c7"
     sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+}
+
+import fr.xpdustry.toxopid.spec.ModPlatform
+toxopid {
+    compileVersion.set("$mindustryVersion")
+    runtimeVersion.set("$mindustryVersion")
+    platforms.add(ModPlatform.DESKTOP)
 }
 
 //java 8 backwards compatibility flag
@@ -62,8 +72,8 @@ task jarAndroid{
 }
 
 jar{
-    archiveFileName = "${project.archivesBaseName}Desktop.jar"
 
+    archiveFileName = "${project.archivesBaseName}Desktop.jar"
     from{
         configurations.runtimeClasspath.collect{ it.isDirectory() ? it : zipTree(it) }
     }
