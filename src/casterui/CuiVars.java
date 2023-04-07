@@ -4,6 +4,7 @@ import casterui.io.CuiInputs;
 import casterui.io.ui.*;
 import casterui.io.ui.dialog.CuiSettingsDialog;
 import mindustry.Vars;
+import mindustry.gen.Player;
 
 public class CuiVars {
     public static CuiWorldRenderer renderer = new CuiWorldRenderer();
@@ -11,10 +12,15 @@ public class CuiVars {
     public static CuiFragment fragment = new CuiFragment();
     public static CuiInputs inputs = new CuiInputs();
 
+    public static boolean showCoreUnits = true;
+    public static Player hoveredPlayer, clickedPlayer;
+
     public static void init(){
+        CuiBinding.load();
         CuiSettingsDialog.buildCategory();
         renderer.worldRenderer();
         fragment.BuildTables(Vars.ui.hudGroup);
+
     }
 
     public static void postInt(){

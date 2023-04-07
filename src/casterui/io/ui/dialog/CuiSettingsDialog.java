@@ -67,7 +67,7 @@ public class CuiSettingsDialog {
                 subTable.sliderPref("cui-playerIconSize", 35, 1, 100, String::valueOf);
                 subTable.sliderPref("cui-unitsIconSize", 32, 1, 100, String::valueOf);
                 subTable.sliderPref("cui-unitsPlayerTableSize", 6, 1, 20, String::valueOf);
-                subTable.sliderPref("cui-unitsPlayerTableUpdateRate", 20, 1, 100, String::valueOf);
+                subTable.sliderPref("cui-unitsPlayerTableUpdateRate", 50, 1, 100, String::valueOf);
                 t.add(subTable);
             }, () ->advanceHudShown[0]).growX().row();
         });

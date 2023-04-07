@@ -29,6 +29,8 @@ public class CuiWorldRenderer {
             boolean trackPlayerCursor = Core.settings.getBool("cui-TrackPlayerCursor", false);
             boolean trackLogicControl = Core.settings.getBool("cui-TrackLogicControl", false);
 
+            if(Core.settings.getBool("cui-ShowAlerts") || Core.settings.getBool("cui-ShowAlertsCircles")) CoreDestroyAlert();
+
             if ((!unitBars && !trackLogicControl && !trackPlayerCursor))return;
 
             Groups.unit.each((unit -> {
@@ -37,7 +39,7 @@ public class CuiWorldRenderer {
                 if (trackLogicControl && unit.controller() instanceof LogicAI)DrawLogicControl(unit);
             }));
 
-            if(Core.settings.getBool("cui-ShowAlerts") || Core.settings.getBool("cui-ShowAlertsCircles")) CoreDestroyAlert();
+
         });
     }
 
