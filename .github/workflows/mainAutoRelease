@@ -2,7 +2,7 @@ name: Commit Testing
 
 on:
   push:
-    branches-ignore:
+    branches:
       - main
 
 jobs:
@@ -23,12 +23,12 @@ jobs:
       run: sdkmanager "build-tools;29.0.3"
     - name: Add Android SDK to PATH
       run: echo "${ANDROID_HOME}/build-tools/29.0.3" >> $GITHUB_PATH
-    
+
     - name: Change wrapper permissions
       run: chmod +x ./gradlew
     - name: Build mod jar
       run: ./gradlew deploy
-        
+
     - name: Upload built jar file
       uses: actions/upload-artifact@v2
       with:
