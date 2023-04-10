@@ -1,7 +1,7 @@
 name: "caster-ui-java"
-displayName: "Caster UI (java)"
+displayName: "Caster UI (WIP!!)"
 author: "RushieWashie"
-description: A Mindustry Mod Aims to make the client a bit better for casting! Java rewrite of 'JiroCab/Caster-Ui' which was based off 'Ferlern/extended-UI'"
+description: (WIP) A Mindustry Mod Aims to make the client a bit better for casting! Java rewrite of 'JiroCab/Caster-Ui' which was based off 'Ferlern/extended-UI'
 version: 1.0
 
 minGameVersion: 140.4
