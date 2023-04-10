@@ -19,19 +19,17 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CuiFragment {
-    public Unit heldUnit, clickedEntity, hoveredEntity;
+    //CuiVars.hoveredEntity;
 
     public Table playersTable = new Table(), unitTable = new Table(), controlTable = new Table(), subControlTable = new Table(), unitPlayerTable =new Table();
     private final Seq<Player> sortedPlayers = new Seq<>();
     public int
             buttonSize = Core.settings.getInt("cui-buttonSize"),
             tableSize = Core.settings.getInt("cui-unitsPlayerTableSize"),
-            updateDelay = Core.settings.getInt("cui-unitsPlayerTableUpdateRate"),
             playerIconSize = Core.settings.getInt("cui-playerIconSize"),
             unitsIconSize = Core.settings.getInt("cui-unitsIconSize");
-    float buttonSizeAlt = buttonSize, timer = 0, nextUpdate = 100;
-    public Boolean unitTableCollapse = true, unitTablePlayers = true, unitTableCompactPlayers = false, initialized = false;
-    
+    float buttonSizeAlt = buttonSize;
+    public Boolean unitTableCollapse = true, unitTablePlayers = true, unitTableCompactPlayers = false;
 
     public void BuildTables(Group parent){
 
@@ -54,7 +52,7 @@ public class CuiFragment {
             unitPlayerTable.add(controlTable);
             unitPlayerTable.row();
             unitPlayerTable.collapser(a -> {
-                    a.add(playersTable).visible(Core.settings.getBool("cui-ShowPlayerList")).left()
+                    a.add(playersTable).visible(Core.settings.getBool("cui-ShowPlayerList")).left();
                     a.row();
                     a.add(unitTable).visible(Core.settings.getBool("cui-ShowUnitTable")).left();
             }, true, () -> unitTableCollapse);
@@ -65,20 +63,15 @@ public class CuiFragment {
 
     public void UpdateTables(){
 
-        timer = Time.globalTime;
-        if(!Vars.state.isPlaying())return;
-        if (timer <= nextUpdate) return;
 
-        nextUpdate = timer + (updateDelay * 10);
-        Log.err("next: " +nextUpdate + " || current: " + timer);
-        if (hoveredEntity != null && !unitPlayerTable.hasMouse()) hoveredEntity = null;
+        // Log.err("next: " +nextUpdate + " || current: " + timer);
+        if (CuiVars.hoveredEntity != null && !unitPlayerTable.hasMouse()) CuiVars.hoveredEntity = null;
 
         buttonSizeAlt = unitTableCollapse ? buttonSize : 0.01f;
 
         //region Units Table
         //**unitTable.clearChildren();
         unitTable.clear();
-        heldUnit = null;
         Seq<Unit> allUnits = new Seq<>();
         Groups.unit.copy(allUnits);
 
@@ -93,14 +86,14 @@ public class CuiFragment {
         AtomicInteger icons = new AtomicInteger();
         allUnits.forEach( unit ->{
             if (unit.spawnedByCore && CuiVars.showCoreUnits) return;
-            if(heldUnit == null) heldUnit = unit;
+            if(CuiVars.heldUnit == null) CuiVars.heldUnit = unit;
             String teamUnits = "cui-"+unit.team.id + "=" +unit.type.name + "~";
 
-            if (heldUnit.type == unit.type && heldUnit.team == unit.team) {
+            if (CuiVars.heldUnit.type == unit.type && CuiVars.heldUnit.team == unit.team) {
                 heldCounts.put(teamUnits, heldCounts.get(teamUnits) != null ? heldCounts.get(teamUnits) +1 : 1);
             } else {
 
-                heldUnit = unit;
+                CuiVars.heldUnit = unit;
 
             }
         });
@@ -132,7 +125,6 @@ public class CuiFragment {
             if(player.unit() == null && Core.settings.getBool("cui-hideNoUnitPlayers"))return;
 
             TextureRegion playerIcon = player.unit().isNull() ? Icon.eye.getRegion() : player.unit().icon();
-
 
             playersTable.add(new Image(playerIcon).setScaling(Scaling.bounded)).size(playerIconSize).left().with( w -> w.tapped( () -> {
                 setTrackPlayer(player);
@@ -169,16 +161,14 @@ public class CuiFragment {
 
     public void clearTables(){
         if (CuiVars.clickedPlayer != null) CuiVars.clickedPlayer = null;
-        if (heldUnit != null) heldUnit = null;
-        if (hoveredEntity != null) hoveredEntity = null;
+        if (CuiVars.heldUnit != null) CuiVars.heldUnit = null;
+        if (CuiVars.hoveredEntity != null) CuiVars.hoveredEntity = null;
 
-        initialized = false;
-        nextUpdate = timer + (updateDelay * 5);
+
         buttonSize = Core.settings.getInt("cui-buttonSize");
         playerIconSize = Core.settings.getInt("cui-playerIconSize");
         unitsIconSize = Core.settings.getInt("cui-unitsIconSize");
         tableSize = Core.settings.getInt("cui-unitsPlayerTableSize");
-        updateDelay = Core.settings.getInt("cui-unitsPlayerTableUpdateRate");
     }
 
 }

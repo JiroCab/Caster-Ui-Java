@@ -1,4 +1,4 @@
-package casterui.io.ui;
+package casterui.io;
 
 import arc.KeyBinds;
 import arc.input.InputDevice;
@@ -12,7 +12,9 @@ import static mindustry.Vars.ui;
 
 /*code from https://github.com/xzxADIxzx/Scheme-Size/blob/main/src/java/scheme/moded/ModedBinding.java */
 public enum CuiBinding implements KeyBinds.KeyBind {
-    trackCursor(KeyCode.h, "cui");
+    track_cursor(KeyCode.h, "cui"),
+    last_destroyed_core(KeyCode.g, "cui");
+
 
     private final KeyBinds.KeybindValue defaultValue;
     private final String category;

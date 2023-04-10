@@ -49,7 +49,7 @@ public class CuiSettingsDialog {
 
                 subTable.add("cui-players").color(Pal.accent).padTop(20).padRight(100f).padBottom(-3).row();
                 subTable.image().color(Pal.accent).height(3f).padRight(100f).padBottom(20).row();
-                subTable.checkPref("cui-SendChatCoreLost", false);
+                subTable.checkPref("cui-SendChatCoreLost", true);
                 subTable.checkPref("cui-TrackPlayerCursor", false);
                 subTable.checkPref("cui-ShowOwnCursor", false);
                 subTable.sliderPref("cui-playerCursorStyle", 7, 1, 7, String::valueOf);
@@ -67,7 +67,7 @@ public class CuiSettingsDialog {
                 subTable.sliderPref("cui-playerIconSize", 35, 1, 100, String::valueOf);
                 subTable.sliderPref("cui-unitsIconSize", 32, 1, 100, String::valueOf);
                 subTable.sliderPref("cui-unitsPlayerTableSize", 6, 1, 20, String::valueOf);
-                subTable.sliderPref("cui-unitsPlayerTableUpdateRate", 50, 1, 100, String::valueOf);
+                subTable.sliderPref("cui-unitsPlayerTableUpdateRate", 25, 1, 100, String::valueOf);
                 t.add(subTable);
             }, () ->advanceHudShown[0]).growX().row();
         });
