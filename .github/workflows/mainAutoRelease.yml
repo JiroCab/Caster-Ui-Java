@@ -35,10 +35,13 @@ jobs:
         name: ${{ github.event.repository.name }}
         path: build/libs/${{ github.event.repository.name }}.jar
 
-    - name: create release
+    - name: Release rename
+        mv build/libs/${{ github.event.repository.name }}.jar build/libs/${{ github.event.repository.name }}-${{ env.RELEASE_VERSION }}.jar
+
+    - name: Create release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: build/libs/${{ github.event.repository.name }}.jar
-        tag: ${{ github.ref }}
+        tag: ${{ github.event.repository.name }} ${{ env.RELEASE_VERSION }}
         body: ${{ env.BODY }}
