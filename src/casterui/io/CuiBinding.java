@@ -3,7 +3,6 @@ package casterui.io;
 import arc.KeyBinds;
 import arc.input.InputDevice;
 import arc.input.KeyCode;
-import arc.util.Log;
 import mindustry.input.Binding;
 import mindustry.ui.dialogs.KeybindDialog;
 

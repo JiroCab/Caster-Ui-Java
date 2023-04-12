@@ -2,7 +2,6 @@ package casterui.io;
 
 import arc.Core;
 import casterui.CuiVars;
-import mindustry.Vars;
 import mindustry.input.Binding;
 import mindustry.input.DesktopInput;
 

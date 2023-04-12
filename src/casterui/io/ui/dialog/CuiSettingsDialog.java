@@ -1,10 +1,8 @@
 package casterui.io.ui.dialog;
 
-import arc.Core;
 import arc.struct.Seq;
 import arc.util.Log;
 import mindustry.gen.Icon;
-import mindustry.graphics.Pal;
 import mindustry.ui.Styles;
 import mindustry.ui.dialogs.SettingsMenuDialog;
 import mindustry.ui.dialogs.SettingsMenuDialog.SettingsTable.Setting;

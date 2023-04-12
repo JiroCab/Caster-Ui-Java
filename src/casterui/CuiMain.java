@@ -2,11 +2,8 @@ package casterui;
 
 import arc.Events;
 import arc.util.Log;
-import casterui.io.ui.dialog.CuiSettingsDialog;
 import mindustry.game.EventType;
 import mindustry.mod.Mod;
-
-import static arc.Core.settings;
 
 public class CuiMain extends Mod {
 

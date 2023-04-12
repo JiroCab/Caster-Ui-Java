@@ -5,11 +5,12 @@ import arc.util.Log;
 import arc.util.Time;
 import casterui.io.CuiBinding;
 import casterui.io.CuiInputs;
-import casterui.io.ui.*;
+import casterui.io.ui.CuiFragment;
+import casterui.io.ui.CuiWorldRenderer;
 import casterui.io.ui.dialog.CuiSettingsDialog;
 import mindustry.Vars;
-import mindustry.gen.*;
-import mindustry.input.Binding;
+import mindustry.gen.Player;
+import mindustry.gen.Unit;
 import mindustry.world.Tile;
 
 public class CuiVars {
