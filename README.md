@@ -1,5 +1,3 @@
-This has been moved/rewored to [JiroCab/Caster-Ui-java](https://github.com/JiroCab/Caster-Ui-java)
-
 # Caster UI 
 
 - A Mindustry Mod Aims to make the client a bit better for casting!
