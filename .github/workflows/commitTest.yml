@@ -1,11 +1,9 @@
 name: Commit Testing
 
 on:
-  workflow_dispatch:
   push:
     branches-ignore:
       - main
-  workflow_dispatch:
 
 jobs:
   build:
