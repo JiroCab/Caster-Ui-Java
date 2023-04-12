@@ -3,7 +3,6 @@ package casterui.io;
 import arc.KeyBinds;
 import arc.input.InputDevice;
 import arc.input.KeyCode;
-import arc.util.Log;
 import mindustry.input.Binding;
 import mindustry.ui.dialogs.KeybindDialog;
 
@@ -13,7 +12,8 @@ import static mindustry.Vars.ui;
 /*code from https://github.com/xzxADIxzx/Scheme-Size/blob/main/src/java/scheme/moded/ModedBinding.java */
 public enum CuiBinding implements KeyBinds.KeyBind {
     track_cursor(KeyCode.h, "cui"),
-    last_destroyed_core(KeyCode.g, "cui");
+    last_destroyed_core(KeyCode.g, "cui"),
+    toggle_cui_menu(KeyCode.f7, "cui");
 
 
     private final KeyBinds.KeybindValue defaultValue;
@@ -49,7 +49,6 @@ public enum CuiBinding implements KeyBinds.KeyBind {
         keybinds.setDefaults(binds);
         settings.load(); // update controls
         ui.controls = new KeybindDialog();
-        Log.info("Cui keybinds loaded!");
     }
 
 }

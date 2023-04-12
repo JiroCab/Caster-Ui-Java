@@ -12,11 +12,10 @@ import mindustry.Vars;
 import mindustry.ai.types.LogicAI;
 import mindustry.game.EventType;
 import mindustry.gen.*;
-import mindustry.graphics.Drawf;
-import mindustry.graphics.Layer;
+import mindustry.graphics.*;
 import mindustry.world.blocks.storage.CoreBlock;
 
-import static arc.graphics.g2d.Draw.draw;
+import static arc.graphics.g2d.Draw.*;
 
 
 public class CuiWorldRenderer {
@@ -24,6 +23,7 @@ public class CuiWorldRenderer {
 
     public int
             playerLineAlpha = Core.settings.getInt("cui-playerTrackAlpha"),
+            trackedPlayerLineAlpha = Core.settings.getInt("cui-playerTrackedAlpha"),
             logicLineAlpha =  Core.settings.getInt("cui-logicLineAlpha") ;
 
     public void worldRenderer(){
@@ -42,7 +42,6 @@ public class CuiWorldRenderer {
 
             if (circleQueue.size != 0 && circleQueue.first() != null){
                 EventType.BlockDestroyEvent e = circleQueue.first();
-                Log.err("trying to draw circle: "+ e + " | ");
                 DrawLine(e.tile.x, e.tile.y, Vars.player.unit().x, Vars.player.unit().y, e.tile.team().color);
                 circleQueue.remove(e);
                 Log.err("Draw circle");
@@ -52,7 +51,7 @@ public class CuiWorldRenderer {
                 Draw.color(e.tile.team().color);
                 for (int i = 0; i < circlesAmount; i++) {
                     if (radius > maxRadius) return;
-
+                    Log.err("trying to draw circle: "+ e + " | "+ i + "=" + radius * (1f + 0.2f *i));
                     Drawf.circles(e.tile.x, e.tile.y, radius * (1f + 0.2f *i), e.tile.team().color != null ? e.tile.team().color : Color.red);
                     radius += (Time.time - startTime) / 8 * growSpeed;
                 }
@@ -71,23 +70,28 @@ public class CuiWorldRenderer {
         float cursorX = unit.getPlayer().mouseX, cursorY = unit.getPlayer().mouseY() , unitX = unit.getX(), unitY = unit.getY();
         int style = Core.settings.getInt("cui-playerCursorStyle");
 
-        draw(Layer.overlayUI+0.01f, ()->{
-            if (style % 2 == 0)DrawLine(cursorX, cursorY, unitX, unitY, unit.team.color);
-            Draw.alpha((float) (playerLineAlpha * 0.1));
+        float alpha = unit.getPlayer() != CuiVars.clickedPlayer ? (float) (playerLineAlpha * 0.1) : (float) (trackedPlayerLineAlpha * 0.1);
+        draw(Layer.overlayUI+0.01f, () ->{
+            if (style % 2 == 0){DrawLine(cursorX, cursorY, unitX, unitY, unit.team.color, alpha);}
 
-            if (style == 1 || style == 2) Drawf.square(cursorX, cursorY, 2, unit.team().color); // Square (Inspired from Mindustry Ranked Server's spectator mode )
-            else if (style == 3 || style == 4) Drawf.circles(cursorX, cursorY, 2, unit.team().color); // Circle
-            else if (style == 5 || style == 6) Drawf.target(cursorX, cursorY, 2, unit.team().color); //Target
-            else DrawLine(cursorX, cursorY, unitX, unitY, unit.team.color);  //Line (originally from Ferlern/extended-UI')
+            if (style == 1 || style == 2) Drawf.square(cursorX, cursorY, 2,  unit.team().color); // Square (Inspired from Mindustry Ranked Server's spectator mode )
+            else if (style == 3 || style == 4) Drawf.circles(cursorX, cursorY, 3, unit.team().color); // Circle
+            else if (style == 5 || style == 6) Drawf.target(cursorX, cursorY, 3, alpha, unit.team().color); //Target (aka mobile mindustry)
+            else DrawLine(cursorX, cursorY, unitX, unitY, unit.team.color, alpha);  //Line (originally from Ferlern/extended-UI')
         });
+        Draw.reset();
 
     }
 
-    public void DrawLine(float cx, float cy, float ux, float uy, Color color) {
-        Lines.stroke(1, color);
-        Draw.alpha(0.7f);
+    public void DrawLine(float cx, float cy, float ux, float uy, Color color, float transparency) {
+        Lines.stroke(1);
+        Draw.color(color, transparency);
         Lines.line(ux, uy, cx, cy);
-        Draw.reset(); // it is necessary?
+        Draw.reset();
+    }
+
+    public void DrawLine(float cx, float cy, float ux, float uy, Color color) {
+        DrawLine(cx, cy, ux, uy, color, 1);
     }
 
     public void DrawLogicControl(Unit unit, Building processor){
@@ -103,7 +107,6 @@ public class CuiWorldRenderer {
 
     public void CoreDestroyAlert(EventType.BlockDestroyEvent e){
         if(!(e.tile.build instanceof CoreBlock.CoreBuild)) return;
-        //Log.err("Block destroyed: " + e.tile.block()+ " of " + e.tile.team().localized());
 
         if (Core.settings.getBool("cui-ShowAlertsCircles")) {
             draw(Layer.overlayUI+0.02f, ()->{
@@ -113,13 +116,11 @@ public class CuiWorldRenderer {
         }
 
         if (Core.settings.getBool("cui-ShowAlerts")){
-            Log.err("show alerts");
             Vars.ui.hudfrag.showToast("[#" + e.tile.team().color.toString() + "]" + e.tile.team().localized()+ " " + Core.bundle.get("alerts.basic") + "[white] (" +e.tile.x + ", "+ e.tile.y + ")");
         }
 
         if (Core.settings.getBool("cui-SendChatCoreLost")){
-            Log.err("send core lost");
-            Call.sendChatMessage("[#" + e.tile.team().color.toString() + "]" + e.tile.team().localized()+ " " + Core.bundle.get("alerts.basic") + "[white] (" +e.tile.x + ", "+ e.tile.y + ")");
+            Call.sendChatMessage("[#" + e.tile.team().color.toString() + "]" + e.tile.team().localized()+ " " + e.tile.block().localizedName + " "+ Core.bundle.get("alerts.destroy") + "[white] (" +e.tile.x + ", "+ e.tile.y + ")");
         }
 
         CuiVars.lastCoreDestroyEvent = e.tile;
@@ -144,14 +145,13 @@ public class CuiWorldRenderer {
 
         float barLenght = blockPixelSize + barSize*2;
         float innerBarLenght = barLenght - borderSize*2;
-        float barHeight = barSize;
-        float innerBarHeight = barHeight - borderSize*2;
+        float innerBarHeight = barSize - borderSize*2;
 
         float fillSize = (innerBarLenght) * progress;
 
         Draw.z(Layer.darkness+1);
         Draw.alpha(alpha);
-        Lines.rect(startX, startY, barLenght, barHeight);
+        Lines.rect(startX, startY, barLenght, barSize);
 
         Draw.color(color, alpha);
         Fill.rect(drawX - (innerBarLenght * (1 - progress))/2, startY + barSize/2, fillSize, innerBarHeight);
