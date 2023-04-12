@@ -1,6 +1,6 @@
 name: Pull Request Testing
 
-on: pull_request, workflow_dispatch
+on: pull_request
 
 jobs:
   build:
