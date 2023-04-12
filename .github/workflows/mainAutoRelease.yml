@@ -2,6 +2,7 @@ name: Main Auto build Release
 
 on:
   push:
+    workflow_dispatch:
     branches:
       - main
   workflow_dispatch:
