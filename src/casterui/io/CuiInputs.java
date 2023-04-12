@@ -2,6 +2,7 @@ package casterui.io;
 
 import arc.Core;
 import casterui.CuiVars;
+import mindustry.Vars;
 import mindustry.input.Binding;
 import mindustry.input.DesktopInput;
 
@@ -40,9 +41,10 @@ public class CuiInputs {
             if(CuiVars.clickedPlayer != null) CuiVars.clickedPlayer = null;
 
             Core.camera.position.set(CuiVars.lastCoreDestroyEvent);
-
-
         }
+
+        if(input.keyTap(CuiBinding.toggle_cui_menu) && !settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = !CuiVars.unitTableCollapse;
+        else if(settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = ui.hudfrag.shown;
     }
 
 
