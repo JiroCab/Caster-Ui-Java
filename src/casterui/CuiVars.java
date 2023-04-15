@@ -47,12 +47,13 @@ public class CuiVars {
 
     public static void update(){
         inputs.update();
+        fragment.UpdateTables();
 
         timer = Time.globalTime;
         if(Vars.state.isPlaying() && timer >= nextUpdate && !initialized){
             nextUpdate = timer + (updateDelay * 5);
 
-            fragment.UpdateTables();
+            fragment.StutteredUpdateTables();
         };
     }
 
