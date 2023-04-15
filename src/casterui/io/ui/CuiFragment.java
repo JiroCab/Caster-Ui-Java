@@ -13,10 +13,12 @@ import casterui.CuiVars;
 import mindustry.Vars;
 import mindustry.game.Team;
 import mindustry.gen.*;
+import mindustry.logic.LAccess;
 import mindustry.type.UnitType;
 import mindustry.ui.Styles;
 import mindustry.world.Tile;
 import mindustry.world.blocks.power.PowerGraph;
+import mindustry.world.blocks.units.UnitFactory;
 
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -144,7 +146,7 @@ public class CuiFragment {
             if (buiding != null) { //the less cool deltanedas/waisa
                 showBlockTable = true;
                 String armor = buiding.block.armor >= 1 ? " [white]("+Math.round(buiding.block.armor) +")" : "";
-                if(buiding.health > 0){
+                if(buiding.health > 0 && Core.settings.getBool("cui-ShowBlockHealth")){
                     Vars.state.rules.enemyCoreBuildRadius = 0f;
                     blockTable.label(()-> Core.bundle.get("cui-block-info.health") + ": [red]"+ Math.round(buiding.health) +"[white]/[pink]" + Math.round(buiding.maxHealth) +armor).row();
                 }
@@ -170,7 +172,7 @@ public class CuiFragment {
                     blockTable.add(resourcesTable).row();
                 }
                 if(buiding.config() instanceof String)blockTable.label(() -> buiding.config().toString()).row();
-                if(buiding.config() instanceof TextureRegion)    blockTable.image(((TextureRegion) buiding.config()).asAtlas()).row();
+                if(buiding.config() instanceof TextureRegion) blockTable.image(((TextureRegion) buiding.config()).asAtlas()).row();
 
             }
         }
