@@ -17,7 +17,7 @@ repositories{
 
 ext{
     //the build number that this mod is made for
-    mindustryVersion = 'v143'
+    mindustryVersion = 'v143.1'
     jabelVersion = "93fde537c7"
     sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
 }
@@ -67,7 +67,7 @@ task jarAndroid{
 
         //dex and desugar files - this requires d8 in your PATH
         "d8 $dependencies --min-api 14 --output ${project.archivesBaseName}Android.jar ${project.archivesBaseName}Desktop.jar"
-                .execute(null, new File("$buildDir/libs")).waitForProcessOutput(System.out, System.err)
+                    .execute(null, new File("$buildDir/libs")).waitForProcessOutput(System.out, System.err)
     }
 }
 
@@ -79,7 +79,7 @@ jar{
     }
 
     from(rootDir){
-        include "mod.hjson"
+        include "mod.hjson", "icon.png"
     }
 
     from("assets/"){
