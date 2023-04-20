@@ -8,6 +8,7 @@ import casterui.io.CuiInputs;
 import casterui.io.ui.CuiFragment;
 import casterui.io.ui.CuiWorldRenderer;
 import casterui.io.ui.dialog.CuiSettingsDialog;
+import casterui.io.ui.dialog.CuiTeamMangerDialog;
 import mindustry.Vars;
 import mindustry.gen.Player;
 import mindustry.gen.Unit;
@@ -17,6 +18,7 @@ public class CuiVars {
     public static CuiWorldRenderer renderer = new CuiWorldRenderer();
     public static CuiFragment fragment = new CuiFragment();
     public static CuiInputs inputs = new CuiInputs();
+    public static CuiTeamMangerDialog teamManger = new CuiTeamMangerDialog();
 
     public static boolean showCoreUnits = true, initialized = false, unitTableCollapse = true;
     public static Player hoveredPlayer, clickedPlayer;

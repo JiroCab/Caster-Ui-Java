@@ -9,11 +9,13 @@ import mindustry.ui.dialogs.KeybindDialog;
 import static arc.Core.*;
 import static mindustry.Vars.ui;
 
-/*code from https://github.com/xzxADIxzx/Scheme-Size/blob/main/src/java/scheme/moded/ModedBinding.java */
+/*code from https://github.com/xzxADIxzx/Scheme-Size/blob/main/src/java/scheme/moded/ModedBinding.java
+* Also the two are incompatible, only one or the either adds their respective keybinds TODO work around*/
 public enum CuiBinding implements KeyBinds.KeyBind {
     track_cursor(KeyCode.h, "cui"),
-    last_destroyed_core(KeyCode.g, "cui"),
-    toggle_cui_menu(KeyCode.f7, "cui");
+    last_destroyed_core(KeyCode.g),
+    toggle_cui_menu(KeyCode.f7),
+    host_teams(KeyCode.home);
 
 
     private final KeyBinds.KeybindValue defaultValue;

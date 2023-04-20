@@ -13,12 +13,10 @@ import casterui.CuiVars;
 import mindustry.Vars;
 import mindustry.game.Team;
 import mindustry.gen.*;
-import mindustry.logic.LAccess;
 import mindustry.type.UnitType;
 import mindustry.ui.Styles;
 import mindustry.world.Tile;
 import mindustry.world.blocks.power.PowerGraph;
-import mindustry.world.blocks.units.UnitFactory;
 
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,15 +33,6 @@ public class CuiFragment {
     public void BuildTables(Group parent){
 
         if(!Core.settings.getBool("cui-ShowUnitTable") && !Core.settings.getBool("cui-ShowPlayerList") ) return;
-        
-        // region Control table
-        controlTable.clear();
-        if(Core.settings.getBool("cui-ShowUnitTable")) controlTable.button(Icon.admin, Styles.defaulti, () -> CuiVars.showCoreUnits = !CuiVars.showCoreUnits).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.core-units.tooltip");
-        if(Core.settings.getBool("cui-ShowPlayerList")) {
-           controlTable.button(Icon.players, Styles.defaulti, () -> unitTablePlayers = !unitTablePlayers).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.hide-player-list.tooltip");
-           controlTable.button(Icon.host, Styles.defaulti, () -> unitTableCompactPlayers = !unitTableCompactPlayers).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.compact-player-list.tooltip");
-        }
-        //endregion
 
         parent.fill(parentCont -> {
             parentCont.name = "cui-unit-player-table";
@@ -73,8 +62,15 @@ public class CuiFragment {
         if (CuiVars.hoveredEntity != null && !unitPlayerTable.hasMouse()) CuiVars.hoveredEntity = null;
         buttonSize = (float) Core.settings.getInt("cui-buttonSize");
 
+        // region Control table
+        controlTable.clear();
+        if(Core.settings.getBool("cui-ShowUnitTable")) controlTable.button(Icon.admin, Styles.defaulti, () -> CuiVars.showCoreUnits = !CuiVars.showCoreUnits).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.core-units.tooltip");
+        if(Core.settings.getBool("cui-ShowPlayerList")) controlTable.button(Icon.host, Styles.defaulti, () -> unitTableCompactPlayers = !unitTableCompactPlayers).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.compact-player-list.tooltip");
+
+        //endregion
+
         //region Units Table
-        if(Core.settings.getBool("cui-ShowUnitTable")){
+        if(Core.settings.getBool("cui-ShowUnitTable")) {
             unitTable.clear();
             Seq<Unit> allUnits = new Seq<>();
             Groups.unit.copy(allUnits);
@@ -83,31 +79,34 @@ public class CuiFragment {
             HashMap<String, Integer> heldCounts = new HashMap<>();
 
             AtomicInteger icons = new AtomicInteger();
-            allUnits.forEach( unit ->{
+            allUnits.forEach(unit -> {
                 if (unit.spawnedByCore && CuiVars.showCoreUnits) return;
-                if(CuiVars.heldUnit == null) CuiVars.heldUnit = unit;
-                String teamUnits = "cui-"+unit.team.id + "=" +unit.type.name + "~";
+                if (CuiVars.heldUnit == null) CuiVars.heldUnit = unit;
+                String teamUnits = "cui-" + unit.team.id + "=" + unit.type.name + "~";
 
                 if (CuiVars.heldUnit.type == unit.type && CuiVars.heldUnit.team == unit.team) {
-                    heldCounts.put(teamUnits, heldCounts.get(teamUnits) != null ? heldCounts.get(teamUnits) +1 : 1);
+                    heldCounts.put(teamUnits, heldCounts.get(teamUnits) != null ? heldCounts.get(teamUnits) + 1 : 1);
                 } else CuiVars.heldUnit = unit;
             });
 
             heldCounts.forEach((unitString, count) -> {
                 //TODO: REDO
                 UnitType type = Vars.content.unit(unitString.replaceFirst("[cui-].*?[=]", "").replace("~", ""));
-                Team team = Team.get(Integer.parseInt(unitString.replaceFirst("cui-","").replaceFirst("[=].*?[~]","")));
+                Team team = Team.get(Integer.parseInt(unitString.replaceFirst("cui-", "").replaceFirst("[=].*?[~]", "")));
                 Image unitIcon = new Image(type.fullIcon);
                 unitIcon.setScaling(Scaling.bounded);
                 unitTable.add(unitIcon).tooltip(type.localizedName).size(unitsIconSize).get();
-                unitTable.add(new Label( () -> "[#" +team.color.toString() + "]" + count + "[white]")).get();
-                if (icons.get() >= tableSize){
+                unitTable.add(new Label(() -> "[#" + team.color.toString() + "]" + count + "[white]")).get();
+                if (icons.get() >= tableSize) {
                     unitTable.row();
                     icons.set(0);
                 } else icons.getAndIncrement();
 
             });
-
+        }
+        //endregion
+        // region Players Table
+        if(Core.settings.getBool("cui-ShowPlayerList")) {
             playersTable.clearChildren();
             final int[] plys = {0};
 

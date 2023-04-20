@@ -51,3 +51,8 @@ It's the same with any other mod.
 
 All you need to know is '`gradlew jar`, `gradlew deploy`
 And `runMindustryClient `, `runMindustryServer ` to test it with [Toxopid](https://github.com/Xpdustry/Toxopid)
+
+# Special thanks
+- [Capitaine Echo](https://www.twitch.tv/capitaine_echo) - For Play testing the mod
+- [Wizer/Ferlern](https://github.com/Ferlern) - for the orginal [Extended-ui mod](https://github.com/Ferlern/extended-UI-v7) which what the original Caster User-Interface is based on
+- [xzxADIxzx](https://github.com/xzxADIxzx) - for [Scheme-Size](https://github.com/xzxADIxzx/Scheme-Size) as some features are base on it
