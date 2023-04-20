@@ -29,16 +29,16 @@ jobs:
       - name: Upload built jar file
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.repository.name }}
+          name: ${{ github.event.repository.name }}-${{ github.ref }}
           path: build/libs/${{ github.event.repository.name }}.jar
 
       - name: Release rename
-        run: mv build/libs/${{ github.event.repository.name }}.jar build/libs/${{ github.event.repository.name }}-${{ env.RELEASE_VERSION }}.jar
+          mv build/libs/${{ github.event.repository.name }}.jar build/libs/${{ github.event.repository.name }}-${{ github.ref }}.jar
 
       - name: Create release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: build/libs/${{ github.event.repository.name }}-${{ env.RELEASE_VERSION }}.jar
-          tag: ${{ github.event.repository.name }} ${{ env.RELEASE_VERSION }}
-          body: ${{ env.BODY }}
+          file: build/libs/${{ github.event.repository.name }}-${{ github.ref }}.jar
+          tag: ${{ github.ref }}
+          body: ${{ env.BODY }} ${{ github.event.repository.name }}

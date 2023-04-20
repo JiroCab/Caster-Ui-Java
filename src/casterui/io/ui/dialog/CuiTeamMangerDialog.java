@@ -23,7 +23,7 @@ public class CuiTeamMangerDialog extends BaseDialog {
     public int size = 100, teamSize = 40;
     public Cell<ScrollPane> playerPane, teamPane;
     public Table playerTable = new Table(), teamTable = new Table(), header = new Table();
-    public boolean clearUnit = false;
+    public boolean clearUnit = true;
 
     public CuiTeamMangerDialog(){
         super("@cui-team-manger");
@@ -109,7 +109,7 @@ public class CuiTeamMangerDialog extends BaseDialog {
 
     void rebuildOtherButtons() {
         buttons.button("@cui-apply", Icon.down, this::applyChanges).size(210f, 64f);
-        buttons.button(clearUnit ? "@cui-team-manger.remove" : "@cui-team-manger.keep", Icon.units, () -> {
+        buttons.button(clearUnit ? "@cui-team-manger.remove" : "@cui-team-manger.keep", clearUnit ? Icon.pause : Icon.units, () -> {
             clearUnit = !clearUnit;
             rebuildButtons();
         } ).size(210f, 64f);
@@ -135,6 +135,6 @@ public class CuiTeamMangerDialog extends BaseDialog {
 
     public void shouldShow(){
         if(!Vars.state.isMenu() && Vars.player.admin) show();
-        else Log.err("Not a server!");
+        else Log.err("Not a server/admin!");
     }
 }
