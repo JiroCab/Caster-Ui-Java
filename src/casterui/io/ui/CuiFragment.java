@@ -13,22 +13,34 @@ import casterui.CuiVars;
 import mindustry.Vars;
 import mindustry.game.Team;
 import mindustry.gen.*;
+import mindustry.logic.LAccess;
 import mindustry.type.UnitType;
 import mindustry.ui.Styles;
 import mindustry.world.Tile;
-import mindustry.world.blocks.power.PowerGraph;
+import mindustry.world.blocks.defense.turrets.Turret;
+import mindustry.world.blocks.power.*;
+import mindustry.world.blocks.units.UnitFactory;
 
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CuiFragment {
-    public Table playersTable = new Table(), unitTable = new Table(), controlTable = new Table(), unitPlayerTable =new Table(), blockTable = new Table();
+    public Table
+            playersTable = new Table(),
+            unitTable = new Table(),
+            controlTable = new Table(),
+            unitPlayerTable =new Table(),
+            blockTable = new Table(),
+            blockItemTable = new Table(),
+            blockLiquidTable = new Table();
     public int
             tableSize = Core.settings.getInt("cui-unitsPlayerTableSize"),
             playerIconSize = Core.settings.getInt("cui-playerIconSize"),
             unitsIconSize = Core.settings.getInt("cui-unitsIconSize");
     float buttonSize;
-    public Boolean unitTablePlayers = true, unitTableCompactPlayers = false, showBlockTable = false;
+    public Boolean  unitTableCompactPlayers = false, showBlockTable = false;
+    public Building mouseBuilding = null;
+    public int iconSizes = 25;
 
     public void BuildTables(Group parent){
 
@@ -57,20 +69,20 @@ public class CuiFragment {
 
     }
 
-    public void StutteredUpdateTables(){
-
+    public void StutteredUpdateTables() {
         if (CuiVars.hoveredEntity != null && !unitPlayerTable.hasMouse()) CuiVars.hoveredEntity = null;
         buttonSize = (float) Core.settings.getInt("cui-buttonSize");
 
         // region Control table
         controlTable.clear();
-        if(Core.settings.getBool("cui-ShowUnitTable")) controlTable.button(Icon.admin, Styles.defaulti, () -> CuiVars.showCoreUnits = !CuiVars.showCoreUnits).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.core-units.tooltip");
-        if(Core.settings.getBool("cui-ShowPlayerList")) controlTable.button(Icon.host, Styles.defaulti, () -> unitTableCompactPlayers = !unitTableCompactPlayers).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.compact-player-list.tooltip");
+        if (Core.settings.getBool("cui-ShowUnitTable"))
+            controlTable.button(Icon.admin, Styles.defaulti, () -> CuiVars.showCoreUnits = !CuiVars.showCoreUnits).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.core-units.tooltip");
+        if (Core.settings.getBool("cui-ShowPlayerList"))
+            controlTable.button(Icon.host, Styles.defaulti, () -> unitTableCompactPlayers = !unitTableCompactPlayers).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.compact-player-list.tooltip");
 
         //endregion
-
         //region Units Table
-        if(Core.settings.getBool("cui-ShowUnitTable")) {
+        if (Core.settings.getBool("cui-ShowUnitTable")) {
             unitTable.clear();
             Seq<Unit> allUnits = new Seq<>();
             Groups.unit.copy(allUnits);
@@ -105,6 +117,7 @@ public class CuiFragment {
             });
         }
         //endregion
+
         // region Players Table
         if(Core.settings.getBool("cui-ShowPlayerList")) {
             playersTable.clearChildren();
@@ -133,45 +146,77 @@ public class CuiFragment {
         //endregion
     }
 
+    public void slowUpdateTables(){
+        /*Moved here to reduce flickering*/
+        blockItemTable.clear();
+        blockLiquidTable.clear();
+        if (Core.settings.getBool("cui-ShowBlockInfo") && mouseBuilding != null) {
+            if (mouseBuilding.items != null && mouseBuilding.items.total() > 0) {
+                AtomicInteger itemTypes = new AtomicInteger();
+                mouseBuilding.items.each((item, amount) -> {
+                    blockItemTable.image(item.uiIcon).size(iconSizes).left();
+                    blockItemTable.label(() -> amount + " ");
+                    if (itemTypes.get() > 4) {
+                        itemTypes.set(0);
+                        blockItemTable.row();
+                    } else itemTypes.getAndIncrement();
+                });
+            }
+            if (mouseBuilding.liquids != null) {
+                AtomicInteger liquidTypes = new AtomicInteger();
+                mouseBuilding.liquids.each((liquid, amount) -> {
+                    float newliquid = Math.round(amount * 100f) / 100f;
+                    blockLiquidTable.image(liquid.uiIcon).size(iconSizes).left();
+                    blockLiquidTable.label(() -> newliquid + " ");
+                    if (liquidTypes.get() > 4) {
+                        liquidTypes.set(0);
+                        blockLiquidTable.row();
+                    } else liquidTypes.getAndIncrement();
+                });
+            }
+        }
+        //endregion
+    }
+
     public void UpdateTables(){
-        //region Block info
+        CuiVars.fastUpdate = !unitPlayerTable.hasMouse();
+
+        //region Block info main
         if (Core.settings.getBool("cui-ShowBlockInfo")) {
             blockTable.clear();
             Vec2 mouse = Core.input.mouseWorld(Core.input.mouseX(), Core.input.mouseY());
             Tile mouseTile = Vars.world.tileWorld(mouse.x, mouse.y);
             showBlockTable = false;
 
-            Building buiding = mouseTile != null ? mouseTile.build : null;
-            if (buiding != null) { //the less cool deltanedas/waisa
+            mouseBuilding = mouseTile != null ? mouseTile.build : null;
+            if (mouseBuilding != null) { //the less cool deltanedas/waisa
                 showBlockTable = true;
-                String armor = buiding.block.armor >= 1 ? " [white]("+Math.round(buiding.block.armor) +")" : "";
-                if(buiding.health > 0 && Core.settings.getBool("cui-ShowBlockHealth")){
+                String armor = mouseBuilding.block.armor >= 1 ? " [white]("+Math.round(mouseBuilding.block.armor) +")" : "";
+                if(mouseBuilding.health > 0 && Core.settings.getBool("cui-ShowBlockHealth")){
                     Vars.state.rules.enemyCoreBuildRadius = 0f;
-                    blockTable.label(()-> Core.bundle.get("cui-block-info.health") + ": [red]"+ Math.round(buiding.health) +"[white]/[pink]" + Math.round(buiding.maxHealth) +armor).row();
+                    blockTable.label(()-> Core.bundle.get("cui-block-info.health") + ": [red]"+ Math.round(mouseBuilding.health) +"[white]/[pink]" + Math.round(mouseBuilding.maxHealth) +armor).row();
                 }
-                if(buiding.power != null){
-                    PowerGraph graphs = buiding.power.graph;
+                if(mouseBuilding.power != null){
+                    PowerGraph graphs = mouseBuilding.power.graph;
                     int power = Math.round( graphs.getPowerBalance());
                     String sign = power > 0 ? "[stat]+" : "[red]";
 
-                    blockTable.label(() -> Core.bundle.get("cui-block-info.power") + ": "+  sign + power + "[white]").row();
+                    blockTable.label(() -> Core.bundle.get("cui-block-info.power") + ": "+  sign + power).row();
+                    if(mouseBuilding.block instanceof Battery || mouseBuilding.block instanceof PowerNode || mouseBuilding.block instanceof BeamNode) blockTable.label(() -> "[stat]"+ Math.round(mouseBuilding.sense(LAccess.powerNetStored))+ "[white]/[accent]" + Math.round(mouseBuilding.sense(LAccess.powerCapacity)));
                 }
-                if (buiding.items != null && buiding.items.total() > 0){
-                    AtomicInteger itemTypes = new AtomicInteger();
-                    Table resourcesTable = new Table();
-                    buiding.items.each((item, amount) -> {
-                        resourcesTable.image(item.uiIcon).left();
-                        resourcesTable.label(() -> String.valueOf(amount));
-                        resourcesTable.label(() -> " ");
-                        if(itemTypes.get() > 4){
-                            itemTypes.set(0);
-                            resourcesTable.row();
-                        }else itemTypes.getAndIncrement();
-                    });
-                    blockTable.add(resourcesTable).row();
+                if (mouseBuilding.items != null && mouseBuilding.items.total() > 0) blockTable.add(blockItemTable).row();
+                if (mouseBuilding.liquids != null) blockTable.add(blockLiquidTable).row();
+
+                if(mouseBuilding.config() instanceof String)blockTable.label(() -> mouseBuilding.config().toString()).row();
+                if(mouseBuilding.block instanceof UnitFactory){
+                    if(mouseBuilding.senseObject(LAccess.config)!= null){
+                        blockTable.image(() -> Core.atlas.find(mouseBuilding.senseObject(LAccess.config).toString())).size(iconSizes);
+                        blockTable.label(() -> Core.bundle.get(mouseBuilding.senseObject(LAccess.config).toString()));
+                    }
+                    if(mouseBuilding.getCommandPosition() != null) blockTable.label(() -> Core.bundle.get("cui-block-info.rally") + ": " + Math.round(mouseBuilding.getCommandPosition().x) + ", "+ Math.round(mouseBuilding.getCommandPosition().y)).row();
                 }
-                if(buiding.config() instanceof String)blockTable.label(() -> buiding.config().toString()).row();
-                if(buiding.config() instanceof TextureRegion) blockTable.image(((TextureRegion) buiding.config()).asAtlas()).row();
+                if(mouseBuilding.block instanceof Turret)blockTable.label(() -> "[accent]"+  mouseBuilding.sense(LAccess.ammo) + "[white]/[orange]"+ ((Turret) mouseBuilding.block).maxAmmo).row();
+                //TODO: heat
 
             }
         }

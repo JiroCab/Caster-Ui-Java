@@ -20,10 +20,10 @@ public class CuiVars {
     public static CuiInputs inputs = new CuiInputs();
     public static CuiTeamMangerDialog teamManger = new CuiTeamMangerDialog();
 
-    public static boolean showCoreUnits = true, initialized = false, unitTableCollapse = true;
+    public static boolean showCoreUnits = true, initialized = false, unitTableCollapse = true, fastUpdate = false;
     public static Player hoveredPlayer, clickedPlayer;
     public static Unit heldUnit, hoveredEntity, clickedEntity;
-    public static float  timer = 0, nextUpdate = 100;
+    public static float  timer = 0, nextUpdate = 100, nextUpdateFast;
     public static Tile lastCoreDestroyEvent;
     public static int updateDelay = Core.settings.getInt("cui-unitsPlayerTableUpdateRate");
 
@@ -52,11 +52,17 @@ public class CuiVars {
         fragment.UpdateTables();
 
         timer = Time.globalTime;
-        if(Vars.state.isPlaying() && timer >= nextUpdate && !initialized){
-            nextUpdate = timer + (updateDelay * 5);
+        if(Vars.state.isPlaying() && !initialized) {
+            if (timer >= nextUpdate ) {
+                nextUpdate = timer + (updateDelay * 5);
 
-            fragment.StutteredUpdateTables();
-        };
+                if(!fastUpdate)fragment.StutteredUpdateTables();
+            } else if (timer >= nextUpdateFast ){
+                nextUpdateFast = timer + (updateDelay * 2);
+                fragment.slowUpdateTables();
+                if(fastUpdate)fragment.StutteredUpdateTables();
+            }
+        }
     }
 
 }

@@ -5,17 +5,17 @@ import arc.Events;
 import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.struct.Seq;
-import arc.util.Log;
 import arc.util.Time;
 import casterui.CuiVars;
 import mindustry.Vars;
 import mindustry.ai.types.LogicAI;
 import mindustry.game.EventType;
 import mindustry.gen.*;
-import mindustry.graphics.*;
+import mindustry.graphics.Drawf;
+import mindustry.graphics.Layer;
 import mindustry.world.blocks.storage.CoreBlock;
 
-import static arc.graphics.g2d.Draw.*;
+import static arc.graphics.g2d.Draw.draw;
 
 
 public class CuiWorldRenderer {
@@ -44,14 +44,14 @@ public class CuiWorldRenderer {
                 EventType.BlockDestroyEvent e = circleQueue.first();
                 DrawLine(e.tile.x, e.tile.y, Vars.player.unit().x, Vars.player.unit().y, e.tile.team().color);
                 circleQueue.remove(e);
-                Log.err("Draw circle");
+                //Log.err("Draw circle");
                 float circlesAmount = 1, growSpeed = 1, maxRadius = 2000, radius = 0;
                 float startTime = Time.time;
 
                 Draw.color(e.tile.team().color);
                 for (int i = 0; i < circlesAmount; i++) {
                     if (radius > maxRadius) return;
-                    Log.err("trying to draw circle: "+ e + " | "+ i + "=" + radius * (1f + 0.2f *i));
+                    //Log.err("trying to draw circle: "+ e + " | "+ i + "=" + radius * (1f + 0.2f *i));
                     Drawf.circles(e.tile.x, e.tile.y, radius * (1f + 0.2f *i), e.tile.team().color != null ? e.tile.team().color : Color.red);
                     radius += (Time.time - startTime) / 8 * growSpeed;
                 }
@@ -110,7 +110,7 @@ public class CuiWorldRenderer {
 
         if (Core.settings.getBool("cui-ShowAlertsCircles")) {
             draw(Layer.overlayUI+0.02f, ()->{
-                Log.err("Draw circle");
+                //Log.err("Draw circle");
                 circleQueue.add(e);
             });
         }
