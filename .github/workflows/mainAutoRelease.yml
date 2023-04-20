@@ -29,20 +29,27 @@ jobs:
       - name: Build mod jar
         run: ./gradlew deploy
 
+      - name: set up tags
+        uses: IIlyichev/github-tag-action@v6.3
+        id: tag_version
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Release rename
+        run:
+          mv build/libs/${{ github.event.repository.name }}.jar build/libs/${{ github.event.repository.name }}-${{ steps.tag_version.outputs.new_tag }}.jar
+
       - name: Upload built jar file
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.repository.name }}-${{ github.ref }}
-          path: build/libs/${{ github.event.repository.name }}.jar
-
-      - name: Release rename
-        run:
-          mv build/libs/${{ github.event.repository.name }}.jar build/libs/${{ github.event.repository.name }}-${{ github.ref }}.jar
+          name: ${{ github.event.repository.name }}-${{ steps.tag_version.outputs.new_tag }}
+          path: build/libs/${{ github.event.repository.name }}-${{ steps.tag_version.outputs.new_tag }}.jar
 
       - name: Create release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: build/libs/${{ github.event.repository.name }}-${{ github.ref }}.jar
-          tag: ${{ github.ref }}
-          body: ${{ env.BODY }} ${{ github.event.repository.name }}
+          file: build/libs/${{ github.event.repository.name }}-${{ steps.tag_version.outputs.new_tag }}.jar
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ env.BODY }}
+
