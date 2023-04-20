@@ -31,12 +31,13 @@ jobs:
 
       - name: Tag setup release
         id: generate_release_tag
-        uses: aurestic/incrementarl-create-release@master
+        uses: amitsingh-007/next-release-tag@v4.0.0
         with:
           flag_branch: true
           message: bumb version & ${{github.body}}
           prev_tag: 'v'
           update_odoo_module_version: true
+          tag_template: 'i-yyyy-mm-dd'
         env:  
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -49,7 +50,6 @@ jobs:
       - name: Release rename
         run:
           mv build/libs/${{ github.event.repository.name }}.jar build/libs/${{ github.event.repository.name }}-${{ steps.generate_release_tag.outputs.next_release_tag }}.jar
-      
 
       - name: Create release
         uses: svenstaro/upload-release-action@v2
