@@ -34,7 +34,7 @@ jobs:
         uses: aurestic/incrementarl-create-release@master
         with:
           flag_branch: true
-          message: ${{github.body}}
+          message: bumb version & ${{github.body}}
           prev_tag: 'v'
           update_odoo_module_version: true
         env:  
