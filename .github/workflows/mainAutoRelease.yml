@@ -33,10 +33,8 @@ jobs:
         id: generate_release_tag
         uses: amitsingh-007/next-release-tag@v4.0.0
         with:
-          flag_branch: true
-          message: bumb version & ${{github.body}}
-          prev_tag: 'v'
-          update_odoo_module_version: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_prefix: 'v'
           tag_template: 'i-yyyy-mm-dd'
         env:  
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,4 +54,3 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: build/libs/${{ github.event.repository.name }}-${{ steps.generate_release_tag.outputs.next_release_tag }}.jar
-          tag: ${{ steps.generate_release_tag.outputs.next_release_tag }}
