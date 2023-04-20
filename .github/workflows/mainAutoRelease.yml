@@ -2,6 +2,8 @@ name: Main Auto build Release
 
 on:
   push:
+    tags:
+      - '*'
     branches:
       - main
 
@@ -31,7 +33,8 @@ jobs:
 
       - name: Upload built jar file
         uses: actions/upload-artifact@v2
-        with:
+       
+       with:
           name: ${{ github.event.repository.name }} ${{ github.ref }}
           path: build/libs/${{ github.event.repository.name }}.jar
 
