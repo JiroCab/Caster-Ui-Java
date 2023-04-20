@@ -51,6 +51,8 @@ public class CuiInputs {
 
         if(input.keyTap(CuiBinding.toggle_cui_menu) && !settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = !CuiVars.unitTableCollapse;
         else if(settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = ui.hudfrag.shown;
+        if(input.keyTap(CuiBinding.host_teams))CuiVars.teamManger.shouldShow();
+
     }
 
 

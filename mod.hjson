@@ -3,7 +3,7 @@ displayName: "Caster User interface (WIP)"
 author: "RushieWashie"
 description: (WIP) A Mindustry Mod Aims to make the client a bit better for casting! Java rewrite of 'JiroCab/Caster-Ui' which was based off 'Ferlern/extended-UI'
 subtitle: "Helping you cast games~"
-version: 1.0
+version: 2.0
 
 minGameVersion: 140.4
 hidden: true
