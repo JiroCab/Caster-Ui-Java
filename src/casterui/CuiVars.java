@@ -23,7 +23,7 @@ public class CuiVars {
     public static boolean showCoreUnits = true, initialized = false, unitTableCollapse = true, fastUpdate = false;
     public static Player hoveredPlayer, clickedPlayer;
     public static Unit heldUnit, hoveredEntity, clickedEntity;
-    public static float  timer = 0, nextUpdate = 100, nextUpdateFast;
+    public static float  timer = 0, nextUpdate = 100, nextUpdateFast = 50;
     public static Tile lastCoreDestroyEvent;
     public static int updateDelay = Core.settings.getInt("cui-unitsPlayerTableUpdateRate");
 
