@@ -4,7 +4,6 @@ import arc.Core;
 import arc.Events;
 import arc.graphics.Color;
 import arc.graphics.g2d.*;
-import arc.struct.Seq;
 import arc.util.Time;
 import casterui.CuiVars;
 import mindustry.Vars;
@@ -15,11 +14,14 @@ import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
 import mindustry.world.blocks.storage.CoreBlock;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static arc.graphics.g2d.Draw.draw;
 
 
 public class CuiWorldRenderer {
-    public  Seq<EventType.BlockDestroyEvent> circleQueue = new Seq<>();
+    public Map<EventType.BlockDestroyEvent, Float> circleQueue = new HashMap<>(), circleRemoveQueue = new HashMap<>();
 
     public int
             playerLineAlpha = Core.settings.getInt("cui-playerTrackAlpha"),
@@ -39,24 +41,19 @@ public class CuiWorldRenderer {
                     if (trackLogicControl && unit.controller() instanceof LogicAI la) DrawLogicControl(unit, la.controller);
                 }));
             }
+            if (circleQueue.size() != 0 && Core.settings.getBool("cui-ShowAlertsCircles")){
+                float maxSize = Math.max((Vars.state.map.height + Vars.state.map.width) / 1.85f, 3000f), growRate = Core.settings.getInt("cui-alertCircleSpeed") / 2f;
+                circleRemoveQueue.forEach((a, b) -> circleQueue.remove(a, b));
+                circleRemoveQueue.clear();
 
-            if (circleQueue.size != 0 && circleQueue.first() != null){
-                EventType.BlockDestroyEvent e = circleQueue.first();
-                DrawLine(e.tile.x, e.tile.y, Vars.player.unit().x, Vars.player.unit().y, e.tile.team().color);
-                circleQueue.remove(e);
-                //Log.err("Draw circle");
-                float circlesAmount = 1, growSpeed = 1, maxRadius = 2000, radius = 0;
-                float startTime = Time.time;
-
-                Draw.color(e.tile.team().color);
-                for (int i = 0; i < circlesAmount; i++) {
-                    if (radius > maxRadius) return;
-                    //Log.err("trying to draw circle: "+ e + " | "+ i + "=" + radius * (1f + 0.2f *i));
-                    Drawf.circles(e.tile.x, e.tile.y, radius * (1f + 0.2f *i), e.tile.team().color != null ? e.tile.team().color : Color.red);
-                    radius += (Time.time - startTime) / 8 * growSpeed;
-                }
+                Draw.draw(Layer.overlayUI + 0.01f, () -> circleQueue.forEach((e, startTime) ->{
+                    float radius = Math.abs(startTime - Time.time ) * growRate + e.tile.block().size, size = Math.abs(startTime - Time.time ) * growRate + e.tile.block().size;
+                    if(size > maxSize) circleRemoveQueue.put(e, startTime);
+                    Draw.color(e.tile.team().color);
+                    Drawf.circles(e.tile.getX(), e.tile.getY(), radius);
+                    Draw.reset();
+                }));
             }
-
         });
     }
 
@@ -109,10 +106,7 @@ public class CuiWorldRenderer {
         if(!(e.tile.build instanceof CoreBlock.CoreBuild)) return;
 
         if (Core.settings.getBool("cui-ShowAlertsCircles")) {
-            draw(Layer.overlayUI+0.02f, ()->{
-                //Log.err("Draw circle");
-                circleQueue.add(e);
-            });
+                circleQueue.put(e, Time.time);
         }
 
         if (Core.settings.getBool("cui-ShowAlerts")){

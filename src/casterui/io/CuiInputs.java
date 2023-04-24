@@ -9,7 +9,8 @@ import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class CuiInputs {
-    public boolean tracking = false;
+    public boolean tracking = false, keepPlayerTracking = false;
+    public int trackingType = 4;
 
     public void update(){
         tracking = false;
@@ -35,16 +36,34 @@ public class CuiInputs {
                 input.panning = true;
             }
 
-            //workaround for when in multiplayer, sometimes respawning puts you in 0,0 during the animation before moving your unit
-            if ( CuiVars.clickedPlayer.unit() != null && (CuiVars.clickedPlayer.unit().x != 0 && CuiVars.clickedPlayer.unit().y != 0)){
-                if (!input.keyDown(CuiBinding.track_cursor)) Core.camera.position.lerpDelta(CuiVars.clickedPlayer.unit(), cameraFloat);
-                else camera.position.lerpDelta(CuiVars.clickedPlayer.mouseX, CuiVars.clickedPlayer.mouseY, cameraFloat);
-                tracking = true;
-            } else if (CuiVars.clickedPlayer.team().data().hasCore()) {
-                Core.camera.position.lerpDelta(CuiVars.clickedPlayer.bestCore(), cameraFloat);
-                tracking = true;
-            } else {
-                CuiVars.clickedPlayer = null;
+
+            if ( CuiVars.clickedPlayer != null && !tracking){
+                trackingType = 4;
+                //workaround for when in multiplayer, sometimes respawning puts you in 0,0 during the animation before moving your unit
+                if ((CuiVars.clickedPlayer.unit() == null || CuiVars.clickedPlayer.unit().x != 0 && CuiVars.clickedPlayer.unit().y != 0) && CuiVars.clickedPlayer.team().data().hasCore()) trackingType = 3;
+                if ( CuiVars.clickedPlayer.unit() != null && (CuiVars.clickedPlayer.unit().x != 0 && CuiVars.clickedPlayer.unit().y != 0)) trackingType = 1;
+                if (input.keyDown(CuiBinding.track_cursor) && settings.getBool("cui-playerHoldTrackMouse")) trackingType = 2;
+                if (input.keyTap(CuiBinding.track_cursor) && !settings.getBool("cui-playerHoldTrackMouse")) keepPlayerTracking = !keepPlayerTracking;
+                if (keepPlayerTracking && !settings.getBool("cui-playerHoldTrackMouse")) trackingType = 2;
+
+                switch (trackingType) {
+                    case 1 -> {
+                        tracking = true;
+                        Core.camera.position.lerpDelta(CuiVars.clickedPlayer.unit(), cameraFloat);
+                    }
+                    case 2 -> {
+                        tracking = true;
+                        camera.position.lerpDelta(CuiVars.clickedPlayer.mouseX, CuiVars.clickedPlayer.mouseY, cameraFloat);
+                    }
+                    case 3 -> {
+                        tracking = true;
+                        Core.camera.position.lerpDelta(CuiVars.clickedPlayer.bestCore(), cameraFloat);
+                    }
+                    case 4 -> {
+                        tracking = false;
+                        CuiVars.clickedPlayer = null;
+                    }
+                }
             }
         }
 

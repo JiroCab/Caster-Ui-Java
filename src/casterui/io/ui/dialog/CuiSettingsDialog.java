@@ -25,13 +25,14 @@ public class CuiSettingsDialog {
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
                 subTable.checkPref("cui-ShowPlayerList", true);
-                subTable.checkPref("cui-hideNoUnitPlayers", false);
-                subTable.checkPref("cui-TrackPlayerCursor", false);
+                subTable.checkPref("cui-hideNoUnitPlayers", true);
+                subTable.checkPref("cui-TrackPlayerCursor", true);
                 subTable.checkPref("cui-ShowOwnCursor", false);
                 subTable.sliderPref("cui-playerCursorStyle", 6, 1, 7, String::valueOf);
                 subTable.sliderPref("cui-playerTrackAlpha", 8, 1, 10, String::valueOf);
                 subTable.sliderPref("cui-playerTrackedAlpha", 10, 1, 10, String::valueOf);
                 subTable.sliderPref("cui-playerIconSize", 35, 1, 100, String::valueOf);
+                subTable.checkPref("cui-playerHoldTrackMouse", true);
 
                 allCuiOptions.add(subTable);
                 t.add(subTable);
@@ -59,8 +60,9 @@ public class CuiSettingsDialog {
 
                 subTable.checkPref("cui-ShowAlerts", true);
                 subTable.checkPref("cui-AlertsUseBottom", true);
+                subTable.checkPref("cui-SendChatCoreLost", false);
                 subTable.checkPref("cui-ShowAlertsCircles", true);
-                subTable.checkPref("cui-SendChatCoreLost", true);
+                subTable.sliderPref("cui-alertCircleSpeed", 6, 1 , 20, a -> (a/2f) + "x");
 
                 allCuiOptions.add(subTable);
                 t.add(subTable);
