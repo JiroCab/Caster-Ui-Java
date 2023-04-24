@@ -208,15 +208,16 @@ public class CuiFragment {
                 if (mouseBuilding.liquids != null) blockTable.add(blockLiquidTable).row();
 
                 if(mouseBuilding.config() instanceof String)blockTable.label(() -> mouseBuilding.config().toString()).row();
-                if(mouseBuilding.block instanceof UnitFactory){
-                    if(mouseBuilding.senseObject(LAccess.config)!= null){
-                        blockTable.image(() -> Core.atlas.find(mouseBuilding.senseObject(LAccess.config).toString())).size(iconSizes);
-                        blockTable.label(() -> Core.bundle.get(mouseBuilding.senseObject(LAccess.config).toString()));
-                    }
+                if(mouseBuilding.block instanceof UnitFactory && mouseBuilding.senseObject(LAccess.config)!= null){
+                    blockTable.table(a-> {
+                        a.label(() -> Vars.content.unit(mouseBuilding.senseObject(LAccess.config).toString()).localizedName).pad(1f);
+                        a.image(() -> Vars.content.unit(mouseBuilding.senseObject(LAccess.config).toString()).fullIcon).size(iconSizes).pad(1f).row();
+                    }).row();
+
                     if(mouseBuilding.getCommandPosition() != null) blockTable.label(() -> Core.bundle.get("cui-block-info.rally") + ": " + Math.round(mouseBuilding.getCommandPosition().x) + ", "+ Math.round(mouseBuilding.getCommandPosition().y)).row();
                 }
                 if(mouseBuilding.block instanceof Turret)blockTable.label(() -> "[accent]"+  mouseBuilding.sense(LAccess.ammo) + "[white]/[orange]"+ ((Turret) mouseBuilding.block).maxAmmo).row();
-                //TODO: heat
+                //TODO: heat, block constructors
 
             }
         }
