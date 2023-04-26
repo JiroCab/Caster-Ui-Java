@@ -15,18 +15,20 @@ public enum CuiBinding implements KeyBinds.KeyBind {
     track_cursor(KeyCode.h, "cui"),
     last_destroyed_core(KeyCode.g),
     toggle_cui_menu(KeyCode.f7),
-    host_teams(KeyCode.home);
+    host_teams(KeyCode.home),
+    spectate_next_player(KeyCode.leftBracket),
+    spectate_previous_player(KeyCode.rightBracket);
 
 
     private final KeyBinds.KeybindValue defaultValue;
     private final String category;
 
-    private CuiBinding(KeyBinds.KeybindValue defaultValue, String category) {
+    CuiBinding(KeyBinds.KeybindValue defaultValue, String category) {
         this.defaultValue = defaultValue;
         this.category = category;
     }
 
-    private CuiBinding(KeyBinds.KeybindValue defaultValue) {
+    CuiBinding(KeyBinds.KeybindValue defaultValue) {
         this(defaultValue, null);
     }
 
