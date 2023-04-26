@@ -1,7 +1,10 @@
 package casterui.io;
 
 import arc.Core;
+import arc.struct.Seq;
 import casterui.CuiVars;
+import mindustry.gen.Groups;
+import mindustry.gen.Player;
 import mindustry.input.Binding;
 import mindustry.input.DesktopInput;
 
@@ -11,12 +14,24 @@ import static mindustry.Vars.*;
 public class CuiInputs {
     public boolean tracking = false, keepPlayerTracking = false;
     public int trackingType = 4;
+    Seq<Player> ply = new Seq<>();
+    public int playerNumber = 0;
 
     public void update(){
+        if (state.isMenu()) return;
+
+        if(input.keyTap(CuiBinding.toggle_cui_menu) && !settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = !CuiVars.unitTableCollapse;
+        else if(settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = ui.hudfrag.shown;
+        if(input.keyTap(CuiBinding.host_teams))CuiVars.teamManger.shouldShow();
+
+        if (scene.hasField()) return;
         tracking = false;
 
         float cameraFloat = 0.085F;
         if (!Core.settings.getBool("smoothcamera")){ cameraFloat = 1;}
+
+        if(input.keyTap(CuiBinding.spectate_next_player)) cyclePlayers(true);
+        if(input.keyTap(CuiBinding.spectate_previous_player)) cyclePlayers(false);
 
         if (CuiVars.lastCoreDestroyEvent != null && input.keyDown(CuiBinding.last_destroyed_core) && !tracking){
             if(control.input instanceof DesktopInput input) input.panning = true;
@@ -66,14 +81,26 @@ public class CuiInputs {
                 }
             }
         }
-
-
-        if(input.keyTap(CuiBinding.toggle_cui_menu) && !settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = !CuiVars.unitTableCollapse;
-        else if(settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = ui.hudfrag.shown;
-        if(input.keyTap(CuiBinding.host_teams))CuiVars.teamManger.shouldShow();
-
     }
 
+    void cyclePlayers(boolean increment){
+        ply.clear();
+        Groups.player.forEach(ply::add);
+        ply.remove(player);
 
+        if (ply.size < 1) return;
+        int number = playerNumber;
+
+        if(increment) number++;
+        else number--;
+
+        if(number >= ply.size ) number = 0;
+        if(number <= -1) number = ply.size - 1;
+
+        playerNumber = number;
+
+        //Log.err(playerNumber + " | " + number +"/" + ply.size + " | " +ply.get(playerNumber).name());
+        CuiVars.clickedPlayer = ply.get(playerNumber);
+    }
 
 }
