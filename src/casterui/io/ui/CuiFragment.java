@@ -125,11 +125,11 @@ public class CuiFragment {
 
             Groups.player.each(player -> {
                 if(player == Vars.player) return;
-                if(Core.settings.getBool("cui-hideNoUnitPlayers")  &&(player.unit().isNull()) || CuiVars.clickedPlayer.team().data().hasCore())return;
+                if(Core.settings.getBool("cui-hideNoUnitPlayers")  &&(player.unit() == null) || CuiVars.clickedPlayer.team().data().hasCore())return;
 
                 Label teamIcon = new Label(() -> player.team().emoji.equals("") ? "[#" + player.team().color + "]" +player.team().id + "[]" : player.team().emoji);
                 if (!unitTableCompactPlayers) playersTable.add(teamIcon).with( w -> w.tapped( () -> setTrackPlayer(player)));
-                TextureRegion playerIcon = player.unit().isNull() ? Icon.eye.getRegion() : player.unit().icon();
+                TextureRegion playerIcon = player.unit() == null ? Icon.eye.getRegion() : player.unit().icon();
 
                 playersTable.add(new Image(playerIcon).setScaling(Scaling.bounded)).size(playerIconSize).left().with( w -> w.tapped( () -> setTrackPlayer(player)));
 
