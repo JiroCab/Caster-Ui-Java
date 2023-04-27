@@ -125,7 +125,7 @@ public class CuiFragment {
 
             Groups.player.each(player -> {
                 if(player == Vars.player) return;
-                if(player.unit() == null && Core.settings.getBool("cui-hideNoUnitPlayers"))return;
+                if(Core.settings.getBool("cui-hideNoUnitPlayers")  &&(player.unit().isNull()) || CuiVars.clickedPlayer.team().data().hasCore())return;
 
                 Label teamIcon = new Label(() -> player.team().emoji.equals("") ? "[#" + player.team().color + "]" +player.team().id + "[]" : player.team().emoji);
                 if (!unitTableCompactPlayers) playersTable.add(teamIcon).with( w -> w.tapped( () -> setTrackPlayer(player)));

@@ -1,6 +1,7 @@
 package casterui.io;
 
 import arc.Core;
+import arc.input.KeyCode;
 import arc.struct.Seq;
 import casterui.CuiVars;
 import mindustry.gen.Groups;
@@ -22,7 +23,18 @@ public class CuiInputs {
 
         if(input.keyTap(CuiBinding.toggle_cui_menu) && !settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = !CuiVars.unitTableCollapse;
         else if(settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = ui.hudfrag.shown;
-        if(input.keyTap(CuiBinding.host_teams))CuiVars.teamManger.shouldShow();
+        if(input.keyTap(CuiBinding.host_teams))CuiVars.teamManger.show();
+
+        /*TODO: something more elegant? */
+        if(input.keyTap(KeyCode.num1) && CuiVars.mappedPlayers.get(1) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(1);
+        if(input.keyTap(KeyCode.num2) && CuiVars.mappedPlayers.get(2) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(2);
+        if(input.keyTap(KeyCode.num3) && CuiVars.mappedPlayers.get(3) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(3);
+        if(input.keyTap(KeyCode.num4) && CuiVars.mappedPlayers.get(4) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(4);
+        if(input.keyTap(KeyCode.num5) && CuiVars.mappedPlayers.get(5) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(5);
+        if(input.keyTap(KeyCode.num6) && CuiVars.mappedPlayers.get(6) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(6);
+        if(input.keyTap(KeyCode.num7) && CuiVars.mappedPlayers.get(7) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(7);
+        if(input.keyTap(KeyCode.num8) && CuiVars.mappedPlayers.get(8) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(8);
+        if(input.keyTap(KeyCode.num9) && CuiVars.mappedPlayers.get(9) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(9);
 
         if (scene.hasField()) return;
         tracking = false;
@@ -55,7 +67,7 @@ public class CuiInputs {
             if ( CuiVars.clickedPlayer != null && !tracking){
                 trackingType = 4;
                 //workaround for when in multiplayer, sometimes respawning puts you in 0,0 during the animation before moving your unit
-                if ((CuiVars.clickedPlayer.unit() == null || CuiVars.clickedPlayer.unit().x != 0 && CuiVars.clickedPlayer.unit().y != 0) && CuiVars.clickedPlayer.team().data().hasCore()) trackingType = 3;
+                if ((CuiVars.clickedPlayer.isNull() || CuiVars.clickedPlayer.unit().x != 0 && CuiVars.clickedPlayer.unit().y != 0) && CuiVars.clickedPlayer.team().data().hasCore()) trackingType = 3;
                 if ( CuiVars.clickedPlayer.unit() != null && (CuiVars.clickedPlayer.unit().x != 0 && CuiVars.clickedPlayer.unit().y != 0)) trackingType = 1;
                 if (input.keyDown(CuiBinding.track_cursor) && settings.getBool("cui-playerHoldTrackMouse")) trackingType = 2;
                 if (input.keyTap(CuiBinding.track_cursor) && !settings.getBool("cui-playerHoldTrackMouse")) keepPlayerTracking = !keepPlayerTracking;
@@ -85,7 +97,10 @@ public class CuiInputs {
 
     void cyclePlayers(boolean increment){
         ply.clear();
-        Groups.player.forEach(ply::add);
+        Groups.player.forEach(p -> {
+            if(settings.getBool("cui-hideNoUnitPlayers") && (p.unit() == null || !p.team().data().hasCore())) return;
+            if(p != player) ply.add(p);
+        });
         ply.remove(player);
 
         if (ply.size < 1) return;
