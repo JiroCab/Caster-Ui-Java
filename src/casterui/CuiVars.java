@@ -14,6 +14,9 @@ import mindustry.gen.Player;
 import mindustry.gen.Unit;
 import mindustry.world.Tile;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class CuiVars {
     public static CuiWorldRenderer renderer = new CuiWorldRenderer();
     public static CuiFragment fragment = new CuiFragment();
@@ -26,6 +29,7 @@ public class CuiVars {
     public static float  timer = 0, nextUpdate = 100, nextUpdateFast = 50;
     public static Tile lastCoreDestroyEvent;
     public static int updateDelay = Core.settings.getInt("cui-unitsPlayerTableUpdateRate");
+    public static Map<Integer, Player> mappedPlayers = new HashMap<>();
 
 
     public static void init(){
