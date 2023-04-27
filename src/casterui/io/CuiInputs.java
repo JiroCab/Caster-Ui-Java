@@ -65,7 +65,7 @@ public class CuiInputs {
             if ( CuiVars.clickedPlayer != null && !tracking){
                 trackingType = 4;
                 //workaround for when in multiplayer, sometimes respawning puts you in 0,0 during the animation before moving your unit
-                if ((CuiVars.clickedPlayer.isNull() || CuiVars.clickedPlayer.unit().x != 0 && CuiVars.clickedPlayer.unit().y != 0) && CuiVars.clickedPlayer.team().data().hasCore()) trackingType = 3;
+                if ((CuiVars.clickedPlayer == null || CuiVars.clickedPlayer.unit().x != 0 && CuiVars.clickedPlayer.unit().y != 0) && CuiVars.clickedPlayer.team().data().hasCore()) trackingType = 3;
                 if ( CuiVars.clickedPlayer.unit() != null && (CuiVars.clickedPlayer.unit().x != 0 && CuiVars.clickedPlayer.unit().y != 0)) trackingType = 1;
                 if (input.keyDown(CuiBinding.track_cursor) && settings.getBool("cui-playerHoldTrackMouse")) trackingType = 2;
                 if (input.keyTap(CuiBinding.track_cursor) && !settings.getBool("cui-playerHoldTrackMouse")) keepPlayerTracking = !keepPlayerTracking;
