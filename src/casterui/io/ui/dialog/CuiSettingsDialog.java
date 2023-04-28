@@ -45,6 +45,7 @@ public class CuiSettingsDialog {
 
                 subTable.checkPref("cui-ShowUnitTable", false);
                 subTable.sliderPref("cui-unitsIconSize", 32, 1, 100, String::valueOf);
+                subTable.checkPref("cui-separateTeamsUnit", true);
                 subTable.checkPref("cui-showUnitBar", true);
                 subTable.checkPref("cui-TrackLogicControl", false);
                 subTable.sliderPref("cui-logicLineAlpha", 4, 1, 10, String::valueOf);
