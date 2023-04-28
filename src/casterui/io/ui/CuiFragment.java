@@ -7,7 +7,6 @@ import arc.scene.Group;
 import arc.scene.ui.Image;
 import arc.scene.ui.Label;
 import arc.scene.ui.layout.Table;
-import arc.struct.Seq;
 import arc.util.Scaling;
 import casterui.CuiVars;
 import mindustry.Vars;
@@ -22,7 +21,10 @@ import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.units.UnitFactory;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static arc.Core.settings;
 
 public class CuiFragment {
     public Table
@@ -34,7 +36,6 @@ public class CuiFragment {
             blockItemTable = new Table(),
             blockLiquidTable = new Table();
     public int
-            tableSize = Core.settings.getInt("cui-unitsPlayerTableSize"),
             playerIconSize = Core.settings.getInt("cui-playerIconSize"),
             unitsIconSize = Core.settings.getInt("cui-unitsIconSize");
     float buttonSize;
@@ -82,39 +83,32 @@ public class CuiFragment {
 
         //endregion
         //region Units Table
+        unitTable.clear();
         if (Core.settings.getBool("cui-ShowUnitTable")) {
-            unitTable.clear();
-            Seq<Unit> allUnits = new Seq<>();
-            Groups.unit.copy(allUnits);
-
-            allUnits.sort(unit -> unit.team.id);
-            HashMap<String, Integer> heldCounts = new HashMap<>();
-
             AtomicInteger icons = new AtomicInteger();
-            allUnits.forEach(unit -> {
-                if (unit.spawnedByCore && CuiVars.showCoreUnits) return;
-                if (CuiVars.heldUnit == null) CuiVars.heldUnit = unit;
-                String teamUnits = "cui-" + unit.team.id + "=" + unit.type.name + "~";
 
-                if (CuiVars.heldUnit.type == unit.type && CuiVars.heldUnit.team == unit.team) {
-                    heldCounts.put(teamUnits, heldCounts.get(teamUnits) != null ? heldCounts.get(teamUnits) + 1 : 1);
-                } else CuiVars.heldUnit = unit;
-            });
+            for (int id = 0 ; id < Team.all.length ; id++){
+                Team team = Team.get(id);
+                if(team.data().units.size >= 1) {
+                    Map<Short, Integer> teamUnits = new HashMap<>();
 
-            heldCounts.forEach((unitString, count) -> {
-                //TODO: REDO
-                UnitType type = Vars.content.unit(unitString.replaceFirst("[cui-].*?[=]", "").replace("~", ""));
-                Team team = Team.get(Integer.parseInt(unitString.replaceFirst("cui-", "").replaceFirst("[=].*?[~]", "")));
-                Image unitIcon = new Image(type.fullIcon);
-                unitIcon.setScaling(Scaling.bounded);
-                unitTable.add(unitIcon).tooltip(type.localizedName).size(unitsIconSize).get();
-                unitTable.add(new Label(() -> "[#" + team.color.toString() + "]" + count + "[white]")).get();
-                if (icons.get() >= tableSize) {
-                    unitTable.row();
-                    icons.set(0);
-                } else icons.getAndIncrement();
+                    for (Unit u : team.data().units.sort(unit -> unit.type.id)) {
+                        teamUnits.merge(u.type.id, 1, Integer::sum);
+                    }
+                    teamUnits.forEach((u, i ) ->{
+                        UnitType unit = Vars.content.unit(u);
+                        unitTable.image(new TextureRegion(unit.fullIcon)).tooltip(unit.localizedName).size(unitsIconSize).get();
+                        unitTable.add(new Label(() -> "[#" + team.color.toString() + "]" + i + "[white]")).get();
 
-            });
+                        if (icons.get() >= settings.getInt("cui-unitsPlayerTableSize")) {
+                            unitTable.row();
+                            icons.set(0);
+                        } else icons.getAndIncrement();
+                    });
+
+
+                }
+            }
         }
         //endregion
 
@@ -125,11 +119,11 @@ public class CuiFragment {
 
             Groups.player.each(player -> {
                 if(player == Vars.player) return;
-                if(Core.settings.getBool("cui-hideNoUnitPlayers")  &&(player.unit() == null) || CuiVars.clickedPlayer.team().data().hasCore())return;
+                if(settings.getBool("cui-hideNoUnitPlayers") && (player.unit() == null) || !player.team().data().hasCore())return;
 
                 Label teamIcon = new Label(() -> player.team().emoji.equals("") ? "[#" + player.team().color + "]" +player.team().id + "[]" : player.team().emoji);
                 if (!unitTableCompactPlayers) playersTable.add(teamIcon).with( w -> w.tapped( () -> setTrackPlayer(player)));
-                TextureRegion playerIcon = player.unit() == null ? Icon.eye.getRegion() : player.unit().icon();
+                TextureRegion playerIcon = player.unit().icon() == null ? Icon.eye.getRegion() : player.unit().icon();
 
                 playersTable.add(new Image(playerIcon).setScaling(Scaling.bounded)).size(playerIconSize).left().with( w -> w.tapped( () -> setTrackPlayer(player)));
 
@@ -236,7 +230,6 @@ public class CuiFragment {
 
         playerIconSize = Core.settings.getInt("cui-playerIconSize");
         unitsIconSize = Core.settings.getInt("cui-unitsIconSize");
-        tableSize = Core.settings.getInt("cui-unitsPlayerTableSize");
         unitPlayerTable.clear();
     }
 
