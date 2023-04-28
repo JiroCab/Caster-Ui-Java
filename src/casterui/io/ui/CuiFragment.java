@@ -89,6 +89,7 @@ public class CuiFragment {
 
             for (int id = 0 ; id < Team.all.length ; id++){
                 Team team = Team.get(id);
+                if(settings.getBool("cui-separateTeamsUnit"))unitTable.row();
                 if(team.data().units.size >= 1) {
                     Map<Short, Integer> teamUnits = new HashMap<>();
 

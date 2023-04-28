@@ -71,7 +71,7 @@ public class CuiTeamMangerDialog extends BaseDialog {
 
             header.label(() -> lastTeam != null && lastPlayer != null ? Core.bundle.format( "cui-team-manger.last", lastPlayer.name, lastTeam)  : "@cui-team-manger.no-last").left().pad(15f);
             header.label(() -> Core.bundle.format("cui-team-manger.info", selectedPlayer.name(), selectedTeam.name.equals("") ? "[#" + selectedTeam.color + "]" + selectedPlayer.id + "[]" : "[white]" + selectedTeam.localized() + selectedTeam.emoji )).right().pad(15f);
-        } else header.label( () -> "Click on a player and press any number to set them as quick spectate! (even works while hosted)");
+        } else header.label( () -> "@cui-team-manger.tip");
         teamTable.row();
 
 
