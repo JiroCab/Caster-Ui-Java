@@ -4,8 +4,10 @@ import arc.Core;
 import arc.Events;
 import arc.graphics.Color;
 import arc.graphics.g2d.*;
+import arc.struct.Seq;
 import arc.util.Time;
 import casterui.CuiVars;
+import casterui.util.CuiCircleObjectHelper;
 import mindustry.Vars;
 import mindustry.ai.types.LogicAI;
 import mindustry.game.EventType;
@@ -14,19 +16,11 @@ import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
 import mindustry.world.blocks.storage.CoreBlock;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static arc.graphics.g2d.Draw.draw;
 
 
 public class CuiWorldRenderer {
-    public Map<EventType.BlockDestroyEvent, Float> circleQueue = new HashMap<>(), circleRemoveQueue = new HashMap<>();
-
-    public int
-            playerLineAlpha = Core.settings.getInt("cui-playerTrackAlpha"),
-            trackedPlayerLineAlpha = Core.settings.getInt("cui-playerTrackedAlpha"),
-            logicLineAlpha =  Core.settings.getInt("cui-logicLineAlpha") ;
+    public Seq<CuiCircleObjectHelper> circleQueue = new Seq<>();
 
     public void worldRenderer(){
         Events.run(EventType.Trigger.draw, ()-> {
@@ -37,23 +31,41 @@ public class CuiWorldRenderer {
             if (unitBars || trackLogicControl || trackPlayerCursor){
                 Groups.unit.each((unit -> {
                     if (unitBars) DrawUnitBars(unit);
-                    if (trackPlayerCursor && unit.isPlayer()) DrawPlayerCursor(unit);
                     if (trackLogicControl && unit.controller() instanceof LogicAI la) DrawLogicControl(unit, la.controller);
                 }));
+                if(trackPlayerCursor) Groups.player.each(ply ->{
+                    if(ply.unit() != null){DrawPlayerCursor(ply);}
+                });
             }
-            if (circleQueue.size() != 0 && Core.settings.getBool("cui-ShowAlertsCircles")){
-                float maxSize = Math.max((Vars.state.map.height + Vars.state.map.width) / 1.85f, 3000f), growRate = Core.settings.getInt("cui-alertCircleSpeed") / 2f;
-                circleRemoveQueue.forEach((a, b) -> circleQueue.remove(a, b));
-                circleRemoveQueue.clear();
+            if (circleQueue.size != 0 && Core.settings.getBool("cui-ShowAlertsCircles")){
+                /*Why would anyone need this amount control for the speed? ehh why not!*/
+                float maxSize = Math.max((Vars.state.map.height + Vars.state.map.width) / 1.85f, 3000f), growRate = Math.round(Core.settings.getInt("cui-alertCircleSpeed") * 0.5f);
 
-                Draw.draw(Layer.overlayUI + 0.01f, () -> circleQueue.forEach((e, startTime) ->{
-                    float radius = Math.abs(startTime - Time.time ) * growRate + e.tile.block().size, size = Math.abs(startTime - Time.time ) * growRate + e.tile.block().size;
-                    if(size > maxSize) circleRemoveQueue.put(e, startTime);
-                    Draw.color(e.tile.team().color);
-                    Drawf.circles(e.tile.getX(), e.tile.getY(), radius);
+                Draw.draw(Layer.overlayUI + 0.01f, () -> circleQueue.forEach((cir) -> {
+                    float radius = Math.abs(cir.startTime - Time.time) * growRate + cir.size, size = Math.abs(cir.startTime - Time.time) * growRate + cir.size;
+                    if (size > maxSize) circleQueue.remove(cir);
+                    Draw.color(cir.team.color);
+
+                    int style = Core.settings.getInt("cui-alertStyle");
+                    if (style == 2){Drawf.dashCircle(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);}
+                    else if(style == 3){Drawf.select(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);}
+                    else if(style == 4){Drawf.square(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);}
+                    else if(style == 5){Drawf.target(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);}
+                    else Drawf.circles(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);
                     Draw.reset();
                 }));
             }
+
+            if(CuiVars.drawRally){
+                Building block = CuiVars.fragment.mouseBuilding;
+                Draw.draw(Layer.overlayUI+0.01f, () -> DrawLine(block.getX(), block.getY(), block.getCommandPosition().x ,block.getCommandPosition().getY(), block.team.color, Core.settings.getInt("cui-logicLineAlpha") * 0.1f));
+            }
+        });
+        Events.run(EventType.Trigger.update, () -> {
+            boolean trackLogicControl = Core.settings.getBool("cui-TrackLogicControl", false);
+            Groups.unit.each(unit -> {
+                if (trackLogicControl && unit.controller() instanceof LogicAI la) DrawLogicControl(unit, la.controller);
+            });
         });
     }
 
@@ -61,27 +73,35 @@ public class CuiWorldRenderer {
 
     }
 
-    public void DrawPlayerCursor(Unit unit){
-        if(unit.getPlayer() == Vars.player && !Core.settings.getBool("cui-ShowOwnCursor", true)) return;
+    public void DrawPlayerCursor(Player ply){
+        if(ply == Vars.player && !Core.settings.getBool("cui-ShowOwnCursor", true)) return;
+        if(ply.unit() == null)return;
+        Unit unit = ply.unit();
 
-        float cursorX = unit.getPlayer().mouseX, cursorY = unit.getPlayer().mouseY() , unitX = unit.getX(), unitY = unit.getY();
+        float cursorX = ply.mouseX, cursorY = ply.mouseY() , unitX = unit.getX(), unitY = unit.getY();
+        //respawning put you in 0,0 before moving your unit, this a workaround for it to look less jarring
+        if(ply.mouseX == 0f &&  ply.mouseY == 0f &&ply.team().data().hasCore() ){
+            cursorX = ply.bestCore().x();
+            cursorY = ply.bestCore().y();
+        }
         int style = Core.settings.getInt("cui-playerCursorStyle");
 
-        float alpha = unit.getPlayer() != CuiVars.clickedPlayer ? (float) (playerLineAlpha * 0.1) : (float) (trackedPlayerLineAlpha * 0.1);
+        float alpha = unit.getPlayer() != CuiVars.clickedPlayer ? (float) (Core.settings.getInt("cui-playerTrackAlpha") * 0.1) : (float) (Core.settings.getInt("cui-playerTrackedAlpha") * 0.1);
+        float finalCursorX = cursorX, finalCursorY = cursorY;
         draw(Layer.overlayUI+0.01f, () ->{
-            if (style % 2 == 0){DrawLine(cursorX, cursorY, unitX, unitY, unit.team.color, alpha);}
+            if (style % 2 == 0){DrawLine(finalCursorX, finalCursorY, unitX, unitY, ply.team().color, alpha);}
 
-            if (style == 1 || style == 2) Drawf.square(cursorX, cursorY, 2,  unit.team().color); // Square (Inspired from Mindustry Ranked Server's spectator mode )
-            else if (style == 3 || style == 4) Drawf.circles(cursorX, cursorY, 3, unit.team().color); // Circle
-            else if (style == 5 || style == 6) Drawf.target(cursorX, cursorY, 3, alpha, unit.team().color); //Target (aka mobile mindustry)
-            else DrawLine(cursorX, cursorY, unitX, unitY, unit.team.color, alpha);  //Line (originally from Ferlern/extended-UI')
+            if (style == 1 || style == 2) Drawf.square(finalCursorX, finalCursorY, 2,  ply.team().color); // Square (Inspired from Mindustry Ranked Server's spectator mode )
+            else if (style == 3 || style == 4) Drawf.circles(finalCursorX, finalCursorY, 3, ply.team().color); // Circle
+            else if (style == 5 || style == 6) Drawf.target(finalCursorX, finalCursorY, 3, alpha, ply.team().color); //Target (aka mobile mindustry)
+            else DrawLine(finalCursorX, finalCursorY, unitX, unitY, unit.team.color, alpha);  //Line (originally from Ferlern/extended-UI')
         });
         Draw.reset();
 
     }
 
     public void DrawLine(float cx, float cy, float ux, float uy, Color color, float transparency) {
-        Lines.stroke(1);
+        Lines.stroke(1, color);
         Draw.color(color, transparency);
         Lines.line(ux, uy, cx, cy);
         Draw.reset();
@@ -95,10 +115,13 @@ public class CuiWorldRenderer {
         float unitX = unit.getX(), unitY = unit.getY(), processorX = processor.getX(), processorY = processor.getY();
 
         draw(Layer.overlayUI+0.01f, () -> {
+            DrawLine(unitX, unitY, processorX, processorY, Color.purple, CuiVars.heldUnit != null && CuiVars.heldUnit.type == unit.type ? 1f : Core.settings.getInt("cui-logicLineAlpha") * 0.1f  );
+
+            /*
             Lines.stroke(1, Color.purple);
+            Draw.color(Color.purple, CuiVars.heldUnit != null && CuiVars.heldUnit.type == unit.type ? 1f : Core.settings.getInt("cui-logicLineAlpha") * 0.1f );
             Lines.line(unitX, unitY, processorX, processorY);
-            if (unit != CuiVars.heldUnit) Draw.alpha((float) (logicLineAlpha * 0.1));
-            Draw.reset();
+            Draw.reset();*/
         });
     }
 
@@ -106,7 +129,7 @@ public class CuiWorldRenderer {
         if(!(e.tile.build instanceof CoreBlock.CoreBuild)) return;
 
         if (Core.settings.getBool("cui-ShowAlertsCircles")) {
-                circleQueue.put(e, Time.time);
+                circleQueue.add(new CuiCircleObjectHelper(e.tile, e.tile.team(), Time.time, e.tile.block().size));
         }
 
         if (Core.settings.getBool("cui-ShowAlerts")){

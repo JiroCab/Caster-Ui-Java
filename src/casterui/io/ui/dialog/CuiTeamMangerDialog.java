@@ -71,7 +71,7 @@ public class CuiTeamMangerDialog extends BaseDialog {
 
             header.label(() -> lastTeam != null && lastPlayer != null ? Core.bundle.format( "cui-team-manger.last", lastPlayer.name, lastTeam)  : "@cui-team-manger.no-last").left().pad(15f);
             header.label(() -> Core.bundle.format("cui-team-manger.info", selectedPlayer.name(), selectedTeam.name.equals("") ? "[#" + selectedTeam.color + "]" + selectedPlayer.id + "[]" : "[white]" + selectedTeam.localized() + selectedTeam.emoji )).right().pad(15f);
-        } else header.label( () -> "@cui-team-manger.tip");
+        } else header.label( () -> Core.bundle.format("cui-team-manger.tip", selectedTeam != null ?  selectedPlayer.name() :  Vars.player.name));
         teamTable.row();
 
 
@@ -125,7 +125,6 @@ public class CuiTeamMangerDialog extends BaseDialog {
     }
 
     void mapPlayer(Player ply, Integer number){
-        Log.err("mapped "+ ply + " in " + number);
         CuiVars.mappedPlayers.put(number, ply);
     }
 
@@ -158,6 +157,9 @@ public class CuiTeamMangerDialog extends BaseDialog {
             lastPlayer = selectedPlayer;
 
             Log.info(selectedPlayer.name + " is now " + selectedTeam);
-        } else Log.err("not a server, can't apply team change");
+        } else {
+            Log.err("not a server, can't apply team change");
+
+        }
     }
 }
