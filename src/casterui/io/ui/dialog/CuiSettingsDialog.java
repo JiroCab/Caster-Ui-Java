@@ -42,8 +42,8 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-TrackPlayerCursor", true);
                 subTable.checkPref("cui-ShowOwnCursor", false);
                 subTable.sliderPref("cui-playerCursorStyle", 6, 1, 7, String::valueOf);
-                subTable.sliderPref("cui-playerTrackAlpha", 8, 1, 10, s -> s * 0.1 + "%");
-                subTable.sliderPref("cui-playerTrackedAlpha", 10, 1, 10, s -> s * 0.1 + "%");
+                subTable.sliderPref("cui-playerTrackAlpha", 8, 0, 10, s -> s  > 0 ? s != 10 ? "0." + s + "%" : "1%" : "@off");
+                subTable.sliderPref("cui-playerTrackedAlpha", 10, 0, 10, s -> s > 0 ? s != 10 ? "0." + s + "%" : "1%" : "@off");
                 subTable.sliderPref("cui-playerIconSize", 35, 1, 100, String::valueOf);
                 subTable.checkPref("cui-playerHoldTrackMouse", true);
 
@@ -80,6 +80,7 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-ShowAlertsCircles", true);
                 subTable.sliderPref("cui-alertCircleSpeed", 12, 1 , 500, a -> (a*0.5f) + "x");
                 subTable.sliderPref("cui-alertStyle", 1, 1 , 5, String::valueOf);
+                subTable.checkPref("cui-alertReverseGrow", false);
 
                 allCuiOptions.add(subTable);
                 t.add(subTable);
@@ -98,6 +99,7 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-showFactoryProgress", true);
                 subTable.checkPref("cui-TrackLogicControl", false);
                 subTable.sliderPref("cui-logicLineAlpha", 4, 1, 10, s -> s * 0.1 + "%");
+                subTable.sliderPref("cui-rallyPointAlpha", 4, 1, 10,s -> s > 0? s * 0.1 + "%" : "@off");
 
                 allCuiOptions.add(subTable);
                 t.add(subTable);

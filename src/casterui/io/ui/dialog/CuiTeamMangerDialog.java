@@ -13,6 +13,7 @@ import casterui.CuiVars;
 import mindustry.Vars;
 import mindustry.game.Team;
 import mindustry.gen.*;
+import mindustry.net.Packets;
 import mindustry.ui.Styles;
 import mindustry.ui.dialogs.BaseDialog;
 
@@ -56,7 +57,7 @@ public class CuiTeamMangerDialog extends BaseDialog {
         rebuildPlayerTable();
         AtomicInteger icons = new AtomicInteger();
 
-        if (Vars.net.server() || !Vars.net.active()) {
+        if (Vars.net.server() || !Vars.net.active() || Vars.player.admin) {
             for (int id = 0 ; id < Team.all.length ; id++){
                 int finalId = id;
                 ImageButton button = teamTable.button(Tex.whiteui, Styles.clearNoneTogglei, 40f, () -> selectedTeam = Team.get(finalId)).tooltip(Team.get(id).emoji.equals("") ? "[#" + Team.get(id).color + "]" + Team.get(id).id + "[]" :  "[white]" +Team.get(id).emoji ).size(teamSize).margin(6f).get();
@@ -156,9 +157,13 @@ public class CuiTeamMangerDialog extends BaseDialog {
             lastTeam = selectedTeam;
             lastPlayer = selectedPlayer;
 
-            Log.info(selectedPlayer.name + " is now " + selectedTeam);
+            Log.info(selectedPlayer.name + " is now " + selectedTeam + " (Server change)");
+        } else if (Vars.player.admin) {
+            Call.adminRequest(selectedPlayer, Packets.AdminAction.switchTeam, selectedTeam);
+
+            Log.info(selectedPlayer.name + " is now " + selectedTeam + " (Admin command)");
         } else {
-            Log.err("not a server, can't apply team change");
+            Log.err("not a server or admin, can't apply team change");
 
         }
     }

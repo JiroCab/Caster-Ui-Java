@@ -4,7 +4,9 @@ import arc.Core;
 import arc.Events;
 import arc.graphics.Color;
 import arc.graphics.g2d.*;
+import arc.math.Mathf;
 import arc.struct.Seq;
+import arc.util.Log;
 import arc.util.Time;
 import casterui.CuiVars;
 import casterui.util.CuiCircleObjectHelper;
@@ -12,11 +14,10 @@ import mindustry.Vars;
 import mindustry.ai.types.LogicAI;
 import mindustry.game.EventType;
 import mindustry.gen.*;
-import mindustry.graphics.Drawf;
-import mindustry.graphics.Layer;
+import mindustry.graphics.*;
 import mindustry.world.blocks.storage.CoreBlock;
 
-import static arc.graphics.g2d.Draw.draw;
+import static arc.graphics.g2d.Draw.*;
 
 
 public class CuiWorldRenderer {
@@ -24,9 +25,9 @@ public class CuiWorldRenderer {
 
     public void worldRenderer(){
         Events.run(EventType.Trigger.draw, ()-> {
-            boolean unitBars = Core.settings.getBool("cui-showUnitBar", true);
-            boolean trackPlayerCursor = Core.settings.getBool("cui-TrackPlayerCursor", false);
-            boolean trackLogicControl = Core.settings.getBool("cui-TrackLogicControl", false);
+            boolean unitBars = Core.settings.getBool("cui-showUnitBar");
+            boolean trackPlayerCursor = Core.settings.getBool("cui-TrackPlayerCursor");
+            boolean trackLogicControl = Core.settings.getBool("cui-TrackLogicControl");
 
             if (unitBars || trackLogicControl || trackPlayerCursor){
                 Groups.unit.each((unit -> {
@@ -56,9 +57,9 @@ public class CuiWorldRenderer {
                 }));
             }
 
-            if(CuiVars.drawRally){
+            if(CuiVars.drawRally && Core.settings.getInt("cui-logicLineAlpha" ) != 0){
                 Building block = CuiVars.fragment.mouseBuilding;
-                Draw.draw(Layer.overlayUI+0.01f, () -> DrawLine(block.getX(), block.getY(), block.getCommandPosition().x ,block.getCommandPosition().getY(), block.team.color, Core.settings.getInt("cui-logicLineAlpha") * 0.1f));
+                Draw.draw(Layer.overlayUI+0.01f, () -> DrawLine(block.getX(), block.getY(), block.getCommandPosition().x ,block.getCommandPosition().getY(), block.team.color, Core.settings.getInt("cui-rallyPointAlpha") * 0.1f));
             }
         });
         Events.run(EventType.Trigger.update, () -> {
@@ -70,11 +71,19 @@ public class CuiWorldRenderer {
     }
 
     public void DrawUnitBars(Unit unit){
-
+        if(unit.dead()) return;
+        float x = unit.x(), y= unit.y(), offset = unit.hitSize  * 0.9f, width = unit.hitSize() * -0.9f, hp = (unit.health / unit.maxHealth);
+        Draw.draw(Layer.flyingUnit +0.01f, () ->{
+            Draw.alpha(0.5f);
+            Drawf.line(Pal.gray, x + width, y + offset, x - (width), y + offset);
+            Draw.alpha(1f);
+            Drawf.line(unit.team.color, x + width * hp, y + offset, x - (width * hp), y + offset);
+            //wip
+        });
     }
 
     public void DrawPlayerCursor(Player ply){
-        if(ply == Vars.player && !Core.settings.getBool("cui-ShowOwnCursor", true)) return;
+        if(ply == Vars.player && !Core.settings.getBool("cui-ShowOwnCursor")) return;
         if(ply.unit() == null)return;
         Unit unit = ply.unit();
 
@@ -86,9 +95,14 @@ public class CuiWorldRenderer {
         }
         int style = Core.settings.getInt("cui-playerCursorStyle");
 
-        float alpha = unit.getPlayer() != CuiVars.clickedPlayer ? (float) (Core.settings.getInt("cui-playerTrackAlpha") * 0.1) : (float) (Core.settings.getInt("cui-playerTrackedAlpha") * 0.1);
+        boolean isTracked = ply == CuiVars.clickedPlayer;
+        if(isTracked && Core.settings.getInt("cui-playerTrackedAlpha") == 0) return;
+        else if(Core.settings.getInt("cui-playerTrackAlpha")== 0) return;
+
+        float alpha = isTracked ? (float) (Core.settings.getInt("cui-playerTrackAlpha") * 0.1) : (float) (Core.settings.getInt("cui-playerTrackedAlpha") * 0.1);
+
         float finalCursorX = cursorX, finalCursorY = cursorY;
-        draw(Layer.overlayUI+0.01f, () ->{
+        Draw.draw(Layer.overlayUI+0.01f, () ->{
             if (style % 2 == 0){DrawLine(finalCursorX, finalCursorY, unitX, unitY, ply.team().color, alpha);}
 
             if (style == 1 || style == 2) Drawf.square(finalCursorX, finalCursorY, 2,  ply.team().color); // Square (Inspired from Mindustry Ranked Server's spectator mode )

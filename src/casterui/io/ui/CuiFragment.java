@@ -136,7 +136,7 @@ public class CuiFragment {
 
             Groups.player.each(player -> {
                 if(player == Vars.player) return;
-                if(settings.getBool("cui-hideNoUnitPlayers") && (player.unit() == null) && !player.team().data().hasCore())return;
+                if(settings.getBool("cui-hideNoUnitPlayers") && (player.unit() == null || !player.team().data().hasCore()))return;
 
                 Label teamIcon = new Label(() -> player.team().emoji.equals("") ? "[#" + player.team().color + "]" +player.team().id + "[]" : player.team().emoji);
                 if (!unitTableCompactPlayers) playersTable.add(teamIcon).with( w -> w.tapped( () -> setTrackPlayer(player)));
@@ -206,12 +206,11 @@ public class CuiFragment {
                 showBlockTable = true;
                 String armor = mouseBuilding.block.armor >= 1 ? " [white]("+Math.round(mouseBuilding.block.armor) +")" : "";
                 if(mouseBuilding.health > 0 && Core.settings.getBool("cui-ShowBlockHealth")){
-                    Vars.state.rules.enemyCoreBuildRadius = 0f;
                     blockTable.label(()-> Core.bundle.get("cui-block-info.health") + ": [red]"+ Math.round(mouseBuilding.health) +"[white]/[pink]" + Math.round(mouseBuilding.maxHealth) +armor).row();
                 }
                 if(mouseBuilding.power != null){
                     PowerGraph graphs = mouseBuilding.power.graph;
-                    int power = Math.round( graphs.getPowerBalance());
+                    int power = Math.round( graphs.getPowerBalance() * 60f);
                     String sign = power > 0 ? "[stat]+" : "[red]";
 
                     blockTable.label(() -> Core.bundle.get("cui-block-info.power") + ": "+  sign + power).row();
