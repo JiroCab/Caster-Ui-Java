@@ -34,6 +34,7 @@ public class CuiSettingsDialog {
             //Dropped the `eui` (extended-ui) prefix for `cui` (caster-ui) to avoid conflicts
             /*Legacy Features From the Original Caster-ui Fork */
             boolean[] players = {false};
+            table.row(); //foo's
             table.button("@setting.cui-players-category.name", Icon.players, Styles.togglet, () -> players[0] = !players[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> players[0]).padTop(5f).row();
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
@@ -55,7 +56,7 @@ public class CuiSettingsDialog {
             table.button("@setting.cui-units-category.name", Icon.units, Styles.togglet, () -> units[0] = !units[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> units[0]).padTop(5f).row();
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
-                //TODO: SAVE THESE AND LOAD THEM 
+                //TODO: SAVE THESE AND LOAD THEM
                 t.button(bundle.get("cui-hiddenUnits"), () -> showBanned(bundle.get("cui-hiddenUnits"), hiddenUnits)).tooltip(bundle.get("cui-hiddenInfo")).center().width(400f).top().row();
                 t.button(bundle.get("cui-hiddenCoreUnits"), () -> showBanned(bundle.get("cui-hiddenCoreUnits"), coreUnitsTypes, true)).tooltip(bundle.get("cui-hiddenCoreInfo")).center().width(400f).top().row();
 
@@ -96,10 +97,11 @@ public class CuiSettingsDialog {
 
                 subTable.checkPref("cui-ShowBlockInfo", true);
                 subTable.checkPref("cui-ShowBlockHealth", true);
+                subTable.checkPref("cui-BlockInfoShortenItems", true);
                 subTable.checkPref("cui-showFactoryProgress", true);
                 subTable.checkPref("cui-TrackLogicControl", false);
-                subTable.sliderPref("cui-logicLineAlpha", 4, 1, 10, s -> s * 0.1 + "%");
-                subTable.sliderPref("cui-rallyPointAlpha", 4, 1, 10,s -> s > 0? s * 0.1 + "%" : "@off");
+                subTable.sliderPref("cui-logicLineAlpha", 4, 1, 10, s ->  s != 10 ? "0." + s + "%" : s + "%");
+                subTable.sliderPref("cui-rallyPointAlpha", 4, 1, 11,s -> s == 1 ? "@off" : s != 11 ? "0." + (s - 1) + "%" : "1%");
 
                 allCuiOptions.add(subTable);
                 t.add(subTable);
