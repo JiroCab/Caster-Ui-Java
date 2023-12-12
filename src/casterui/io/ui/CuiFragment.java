@@ -11,6 +11,7 @@ import arc.util.Scaling;
 import casterui.CuiVars;
 import casterui.io.ui.dialog.CuiSettingsDialog;
 import mindustry.Vars;
+import mindustry.core.UI;
 import mindustry.game.Team;
 import mindustry.gen.*;
 import mindustry.logic.LAccess;
@@ -167,7 +168,7 @@ public class CuiFragment {
                 AtomicInteger itemTypes = new AtomicInteger();
                 mouseBuilding.items.each((item, amount) -> {
                     blockItemTable.image(item.uiIcon).size(iconSizes).left();
-                    blockItemTable.label(() -> amount + " ");
+                    blockItemTable.label(() -> (!Core.settings.getBool("cui-BlockInfoShortenItems") ? amount : UI.formatAmount(amount) )+ " ");
                     if (itemTypes.get() > 4) {
                         itemTypes.set(0);
                         blockItemTable.row();

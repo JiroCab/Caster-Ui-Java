@@ -11,6 +11,7 @@ import mindustry.input.Binding;
 import mindustry.input.DesktopInput;
 
 import static arc.Core.*;
+import static casterui.io.CuiBinding.*;
 import static mindustry.Vars.*;
 
 public class CuiInputs {
@@ -26,9 +27,15 @@ public class CuiInputs {
         if(settings.getBool("cui-respectDialog") && scene.hasDialog()) return;
         if (state.isMenu()) return;
 
-        if(cuiKeyTap(CuiBinding.toggle_cui_menu) && !settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = !CuiVars.unitTableCollapse;
+        if(cuiKeyTap(toggle_cui_menu) && !settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = !CuiVars.unitTableCollapse;
         else if(settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = ui.hudfrag.shown;
-        if(cuiKeyTap(CuiBinding.host_teams)) CuiVars.teamManger.show();
+
+        if(cuiKeyTap(change_teams)) CuiVars.teamManger.show();
+        if(cuiKeyTap(toggle_unit_hp_bars)) Core.settings.put("cui-showUnitBar", !Core.settings.getBool("cui-showUnitBar"));
+        if(cuiKeyTap(toggle_player_cursor)) Core.settings.put("cui-TrackPlayerCursor", !Core.settings.getBool("cui-TrackPlayerCursor"));
+        if(cuiKeyTap(toggle_track_logic)) Core.settings.put("cui-TrackLogicControl", !Core.settings.getBool("cui-TrackLogicControl"));
+        if(cuiKeyTap(toggle_shorten_items_info)) Core.settings.put("cui-BlockInfoShortenItems", !Core.settings.getBool("cui-BlockInfoShortenItems"));
+        if(cuiKeyTap(toggle_block_hp)) Core.settings.put("cui-ShowBlockHealth", !Core.settings.getBool("cui-ShowBlockHealth"));
 
         /*TODO: something more elegant? */
         if(input.keyTap(KeyCode.num1) && CuiVars.mappedPlayers.get(1) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(1);
@@ -47,10 +54,10 @@ public class CuiInputs {
         float cameraFloat = 0.085F;
         if (!Core.settings.getBool("smoothcamera")){ cameraFloat = 1;}
 
-        if(cuiKeyTap(CuiBinding.spectate_next_player)) cyclePlayers(true);
-        if(cuiKeyTap(CuiBinding.spectate_previous_player)) cyclePlayers(false);
+        if(cuiKeyTap(spectate_next_player)) cyclePlayers(true);
+        if(cuiKeyTap(spectate_previous_player)) cyclePlayers(false);
 
-        if (CuiVars.lastCoreDestroyEvent != null && cuiKeyDown(CuiBinding.last_destroyed_core) && !tracking){
+        if (CuiVars.lastCoreDestroyEvent != null && cuiKeyDown(last_destroyed_core) && !tracking){
             if(control.input instanceof DesktopInput input) input.panning = true;
             if(CuiVars.clickedPlayer != null) CuiVars.clickedPlayer = null;
 
@@ -70,8 +77,8 @@ public class CuiInputs {
             //workaround for when in multiplayer, sometimes respawning puts you in 0,0 during the animation before moving your unit
             if ((CuiVars.clickedPlayer.unit() == null || CuiVars.clickedPlayer.unit().x == 0 && CuiVars.clickedPlayer.unit().y == 0) && CuiVars.clickedPlayer.team().data().hasCore()) trackingType = 3;
             if ( CuiVars.clickedPlayer.unit() != null && (CuiVars.clickedPlayer.unit().x != 0 && CuiVars.clickedPlayer.unit().y != 0)) trackingType = 1;
-            if (cuiKeyDown(CuiBinding.track_cursor) && settings.getBool("cui-playerHoldTrackMouse")) trackingType = 2;
-            if (cuiKeyTap(CuiBinding.track_cursor) && !settings.getBool("cui-playerHoldTrackMouse")) keepMouseTracking = !keepMouseTracking;
+            if (cuiKeyDown(track_cursor) && settings.getBool("cui-playerHoldTrackMouse")) trackingType = 2;
+            if (cuiKeyTap(track_cursor) && !settings.getBool("cui-playerHoldTrackMouse")) keepMouseTracking = !keepMouseTracking;
             if (keepMouseTracking && !settings.getBool("cui-playerHoldTrackMouse")) trackingType = 2;
             if (!keepMouseTracking && !settings.getBool("cui-playerHoldTrackMouse") && CuiVars.clickedPlayer.unit() != null) trackingType = 1;
             if (!keepMouseTracking && !settings.getBool("cui-playerHoldTrackMouse") && CuiVars.clickedPlayer.unit() == null) trackingType = 3;
@@ -97,6 +104,8 @@ public class CuiInputs {
             }
 
         }
+
+
     }
 
     void cyclePlayers(boolean increment){

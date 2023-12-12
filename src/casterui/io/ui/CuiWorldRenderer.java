@@ -57,9 +57,9 @@ public class CuiWorldRenderer {
                 }));
             }
 
-            if(CuiVars.drawRally && Core.settings.getInt("cui-logicLineAlpha" ) != 0){
+            if(CuiVars.drawRally && Core.settings.getInt("cui-logicLineAlpha" ) != 1){
                 Building block = CuiVars.fragment.mouseBuilding;
-                Draw.draw(Layer.overlayUI+0.01f, () -> DrawLine(block.getX(), block.getY(), block.getCommandPosition().x ,block.getCommandPosition().getY(), block.team.color, Core.settings.getInt("cui-rallyPointAlpha") * 0.1f));
+                Draw.draw(Layer.overlayUI+0.01f, () -> DrawLine(block.getX(), block.getY(), block.getCommandPosition().x ,block.getCommandPosition().getY(), block.team.color, (Core.settings.getInt("cui-rallyPointAlpha") - 1) * 0.1f));
             }
         });
         Events.run(EventType.Trigger.update, () -> {
@@ -73,13 +73,14 @@ public class CuiWorldRenderer {
     public void DrawUnitBars(Unit unit){
         if(unit.dead()) return;
         float x = unit.x(), y= unit.y(), offset = unit.hitSize  * 0.9f, width = unit.hitSize() * -0.9f, hp = (unit.health / unit.maxHealth);
+        Draw.alpha(0.5f);
         Draw.draw(Layer.flyingUnit +0.01f, () ->{
-            Draw.alpha(0.5f);
-            Drawf.line(Pal.gray, x + width, y + offset, x - (width), y + offset);
-            Draw.alpha(1f);
-            Drawf.line(unit.team.color, x + width * hp, y + offset, x - (width * hp), y + offset);
+
+            Drawf.line(Pal.gray, x + width, y - offset, x - (width), y - offset);
+            Drawf.line(unit.team.color, x + width * hp, y - offset, x - (width * hp), y - offset);
             //wip
         });
+        Draw.reset();
     }
 
     public void DrawPlayerCursor(Player ply){
