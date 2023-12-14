@@ -17,6 +17,9 @@ public enum CuiBinding implements KeyBinds.KeyBind {
     toggle_track_logic(KeyCode.unknown),
     toggle_shorten_items_info(KeyCode.unknown),
     toggle_block_hp(KeyCode.unknown),
+    toggle_units_player_table_controls(KeyCode.unknown),
+    toggle_table_core_units(KeyCode.unknown),
+    toggle_table_summarize_players(KeyCode.unknown),
 
     ;
 

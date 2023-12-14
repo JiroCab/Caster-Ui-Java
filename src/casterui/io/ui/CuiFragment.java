@@ -45,7 +45,7 @@ public class CuiFragment {
             playerIconSize = Core.settings.getInt("cui-playerIconSize"),
             unitsIconSize = Core.settings.getInt("cui-unitsIconSize");
     float buttonSize;
-    public Boolean  unitTableCompactPlayers = false, showBlockTable = false, showTableUnitsPlayer = false;
+    public Boolean  showBlockTable = false, showTableUnitsPlayer = false;
     public Building mouseBuilding = null;
     public int iconSizes = 25;
     Seq<Drawable> tableStyles = Seq.with(Tex.buttonTrans, Tex.clear, Styles.black3, Tex.inventory, Tex.button, Tex.pane, Styles.black5, Styles.black6, Styles.black8, Styles.black9);
@@ -61,8 +61,7 @@ public class CuiFragment {
                 parentCont.clear();
                 unitPlayerTable.add(controlTable).row();
                 if (settings.getBool("cui-ShowPlayerList")) unitPlayerTable.add(playersTable).left();
-                if (settings.getBool("cui-ShowPlayerList") && settings.getBool("cui-ShowUnitTable"))
-                    unitPlayerTable.row();
+                if (settings.getBool("cui-ShowPlayerList") && settings.getBool("cui-ShowUnitTable")) unitPlayerTable.row();
                 if (settings.getBool("cui-ShowUnitTable")) unitPlayerTable.add(unitTable).left();
                 parentCont.add(unitPlayerTable).visible(() -> CuiVars.unitTableCollapse && showTableUnitsPlayer);
             });
@@ -87,8 +86,8 @@ public class CuiFragment {
         // region Control table
         controlTable.clear();
         if(settings.getBool("cui-playerunitstablecontols")){
-            if (settings.getBool("cui-ShowUnitTable")) controlTable.button(Icon.admin, Styles.defaulti, () -> CuiVars.showCoreUnits = !CuiVars.showCoreUnits).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.core-units.tooltip");
-            if (settings.getBool("cui-ShowPlayerList")) controlTable.button(Icon.host, Styles.defaulti, () -> unitTableCompactPlayers = !unitTableCompactPlayers).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.compact-player-list.tooltip");
+            if (settings.getBool("cui-ShowUnitTable")) controlTable.button(Icon.admin, Styles.defaulti, () -> Core.settings.put("cui-unitsTableCoreUnits", !Core.settings.getBool("cui-unitsTableCoreUnits"))).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.core-units.tooltip");
+            if (settings.getBool("cui-ShowPlayerList")) controlTable.button(Icon.host, Styles.defaulti, () -> Core.settings.put("cui-playerTableSummarizePlayers", !Core.settings.getBool("cui-playerTableSummarizePlayers"))).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.compact-player-list.tooltip");
         }
 
 
@@ -111,9 +110,9 @@ public class CuiFragment {
                     Map<Short, Integer> teamUnits = new HashMap<>();
 
                     for (Unit u : team.data().units.sort(unit -> unit.type.id)) {
-                        if(CuiSettingsDialog.hiddenUnits.contains(u.type) && CuiVars.showCoreUnits ) break;
-                        if(!CuiVars.showCoreUnits && CuiSettingsDialog.coreUnitsTypes.contains(u.type))break;
-                        if(!CuiVars.showCoreUnits && u.spawnedByCore && settings.getBool("cui-unitFlagCoreUnitHides"))break;
+                        if(CuiSettingsDialog.hiddenUnits.contains(u.type) && Core.settings.getBool("cui-unitsTableCoreUnits") ) break;
+                        if(!Core.settings.getBool("cui-unitsTableCoreUnits") && CuiSettingsDialog.coreUnitsTypes.contains(u.type))break;
+                        if(!Core.settings.getBool("cui-unitsTableCoreUnits") && u.spawnedByCore && settings.getBool("cui-unitFlagCoreUnitHides"))break;
 
                         teamUnits.merge(u.type.id, 1, Integer::sum);
                     }
@@ -147,19 +146,19 @@ public class CuiFragment {
                 if(settings.getBool("cui-hideNoUnitPlayers") && (player.unit() == null || !player.team().data().hasCore()))return;
 
                 Label teamIcon = new Label(() -> player.team().emoji.equals("") ? "[#" + player.team().color + "]" +player.team().id + "[]" : player.team().emoji);
-                if (!unitTableCompactPlayers) playersTable.add(teamIcon).with( w -> w.tapped( () -> setTrackPlayer(player)));
+                if (!Core.settings.getBool("cui-playerTableSummarizePlayers")) playersTable.add(teamIcon).with( w -> w.tapped( () -> setTrackPlayer(player)));
                 TextureRegion playerIcon = player.unit().icon() == null ? Icon.eye.getRegion() : player.unit().icon();
 
                 playersTable.add(new Image(playerIcon).setScaling(Scaling.bounded)).size(playerIconSize).left().with( w -> w.tapped( () -> setTrackPlayer(player)));
 
-                if (!unitTableCompactPlayers) {
+                if (!Core.settings.getBool("cui-playerTableSummarizePlayers")) {
                     Label playerName = new Label(() -> player.name);
                     playerName.tapped( () -> setTrackPlayer(player));
                     playersTable.add(playerName);
                 }
                 playersTable.tapped(() -> setTrackPlayer(player));
                 plys[0]++;
-                if(plys[0] >= Core.settings.getInt("cui-unitsPlayerTableSize") || !unitTableCompactPlayers){ playersTable.row(); }
+                if(plys[0] >= Core.settings.getInt("cui-unitsPlayerTableSize") || !Core.settings.getBool("cui-playerTableSummarizePlayers")){ playersTable.row(); }
             });
         }
         //endregion

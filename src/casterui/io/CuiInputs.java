@@ -36,6 +36,9 @@ public class CuiInputs {
         if(cuiKeyTap(toggle_track_logic)) Core.settings.put("cui-TrackLogicControl", !Core.settings.getBool("cui-TrackLogicControl"));
         if(cuiKeyTap(toggle_shorten_items_info)) Core.settings.put("cui-BlockInfoShortenItems", !Core.settings.getBool("cui-BlockInfoShortenItems"));
         if(cuiKeyTap(toggle_block_hp)) Core.settings.put("cui-ShowBlockHealth", !Core.settings.getBool("cui-ShowBlockHealth"));
+        if(cuiKeyTap(toggle_units_player_table_controls)) Core.settings.put("cui-playerunitstablecontols", !Core.settings.getBool("cui-playerunitstablecontols"));
+        if(cuiKeyTap(toggle_table_core_units)) Core.settings.put("cui-unitsTableCoreUnits", !Core.settings.getBool("cui-unitsTableCoreUnits"));
+        if(cuiKeyTap(toggle_table_summarize_players)) Core.settings.put("cui-playerTableSummarizePlayers", !Core.settings.getBool("cui-playerTableSummarizePlayers"));
 
         /*TODO: something more elegant? */
         if(input.keyTap(KeyCode.num1) && CuiVars.mappedPlayers.get(1) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(1);
