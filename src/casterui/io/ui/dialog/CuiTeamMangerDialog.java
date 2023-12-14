@@ -1,6 +1,7 @@
 package casterui.io.ui.dialog;
 
 import arc.Core;
+import arc.KeyBinds;
 import arc.graphics.g2d.*;
 import arc.input.KeyCode;
 import arc.scene.event.ClickListener;
@@ -10,6 +11,8 @@ import arc.scene.ui.layout.*;
 import arc.util.Log;
 import arc.util.Scaling;
 import casterui.CuiVars;
+import casterui.io.CuiBinding;
+import casterui.io.CuiInputs;
 import mindustry.Vars;
 import mindustry.game.Team;
 import mindustry.gen.*;
@@ -72,7 +75,7 @@ public class CuiTeamMangerDialog extends BaseDialog {
 
             header.label(() -> lastTeam != null && lastPlayer != null ? Core.bundle.format( "cui-team-manger.last", lastPlayer.name, lastTeam)  : "@cui-team-manger.no-last").left().pad(15f);
             header.label(() -> Core.bundle.format("cui-team-manger.info", selectedPlayer.name(), selectedTeam.name.equals("") ? "[#" + selectedTeam.color + "]" + selectedPlayer.id + "[]" : "[white]" + selectedTeam.localized() + selectedTeam.emoji )).right().pad(15f);
-        } else header.label( () -> Core.bundle.format("cui-team-manger.tip", selectedTeam != null ?  selectedPlayer.name() :  Vars.player.name));
+        } else header.label( () -> Core.bundle.format("cui-team-manger.tip", (selectedTeam != null ?  selectedPlayer.name() :  Vars.player.name), CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.spectate_next_player).key, CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.spectate_previous_player).key));
         teamTable.row();
 
 

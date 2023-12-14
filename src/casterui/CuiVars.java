@@ -22,7 +22,7 @@ public class CuiVars {
     public static CuiTeamMangerDialog teamManger = new CuiTeamMangerDialog();
     public static CuiRebindDialog rebindDialog = new CuiRebindDialog();
 
-    public static boolean showCoreUnits = true, initialized = false, unitTableCollapse = true, fastUpdate = false, drawRally = false;
+    public static boolean initialized = false, unitTableCollapse = true, fastUpdate = false, drawRally = false;
     public static Player hoveredPlayer, clickedPlayer;
     public static Unit heldUnit, hoveredEntity, clickedEntity;
     public static float  timer = 0, nextUpdate = 100, nextUpdateFast = 50;

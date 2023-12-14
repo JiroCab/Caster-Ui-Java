@@ -14,7 +14,7 @@ Everything can be Toggles on or off From "Setting > Caster Ui Setting"
 - Displays all players on the server, Payers without units will be hidden (On by default)
 - Tap on a player's name or sprite to spectate them
 - Hold `H` to Track their cursor instead, can be changed to a toggle
-- Use `[` & `]` cycle between players
+- Use `;` & `'` cycle between players
 
 ![player and unit table](https://user-images.githubusercontent.com/57391931/188985548-624af3a4-959a-4416-9a60-c1e5f2154f47.PNG)
 
@@ -30,7 +30,7 @@ Everything can be Toggles on or off From "Setting > Caster Ui Setting"
 - 7 Cursor types, use the slider in the settings to change it
 - Client's Mouse can also be show for cases where system cursor does not show and use this as a backup
   ![Mouse Cursors](https://user-images.githubusercontent.com/57391931/183559978-f4bf81ae-b57d-44d0-b911-6b5ec15e2811.png)
-- Use `[` & `]` to cycle between players
+- Use `;` & `'` to cycle between players (can be rebinded)
 
 ### - Shows additional information about enemy blocks
 - Note: this has been moved to the left Center instead of the bottom left corner

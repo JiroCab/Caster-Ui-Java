@@ -4,9 +4,12 @@ import arc.Core;
 import arc.graphics.g2d.TextureRegion;
 import arc.math.geom.Vec2;
 import arc.scene.Group;
+import arc.scene.style.Drawable;
 import arc.scene.ui.Image;
 import arc.scene.ui.Label;
 import arc.scene.ui.layout.Table;
+import arc.struct.Seq;
+import arc.util.Log;
 import arc.util.Scaling;
 import casterui.CuiVars;
 import casterui.io.ui.dialog.CuiSettingsDialog;
@@ -42,31 +45,33 @@ public class CuiFragment {
             playerIconSize = Core.settings.getInt("cui-playerIconSize"),
             unitsIconSize = Core.settings.getInt("cui-unitsIconSize");
     float buttonSize;
-    public Boolean  unitTableCompactPlayers = false, showBlockTable = false, showTableUnitsPlayer = false;
+    public Boolean  showBlockTable = false, showTableUnitsPlayer = false;
     public Building mouseBuilding = null;
     public int iconSizes = 25;
+    Seq<Drawable> tableStyles = Seq.with(Tex.buttonTrans, Tex.clear, Styles.black3, Tex.inventory, Tex.button, Tex.pane, Styles.black5, Styles.black6, Styles.black8, Styles.black9);
+
 
     public void BuildTables(Group parent){
 
-        if(!Core.settings.getBool("cui-ShowUnitTable") && !Core.settings.getBool("cui-ShowPlayerList") ) return;
+        if(settings.getBool("cui-ShowUnitTable") || settings.getBool("cui-ShowPlayerList") ) {
+            parent.fill(parentCont -> {
+                parentCont.name = "cui-unit-player-table";
+                parentCont.bottom().left();
+                unitPlayerTable.background(tableStyles.get(settings.getInt("cui-playerunitstablestyle")));
+                parentCont.clear();
+                unitPlayerTable.add(controlTable).row();
+                if (settings.getBool("cui-ShowPlayerList")) unitPlayerTable.add(playersTable).left();
+                if (settings.getBool("cui-ShowPlayerList") && settings.getBool("cui-ShowUnitTable")) unitPlayerTable.row();
+                if (settings.getBool("cui-ShowUnitTable")) unitPlayerTable.add(unitTable).left();
+                parentCont.add(unitPlayerTable).visible(() -> CuiVars.unitTableCollapse && showTableUnitsPlayer);
+            });
+        }
 
-        parent.fill(parentCont -> {
-            parentCont.name = "cui-unit-player-table";
-            parentCont.bottom().left();
-            unitPlayerTable.background(Tex.buttonTrans);
-            parentCont.clear();
-            unitPlayerTable.add(controlTable).row();
-            if(Core.settings.getBool("cui-ShowPlayerList")) unitPlayerTable.add(playersTable).left();
-            if(Core.settings.getBool("cui-ShowPlayerList") && Core.settings.getBool("cui-ShowUnitTable")) unitPlayerTable.row();
-            if(Core.settings.getBool("cui-ShowUnitTable")) unitPlayerTable.add(unitTable).left();
-            parentCont.add(unitPlayerTable).visible(() -> CuiVars.unitTableCollapse && showTableUnitsPlayer);
-        });
-
-        if(Core.settings.getBool("cui-ShowBlockInfo")){
+        if(settings.getBool("cui-ShowBlockInfo")){
             parent.fill(parentCont -> {
                 parentCont.name = "cui-block-table";
                 parentCont.left();
-                blockTable.background(Styles.black3);
+                blockTable.background(tableStyles.get(settings.getInt("cui-blockinfostyle")));
                 parentCont.add(blockTable).visible(() -> CuiVars.unitTableCollapse).visible(() -> CuiVars.unitTableCollapse && showBlockTable);
             });
         }
@@ -76,19 +81,20 @@ public class CuiFragment {
     public void StutteredUpdateTables() {
         if (CuiVars.hoveredEntity != null && !unitPlayerTable.hasMouse()) CuiVars.hoveredEntity = null;
         buttonSize = (float) Core.settings.getInt("cui-buttonSize");
-        showTableUnitsPlayer = (Core.settings.getBool("cui-ShowPlayerList") || Core.settings.getBool("cui-ShowUnitTable"));
+        showTableUnitsPlayer = (settings.getBool("cui-ShowPlayerList") || settings.getBool("cui-ShowUnitTable"));
 
         // region Control table
         controlTable.clear();
-        if (Core.settings.getBool("cui-ShowUnitTable"))
-            controlTable.button(Icon.admin, Styles.defaulti, () -> CuiVars.showCoreUnits = !CuiVars.showCoreUnits).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.core-units.tooltip");
-        if (Core.settings.getBool("cui-ShowPlayerList"))
-            controlTable.button(Icon.host, Styles.defaulti, () -> unitTableCompactPlayers = !unitTableCompactPlayers).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.compact-player-list.tooltip");
+        if(settings.getBool("cui-playerunitstablecontols")){
+            if (settings.getBool("cui-ShowUnitTable")) controlTable.button(Icon.admin, Styles.defaulti, () -> Core.settings.put("cui-unitsTableCoreUnits", !Core.settings.getBool("cui-unitsTableCoreUnits"))).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.core-units.tooltip");
+            if (settings.getBool("cui-ShowPlayerList")) controlTable.button(Icon.host, Styles.defaulti, () -> Core.settings.put("cui-playerTableSummarizePlayers", !Core.settings.getBool("cui-playerTableSummarizePlayers"))).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.compact-player-list.tooltip");
+        }
+
 
         //endregion
         //region Units Table
         unitTable.clear();
-        if (Core.settings.getBool("cui-ShowUnitTable")) {
+        if (settings.getBool("cui-ShowUnitTable")) {
             AtomicInteger icons = new AtomicInteger();
             //prevent  doubling of rows
             AtomicBoolean newRow = new AtomicBoolean(false);
@@ -104,9 +110,9 @@ public class CuiFragment {
                     Map<Short, Integer> teamUnits = new HashMap<>();
 
                     for (Unit u : team.data().units.sort(unit -> unit.type.id)) {
-                        if(CuiSettingsDialog.hiddenUnits.contains(u.type) && CuiVars.showCoreUnits ) break;
-                        if(!CuiVars.showCoreUnits && CuiSettingsDialog.coreUnitsTypes.contains(u.type))break;
-                        if(!CuiVars.showCoreUnits && u.spawnedByCore && settings.getBool("cui-unitFlagCoreUnitHides"))break;
+                        if(CuiSettingsDialog.hiddenUnits.contains(u.type) && Core.settings.getBool("cui-unitsTableCoreUnits") ) break;
+                        if(!Core.settings.getBool("cui-unitsTableCoreUnits") && CuiSettingsDialog.coreUnitsTypes.contains(u.type))break;
+                        if(!Core.settings.getBool("cui-unitsTableCoreUnits") && u.spawnedByCore && settings.getBool("cui-unitFlagCoreUnitHides"))break;
 
                         teamUnits.merge(u.type.id, 1, Integer::sum);
                     }
@@ -131,7 +137,7 @@ public class CuiFragment {
         //endregion
 
         // region Players Table
-        if(Core.settings.getBool("cui-ShowPlayerList")) {
+        if(settings.getBool("cui-ShowPlayerList")) {
             playersTable.clearChildren();
             final int[] plys = {0};
 
@@ -140,19 +146,19 @@ public class CuiFragment {
                 if(settings.getBool("cui-hideNoUnitPlayers") && (player.unit() == null || !player.team().data().hasCore()))return;
 
                 Label teamIcon = new Label(() -> player.team().emoji.equals("") ? "[#" + player.team().color + "]" +player.team().id + "[]" : player.team().emoji);
-                if (!unitTableCompactPlayers) playersTable.add(teamIcon).with( w -> w.tapped( () -> setTrackPlayer(player)));
+                if (!Core.settings.getBool("cui-playerTableSummarizePlayers")) playersTable.add(teamIcon).with( w -> w.tapped( () -> setTrackPlayer(player)));
                 TextureRegion playerIcon = player.unit().icon() == null ? Icon.eye.getRegion() : player.unit().icon();
 
                 playersTable.add(new Image(playerIcon).setScaling(Scaling.bounded)).size(playerIconSize).left().with( w -> w.tapped( () -> setTrackPlayer(player)));
 
-                if (!unitTableCompactPlayers) {
+                if (!Core.settings.getBool("cui-playerTableSummarizePlayers")) {
                     Label playerName = new Label(() -> player.name);
                     playerName.tapped( () -> setTrackPlayer(player));
                     playersTable.add(playerName);
                 }
                 playersTable.tapped(() -> setTrackPlayer(player));
                 plys[0]++;
-                if(plys[0] >= Core.settings.getInt("cui-unitsPlayerTableSize") || !unitTableCompactPlayers){ playersTable.row(); }
+                if(plys[0] >= Core.settings.getInt("cui-unitsPlayerTableSize") || !Core.settings.getBool("cui-playerTableSummarizePlayers")){ playersTable.row(); }
             });
         }
         //endregion
@@ -163,12 +169,12 @@ public class CuiFragment {
         /*Moved here to reduce flickering*/
         blockItemTable.clear();
         blockLiquidTable.clear();
-        if (Core.settings.getBool("cui-ShowBlockInfo") && mouseBuilding != null) {
+        if (settings.getBool("cui-ShowBlockInfo") && mouseBuilding != null) {
             if (mouseBuilding.items != null && mouseBuilding.items.total() > 0) {
                 AtomicInteger itemTypes = new AtomicInteger();
                 mouseBuilding.items.each((item, amount) -> {
                     blockItemTable.image(item.uiIcon).size(iconSizes).left();
-                    blockItemTable.label(() -> (!Core.settings.getBool("cui-BlockInfoShortenItems") ? amount : UI.formatAmount(amount) )+ " ");
+                    blockItemTable.label(() -> (!settings.getBool("cui-BlockInfoShortenItems") ? amount : UI.formatAmount(amount) )+ " ");
                     if (itemTypes.get() > 4) {
                         itemTypes.set(0);
                         blockItemTable.row();
@@ -195,7 +201,7 @@ public class CuiFragment {
         CuiVars.fastUpdate = !unitPlayerTable.hasMouse();
 
         //region Block info main
-        if (Core.settings.getBool("cui-ShowBlockInfo")) {
+        if (settings.getBool("cui-ShowBlockInfo")) {
             blockTable.clear();
             Vec2 mouse = Core.input.mouseWorld(Core.input.mouseX(), Core.input.mouseY());
             Tile mouseTile = Vars.world.tileWorld(mouse.x, mouse.y);
@@ -206,7 +212,7 @@ public class CuiFragment {
             if (mouseBuilding != null) { //the less cool deltanedas/waisa
                 showBlockTable = true;
                 String armor = mouseBuilding.block.armor >= 1 ? " [white]("+Math.round(mouseBuilding.block.armor) +")" : "";
-                if(mouseBuilding.health > 0 && Core.settings.getBool("cui-ShowBlockHealth")){
+                if(mouseBuilding.health > 0 && settings.getBool("cui-ShowBlockHealth")){
                     blockTable.label(()-> Core.bundle.get("cui-block-info.health") + ": [red]"+ Math.round(mouseBuilding.health) +"[white]/[pink]" + Math.round(mouseBuilding.maxHealth) +armor).row();
                 }
                 if(mouseBuilding.power != null){
