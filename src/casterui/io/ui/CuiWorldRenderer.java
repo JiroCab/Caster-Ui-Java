@@ -86,6 +86,12 @@ public class CuiWorldRenderer {
     public void DrawPlayerCursor(Player ply){
         if(ply == Vars.player && !Core.settings.getBool("cui-ShowOwnCursor")) return;
         if(ply.unit() == null)return;
+
+        boolean isTracked = ply == CuiVars.clickedPlayer;
+        if(isTracked){
+            if(Core.settings.getInt("cui-playerTrackedAlpha") == 0) return;
+        } else if(Core.settings.getInt("cui-playerTrackAlpha")== 0) return;
+
         Unit unit = ply.unit();
 
         float cursorX = ply.mouseX, cursorY = ply.mouseY() , unitX = unit.getX(), unitY = unit.getY();
@@ -96,9 +102,6 @@ public class CuiWorldRenderer {
         }
         int style = Core.settings.getInt("cui-playerCursorStyle");
 
-        boolean isTracked = ply == CuiVars.clickedPlayer;
-        if(isTracked && Core.settings.getInt("cui-playerTrackedAlpha") == 0) return;
-        else if(Core.settings.getInt("cui-playerTrackAlpha")== 0) return;
 
         float alpha = isTracked ? (float) (Core.settings.getInt("cui-playerTrackAlpha") * 0.1) : (float) (Core.settings.getInt("cui-playerTrackedAlpha") * 0.1);
 

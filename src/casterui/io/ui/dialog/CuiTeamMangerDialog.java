@@ -16,6 +16,7 @@ import casterui.io.CuiInputs;
 import mindustry.Vars;
 import mindustry.game.Team;
 import mindustry.gen.*;
+import mindustry.graphics.Drawf;
 import mindustry.net.Packets;
 import mindustry.ui.Styles;
 import mindustry.ui.dialogs.BaseDialog;
@@ -88,12 +89,14 @@ public class CuiTeamMangerDialog extends BaseDialog {
             Table iconTable = new Table() {
                 @Override
                 public void draw() {
-                    super.draw();
                     Draw.colorMul(u.team().color, listener.isOver() ? 1.3f : 1f);
                     Draw.alpha(parentAlpha);
                     Lines.stroke(Scl.scl(4f));
-                    Lines.rect(x, y, width, height);
+                    if(u != selectedPlayer)Lines.rect(x, y, width, height);
+                    else Fill.rect( x + (width/2), y + (height/2) , width, height);
                     Draw.reset();
+
+                    super.draw();
                 }
             };
             iconTable.clear();

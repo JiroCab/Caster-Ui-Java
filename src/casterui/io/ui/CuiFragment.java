@@ -1,7 +1,7 @@
 package casterui.io.ui;
 
 import arc.Core;
-import arc.graphics.g2d.TextureRegion;
+import arc.graphics.g2d.*;
 import arc.math.geom.Vec2;
 import arc.scene.Group;
 import arc.scene.style.Drawable;
@@ -16,7 +16,9 @@ import casterui.io.ui.dialog.CuiSettingsDialog;
 import mindustry.Vars;
 import mindustry.core.UI;
 import mindustry.game.Team;
+import mindustry.game.Teams;
 import mindustry.gen.*;
+import mindustry.graphics.Drawf;
 import mindustry.logic.LAccess;
 import mindustry.type.UnitType;
 import mindustry.ui.Styles;
@@ -40,7 +42,8 @@ public class CuiFragment {
             unitPlayerTable =new Table(),
             blockTable = new Table(),
             blockItemTable = new Table(),
-            blockLiquidTable = new Table();
+            blockLiquidTable = new Table(),
+            teamItemsTable = new Table();
     public int
             playerIconSize = Core.settings.getInt("cui-playerIconSize"),
             unitsIconSize = Core.settings.getInt("cui-unitsIconSize");
@@ -72,7 +75,16 @@ public class CuiFragment {
                 parentCont.name = "cui-block-table";
                 parentCont.left();
                 blockTable.background(tableStyles.get(settings.getInt("cui-blockinfostyle")));
-                parentCont.add(blockTable).visible(() -> CuiVars.unitTableCollapse).visible(() -> CuiVars.unitTableCollapse && showBlockTable);
+                parentCont.add(blockTable).visible(() -> CuiVars.unitTableCollapse && showBlockTable);
+            });
+        }
+
+        if(settings.getBool("cui-ShowBlockInfo")){
+            parent.fill(parentCont -> {
+                parentCont.name = "cui-team-Items";
+                parentCont.right();
+                blockTable.background(tableStyles.get(settings.getInt("cui-blockinfostyle")));
+                parentCont.add(teamItemsTable).visible(() -> CuiVars.unitTableCollapse);
             });
         }
 
@@ -195,6 +207,32 @@ public class CuiFragment {
             }
         }
         //endregion
+
+        //region Team Core items
+        teamItemsTable.clear();
+        if(settings.getBool("cui-ShowTeamItems")){
+            Vars.state.teams.active.forEach(team -> {
+                Table sub  = new Table(){
+                    @Override
+                    public void draw(){
+                        Draw.color(team.team.color, parentAlpha);
+                        Fill.rect( x + (width/2), y + (height/2) , width, height);
+                        Draw.reset();
+                        super.draw();
+                    }
+                };
+                AtomicInteger itemTypes = new AtomicInteger();
+                team.core().items.each((item, amount) -> {
+                    sub.image(item.uiIcon).size(iconSizes).left();
+                    sub.label(() -> (!settings.getBool("cui-TeamItemsShortenItems") ? amount : UI.formatAmount(amount) )+ " ");
+                    if (itemTypes.get() > 4) {
+                        itemTypes.set(0);
+                        sub.row();
+                    } else itemTypes.getAndIncrement();
+                });
+                teamItemsTable.add(sub).growX().row();
+            });
+        }
     }
 
     public void UpdateTables(){

@@ -124,6 +124,18 @@ public class CuiSettingsDialog {
                 t.add(subTable);
             }, settings.getBool("cui-animateSettings") , () ->hotkeys[0]).growX().row();
 
+            boolean[] teams = {false};
+            table.button("@setting.cui-teams-category.name", Icon.modePvp , Styles.togglet, () -> teams[0] = !teams[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> teams[0]).padTop(5f).row();
+            table.collapser( t -> {
+                SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
+                subTable.checkPref("cui-ShowTeamItems", true);
+                subTable.checkPref("cui-TeamItemsShortenItems", true);
+
+
+                allCuiOptions.add(subTable);
+                t.add(subTable);
+            }, settings.getBool("cui-animateSettings") , () ->teams[0]).growX().row();
+
             table.row();
             boolean[] advanceHudShown = {false};
             table.button("@setting.cui-advance-category.name", Icon.settings, Styles.togglet, () -> advanceHudShown[0] = !advanceHudShown[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> advanceHudShown[0]).padTop(5f).row();
