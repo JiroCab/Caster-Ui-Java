@@ -4,9 +4,7 @@ import arc.Core;
 import arc.Events;
 import arc.graphics.Color;
 import arc.graphics.g2d.*;
-import arc.math.Mathf;
 import arc.struct.Seq;
-import arc.util.Log;
 import arc.util.Time;
 import casterui.CuiVars;
 import casterui.util.CuiCircleObjectHelper;
@@ -17,7 +15,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.world.blocks.storage.CoreBlock;
 
-import static arc.graphics.g2d.Draw.*;
+import static arc.graphics.g2d.Draw.draw;
 
 
 public class CuiWorldRenderer {

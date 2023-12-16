@@ -1,7 +1,6 @@
 package casterui.io.ui.dialog;
 
 import arc.Core;
-import arc.KeyBinds;
 import arc.graphics.g2d.*;
 import arc.input.KeyCode;
 import arc.scene.event.ClickListener;
@@ -12,11 +11,9 @@ import arc.util.Log;
 import arc.util.Scaling;
 import casterui.CuiVars;
 import casterui.io.CuiBinding;
-import casterui.io.CuiInputs;
 import mindustry.Vars;
 import mindustry.game.Team;
 import mindustry.gen.*;
-import mindustry.graphics.Drawf;
 import mindustry.net.Packets;
 import mindustry.ui.Styles;
 import mindustry.ui.dialogs.BaseDialog;
