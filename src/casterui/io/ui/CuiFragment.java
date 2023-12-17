@@ -24,6 +24,7 @@ import mindustry.world.blocks.defense.turrets.Turret;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.units.UnitFactory;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -171,6 +172,8 @@ public class CuiFragment {
             });
         }
         //endregion
+
+        if(settings.getInt("cui-TeamItemsUpdateRate")  == 2) buildTeamItemTable();
     }
 
     public void slowUpdateTables(){
@@ -205,31 +208,7 @@ public class CuiFragment {
         }
         //endregion
 
-        //region Team Core items
-        teamItemsTable.clear();
-        if(settings.getBool("cui-ShowTeamItems")){
-            Vars.state.teams.active.forEach(team -> {
-                Table sub  = new Table(){
-                    @Override
-                    public void draw(){
-                        Draw.color(team.team.color, parentAlpha);
-                        Fill.rect( x + (width/2), y + (height/2) , width, height);
-                        Draw.reset();
-                        super.draw();
-                    }
-                };
-                AtomicInteger itemTypes = new AtomicInteger();
-                team.core().items.each((item, amount) -> {
-                    sub.image(item.uiIcon).size(iconSizes).left();
-                    sub.label(() -> (!settings.getBool("cui-TeamItemsShortenItems") ? amount : UI.formatAmount(amount) )+ " ");
-                    if (itemTypes.get() > 4) {
-                        itemTypes.set(0);
-                        sub.row();
-                    } else itemTypes.getAndIncrement();
-                });
-                teamItemsTable.add(sub).growX().row();
-            });
-        }
+        if(settings.getInt("cui-TeamItemsUpdateRate")  == 3) buildTeamItemTable();
     }
 
     public void UpdateTables(){
@@ -239,6 +218,7 @@ public class CuiFragment {
         if (settings.getBool("cui-ShowBlockInfo")) {
             blockTable.clear();
             Vec2 mouse = Core.input.mouseWorld(Core.input.mouseX(), Core.input.mouseY());
+            DecimalFormat decFor = new DecimalFormat("#.##");
             Tile mouseTile = Vars.world.tileWorld(mouse.x, mouse.y);
             showBlockTable = false;
             CuiVars.drawRally = false;
@@ -253,9 +233,10 @@ public class CuiFragment {
                 if(mouseBuilding.power != null){
                     PowerGraph graphs = mouseBuilding.power.graph;
                     int power = Math.round( graphs.getPowerBalance() * 60f);
+
                     String sign = power > 0 ? "[stat]+" : "[red]";
 
-                    blockTable.label(() -> Core.bundle.get("cui-block-info.power") + ": "+  sign + power).row();
+                    blockTable.label(() -> Core.bundle.get("cui-block-info.power") + ": "+  sign + decFor.format(power)).row();
                     if(mouseBuilding.block instanceof Battery || mouseBuilding.block instanceof PowerNode || mouseBuilding.block instanceof BeamNode) blockTable.label(() -> "[stat]"+ Math.round(mouseBuilding.sense(LAccess.powerNetStored))+ "[white]/[accent]" + Math.round(mouseBuilding.sense(LAccess.powerNetCapacity)));
                 }
                 if (mouseBuilding.items != null && mouseBuilding.items.total() > 0) blockTable.add(blockItemTable).row();
@@ -274,15 +255,44 @@ public class CuiFragment {
                         CuiVars.drawRally = true;
                     }
                 }
-                if(mouseBuilding.block instanceof Turret)blockTable.label(() -> "[accent]"+  mouseBuilding.sense(LAccess.ammo) + "[white]/[orange]"+ ((Turret) mouseBuilding.block).maxAmmo).row();
+                if(mouseBuilding.block instanceof Turret)blockTable.label(() -> "[accent]"+  decFor.format(mouseBuilding.sense(LAccess.ammo)) + "[white]/[orange]"+ ((Turret) mouseBuilding.block).maxAmmo).row();
                 //TODO: heat, block constructors, Payload
 
             }
         }
         //endregion
+
+        if(settings.getInt("cui-TeamItemsUpdateRate")  == 1) buildTeamItemTable();
     }
 
-    public static void setTrackPlayer(Player player){
+    public void buildTeamItemTable() {
+        teamItemsTable.clear();
+        if (settings.getBool("cui-ShowTeamItems")) {
+            Vars.state.teams.active.forEach(team -> {
+                Table sub = new Table() {
+                    @Override
+                    public void draw() {
+                        Draw.color(team.team.color, team.team.color.a * parentAlpha * (settings.getInt("cui-TeamItemsAlpha") * 0.1f));
+                        Fill.rect(x + (width / 2), y + (height / 2), width, height);
+                        Draw.reset();
+                        super.draw();
+                    }
+                };
+                AtomicInteger itemTypes = new AtomicInteger();
+                team.core().items.each((item, amount) -> {
+                    sub.image(item.uiIcon).size(iconSizes).left();
+                    sub.label(() -> (!settings.getBool("cui-TeamItemsShortenItems") ? amount : UI.formatAmount(amount)) + " ");
+                    if (itemTypes.get() > 4) {
+                        itemTypes.set(0);
+                        sub.row();
+                    } else itemTypes.getAndIncrement();
+                });
+                teamItemsTable.add(sub).growX().row();
+            });
+        }
+    }
+
+        public static void setTrackPlayer(Player player){
         if(CuiVars.clickedPlayer  == null || CuiVars.clickedPlayer  != player) CuiVars.clickedPlayer  = player;
         else CuiVars.clickedPlayer  = null;
     }
