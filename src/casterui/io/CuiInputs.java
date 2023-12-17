@@ -39,6 +39,8 @@ public class CuiInputs {
         if(cuiKeyTap(toggle_units_player_table_controls)) Core.settings.put("cui-playerunitstablecontols", !Core.settings.getBool("cui-playerunitstablecontols"));
         if(cuiKeyTap(toggle_table_core_units)) Core.settings.put("cui-unitsTableCoreUnits", !Core.settings.getBool("cui-unitsTableCoreUnits"));
         if(cuiKeyTap(toggle_table_summarize_players)) Core.settings.put("cui-playerTableSummarizePlayers", !Core.settings.getBool("cui-playerTableSummarizePlayers"));
+        if(cuiKeyTap(toggle_team_items)) Core.settings.put("cui-ShowTeamItems", !Core.settings.getBool("cui-ShowTeamItems"));
+        if(cuiKeyTap(toggle_shorten_team_items)) Core.settings.put("cui-TeamItemsShortenItems", !Core.settings.getBool("cui-TeamItemsShortenItems"));
 
         /*TODO: something more elegant? */
         if(input.keyTap(KeyCode.num1) && CuiVars.mappedPlayers.get(1) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(1);

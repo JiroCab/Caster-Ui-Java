@@ -108,6 +108,18 @@ public class CuiSettingsDialog {
             }, settings.getBool("cui-animateSettings") , () ->blocks[0]).growX().row();
             table.row();
 
+            boolean[] teams = {false};
+            table.button("@setting.cui-teams-category.name", Icon.modePvp , Styles.togglet, () -> teams[0] = !teams[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> teams[0]).padTop(5f).row();
+            table.collapser( t -> {
+                SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
+                subTable.checkPref("cui-ShowTeamItems", true);
+                subTable.checkPref("cui-TeamItemsShortenItems", true);
+                subTable.sliderPref("cui-TeamItemsAlpha", 8, 0, 10, s -> s  > 0 ? s != 10 ? "0." + s + "%" : "1%" : "@off");
+
+                allCuiOptions.add(subTable);
+                t.add(subTable);
+            }, settings.getBool("cui-animateSettings") , () ->teams[0]).growX().row();
+
             boolean[] hotkeys = {false};
             table.button("@setting.cui-hotkeys-category.name", Icon.move, Styles.togglet, () -> hotkeys[0] = !hotkeys[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> hotkeys[0]).padTop(5f).row();
             table.collapser( t -> {
@@ -132,6 +144,7 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-playerunitstablecontols", true);
                 subTable.sliderPref("cui-playerunitstablestyle", 1, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
                 subTable.sliderPref("cui-blockinfostyle", 2, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
+                subTable.sliderPref("cui-TeamItemsUpdateRate", 2, 1, 3, s -> s == 1 ? "Fast" :  s == 2 ? "Normal" : "Slow");
 
                 subTable.sliderPref("cui-buttonSize", 40, 1, 100, String::valueOf);
                 subTable.sliderPref("cui-unitsPlayerTableUpdateRate", 10, 1, 100, String::valueOf);

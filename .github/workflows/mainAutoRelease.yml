@@ -1,9 +1,10 @@
-name: Main Auto build Release
+name: Main Auto Release
 
 on:
   push:
     branches:
       - main
+  workflow_call:
 
 jobs:
   build:
@@ -19,6 +20,21 @@ jobs:
         uses: android-actions/setup-android@v2.0.1
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+
+      - name: Setup Hjson
+        run: npm install hjson -g
+      - name: Convert mod.hjson to mod.json
+        run: hjson -j mod.hjson > mod.json
+      - name: Get Version
+        id: version
+        uses: notiz-dev/github-action-json-property@release
+        with:
+          path: 'mod.json'
+          prop_path: 'version'
+
+      - name: Convert mod.json back to mod.hjson
+        run: hjson mod.json > mod.hjson
+
       - name: build-tools
         run: sdkmanager "build-tools;29.0.3"
       - name: Add Android SDK to PATH
@@ -29,12 +45,6 @@ jobs:
       - name: Build mod jar
         run: ./gradlew deploy
 
-      - name: set up tags
-        uses: IIlyichev/github-tag-action@v6.3
-        id: tag_version
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-      
       - name: Release rename
         run:
           mv build/libs/${{ github.event.repository.name }}.jar build/libs/${{ github.event.repository.name }}-${{ steps.tag_version.outputs.new_tag }}.jar
@@ -42,14 +52,12 @@ jobs:
       - name: Upload built jar file
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.repository.name }}-${{ steps.tag_version.outputs.new_tag }}
-          path: build/libs/${{ github.event.repository.name }}-${{ steps.tag_version.outputs.new_tag }}.jar
+          name: ${{ github.event.repository.name }}-${{ steps.version.outputs.prop }}
+          path: build/libs/${{ github.event.repository.name }}-${{ steps.version.outputs.prop }}.jar
 
       - name: Create release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: build/libs/${{ github.event.repository.name }}-${{ steps.tag_version.outputs.new_tag }}.jar
-          tag: ${{ steps.tag_version.outputs.new_tag }}
-          body: ${{ env.BODY }}
-
+          file: build/libs/${{ github.event.repository.name }}-${{ steps.version.outputs.prop }}.jar
+          tag: ${{ steps.version.outputs.prop }}
