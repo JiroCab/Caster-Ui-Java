@@ -269,6 +269,7 @@ public class CuiFragment {
         teamItemsTable.clear();
         if (settings.getBool("cui-ShowTeamItems")) {
             Vars.state.teams.active.forEach(team -> {
+                if(team.core() == null) return;
                 Table sub = new Table() {
                     @Override
                     public void draw() {
