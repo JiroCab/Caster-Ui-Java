@@ -9,6 +9,7 @@ import arc.scene.ui.Image;
 import arc.scene.ui.Label;
 import arc.scene.ui.layout.Table;
 import arc.struct.Seq;
+import arc.util.Align;
 import arc.util.Scaling;
 import casterui.CuiVars;
 import casterui.io.ui.dialog.CuiSettingsDialog;
@@ -24,6 +25,7 @@ import mindustry.world.blocks.defense.turrets.Turret;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.units.UnitFactory;
 
+import java.rmi.AlreadyBoundException;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,6 +52,7 @@ public class CuiFragment {
     public Building mouseBuilding = null;
     public int iconSizes = 25;
     Seq<Drawable> tableStyles = Seq.with(Tex.buttonTrans, Tex.clear, Styles.black3, Tex.inventory, Tex.button, Tex.pane, Styles.black5, Styles.black6, Styles.black8, Styles.black9);
+    Seq<Integer> alignSides = Seq.with(Align.bottom, Align.bottomLeft, Align.bottomRight, Align.top, Align.topLeft, Align.topRight, Align.center, Align.left, Align.right);
 
 
     public void BuildTables(Group parent){
@@ -57,7 +60,7 @@ public class CuiFragment {
         if(settings.getBool("cui-ShowUnitTable") || settings.getBool("cui-ShowPlayerList") ) {
             parent.fill(parentCont -> {
                 parentCont.name = "cui-unit-player-table";
-                parentCont.bottom().left();
+                parentCont.align(alignSides.get(settings.getInt("cui-PlayerUnitsTableSide")));
                 unitPlayerTable.background(tableStyles.get(settings.getInt("cui-playerunitstablestyle")));
                 parentCont.clear();
                 unitPlayerTable.add(controlTable).row();
@@ -71,16 +74,16 @@ public class CuiFragment {
         if(settings.getBool("cui-ShowBlockInfo")){
             parent.fill(parentCont -> {
                 parentCont.name = "cui-block-table";
-                parentCont.left();
+                parentCont.align(alignSides.get(settings.getInt("cui-blockinfoSide")));
                 blockTable.background(tableStyles.get(settings.getInt("cui-blockinfostyle")));
                 parentCont.add(blockTable).visible(() -> CuiVars.unitTableCollapse && showBlockTable);
             });
         }
 
-        if(settings.getBool("cui-ShowBlockInfo")){
+        if(settings.getBool("cui-ShowTeamItems")){
             parent.fill(parentCont -> {
                 parentCont.name = "cui-team-Items";
-                parentCont.right();
+                parentCont.align(alignSides.get(settings.getInt("cui-TeamItemsSide")));
                 blockTable.background(tableStyles.get(settings.getInt("cui-blockinfostyle")));
                 parentCont.add(teamItemsTable).visible(() -> CuiVars.unitTableCollapse);
             });
@@ -91,7 +94,7 @@ public class CuiFragment {
     public void StutteredUpdateTables() {
         if (CuiVars.hoveredEntity != null && !unitPlayerTable.hasMouse()) CuiVars.hoveredEntity = null;
         buttonSize = (float) Core.settings.getInt("cui-buttonSize");
-        showTableUnitsPlayer = (settings.getBool("cui-ShowPlayerList") || settings.getBool("cui-ShowUnitTable"));
+        showTableUnitsPlayer = (settings.getBool("cui-ShowPlayerList") || settings.getBool("cui-ShowUnitTable")) && Groups.unit.size() > 0;
 
         // region Control table
         controlTable.clear();
@@ -269,6 +272,7 @@ public class CuiFragment {
         teamItemsTable.clear();
         if (settings.getBool("cui-ShowTeamItems")) {
             Vars.state.teams.active.forEach(team -> {
+                if(team.core() == null) return;
                 Table sub = new Table() {
                     @Override
                     public void draw() {
