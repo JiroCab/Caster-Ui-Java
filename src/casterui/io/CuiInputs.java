@@ -33,7 +33,12 @@ public class CuiInputs {
         if(cuiKeyTap(change_teams)) CuiVars.teamManger.show();
         if(cuiKeyTap(toggle_unit_hp_bars)) Core.settings.put("cui-showUnitBar", !Core.settings.getBool("cui-showUnitBar"));
         if(cuiKeyTap(toggle_player_cursor)) Core.settings.put("cui-TrackPlayerCursor", !Core.settings.getBool("cui-TrackPlayerCursor"));
-        if(cuiKeyTap(toggle_track_logic)) Core.settings.put("cui-TrackLogicControl", !Core.settings.getBool("cui-TrackLogicControl"));
+        if(cuiKeyTap(toggle_track_logic)){
+            if(Core.settings.getInt("cui-logicLineAlpha") == 0) Core.settings.put("cui-logicLineAlpha", Core.settings.getInt("cui-logicLineAlphaPreferred", 100));
+            else{
+                Core.settings.put("cui-logicLineAlphaPreferred", Core.settings.getInt("cui-logicLineAlpha"));
+                Core.settings.put("cui-logicLineAlpha", 0);
+        }}
         if(cuiKeyTap(toggle_shorten_items_info)) Core.settings.put("cui-BlockInfoShortenItems", !Core.settings.getBool("cui-BlockInfoShortenItems"));
         if(cuiKeyTap(toggle_block_hp)) Core.settings.put("cui-ShowBlockHealth", !Core.settings.getBool("cui-ShowBlockHealth"));
         if(cuiKeyTap(toggle_units_player_table_controls)) Core.settings.put("cui-playerunitstablecontols", !Core.settings.getBool("cui-playerunitstablecontols"));
@@ -56,7 +61,7 @@ public class CuiInputs {
         if (scene.hasField()) return;
         tracking = false;
 
-        float cameraFloat = 0.085F;
+        float cameraFloat = 0.085F; //TODO:ALLOW THIS TO BE CHANGED
         if (!Core.settings.getBool("smoothcamera")){ cameraFloat = 1;}
 
         if(cuiKeyTap(spectate_next_player)) cyclePlayers(true);
