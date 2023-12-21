@@ -4,8 +4,11 @@ import arc.Core;
 import arc.Events;
 import arc.graphics.Color;
 import arc.graphics.g2d.*;
+import arc.scene.ui.layout.Scl;
 import arc.struct.Seq;
+import arc.util.Align;
 import arc.util.Time;
+import arc.util.pooling.Pools;
 import casterui.CuiVars;
 import casterui.util.CuiCircleObjectHelper;
 import mindustry.Vars;
@@ -13,6 +16,7 @@ import mindustry.ai.types.LogicAI;
 import mindustry.game.EventType;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.ui.Fonts;
 import mindustry.world.blocks.storage.CoreBlock;
 
 import static arc.graphics.g2d.Draw.draw;
@@ -25,7 +29,7 @@ public class CuiWorldRenderer {
         Events.run(EventType.Trigger.draw, ()-> {
             boolean unitBars = Core.settings.getBool("cui-showUnitBar");
             boolean trackPlayerCursor = Core.settings.getBool("cui-TrackPlayerCursor");
-            boolean trackLogicControl = Core.settings.getBool("cui-TrackLogicControl");
+            boolean trackLogicControl = Core.settings.getInt("cui-logicLineAlpha") > 0;
 
             if (unitBars || trackLogicControl || trackPlayerCursor){
                 Groups.unit.each((unit -> {
@@ -61,7 +65,7 @@ public class CuiWorldRenderer {
             }
         });
         Events.run(EventType.Trigger.update, () -> {
-            boolean trackLogicControl = Core.settings.getBool("cui-TrackLogicControl", false);
+            boolean trackLogicControl = Core.settings.getInt("cui-logicLineAlpha") > 0;
             Groups.unit.each(unit -> {
                 if (trackLogicControl && unit.controller() instanceof LogicAI la) DrawLogicControl(unit, la.controller);
             });
@@ -86,9 +90,8 @@ public class CuiWorldRenderer {
         if(ply.unit() == null)return;
 
         boolean isTracked = ply == CuiVars.clickedPlayer;
-        if(isTracked){
-            if(Core.settings.getInt("cui-playerTrackedAlpha") == 0) return;
-        } else if(Core.settings.getInt("cui-playerTrackAlpha")== 0) return;
+        if(isTracked && Core.settings.getInt("cui-playerTrackedAlpha") == 0) return;
+        else if(Core.settings.getInt("cui-playerTrackAlpha")== 0) return;
 
         Unit unit = ply.unit();
 
@@ -98,22 +101,61 @@ public class CuiWorldRenderer {
             cursorX = ply.bestCore().x();
             cursorY = ply.bestCore().y();
         }
-        int style = Core.settings.getInt("cui-playerCursorStyle");
+        int style = Core.settings.getInt("cui-playerCursorStyle"), lines = Core.settings.getInt("cui-playerLineStyle");
 
 
-        float alpha = isTracked ? (float) (Core.settings.getInt("cui-playerTrackAlpha") * 0.1) : (float) (Core.settings.getInt("cui-playerTrackedAlpha") * 0.1);
+        float alpha = !isTracked ? (float) (Core.settings.getInt("cui-playerTrackAlpha") * 0.1) : (float) (Core.settings.getInt("cui-playerTrackedAlpha") * 0.1);
 
         float finalCursorX = cursorX, finalCursorY = cursorY;
         Draw.draw(Layer.overlayUI+0.01f, () ->{
-            if (style % 2 == 0){DrawLine(finalCursorX, finalCursorY, unitX, unitY, ply.team().color, alpha);}
+            Lines.stroke(1, ply.team().color);
+            Draw.color(ply.team().color, alpha);
 
-            if (style == 1 || style == 2) Drawf.square(finalCursorX, finalCursorY, 2,  ply.team().color); // Square (Inspired from Mindustry Ranked Server's spectator mode )
-            else if (style == 3 || style == 4) Drawf.circles(finalCursorX, finalCursorY, 3, ply.team().color); // Circle
-            else if (style == 5 || style == 6) Drawf.target(finalCursorX, finalCursorY, 3, alpha, ply.team().color); //Target (aka mobile mindustry)
-            else DrawLine(finalCursorX, finalCursorY, unitX, unitY, unit.team.color, alpha);  //Line (originally from Ferlern/extended-UI')
+            if(lines == 1) DrawLine(finalCursorX, finalCursorY, unitX, unitY, ply.team().color, alpha);
+            else if(lines == 2)Lines.dashLine(finalCursorX, finalCursorY, unitX, unitY, Math.round(unit.dst(finalCursorX, finalCursorY) / 2));
+            else if(lines == 3)Drawf.line(ply.team().color, finalCursorX, finalCursorY, unitX, unitY);
+            Draw.reset();
+        });
+
+        Draw.draw(Layer.overlayUI+0.02f, () ->{
+            Draw.color(ply.team().color, alpha);
+
+            if (style == 2) Drawf.circles(finalCursorX, finalCursorY, 3, ply.team().color); // Circle
+            else if (style == 3) Drawf.target(finalCursorX, finalCursorY, 3, alpha, ply.team().color); //Target (aka mobile mindustry)
+            else if (style == 4) Fill.circle(finalCursorX, finalCursorY, 3); //Foo's style
+            else Drawf.square(finalCursorX, finalCursorY, 2,  ply.team().color); // Square (Inspired from Mindustry Ranked Server's spectator mode )
+            Draw.reset();
         });
         Draw.reset();
+        if(Core.settings.getInt("cui-playerDrawNames") == 2 || Core.settings.getInt("cui-playerDrawNames") == 1 && isTracked ){
+            drawLabel(finalCursorX, finalCursorY, ply.name, ply.team().color);
+            Draw.reset();
+        }
 
+    }
+
+
+    public void drawLabel(float x, float y, String text, Color color){
+        Font font = Fonts.outline;
+        GlyphLayout l = Pools.obtain(GlyphLayout.class, GlyphLayout::new);
+        boolean ints = font.usesIntegerPositions();
+        font.getData().setScale(1 / 5f / Scl.scl(1f));
+        font.setUseIntegerPositions(false);
+
+        l.setText(font, text, color, 90f, Align.left, true);
+        float yOffset = 7f;
+        float margin = 1.7f;
+
+        Draw.color(0f, 0f, 0f, 0.2f);
+        Fill.rect(x, y + yOffset - l.height/2f, l.width + margin, l.height + margin);
+        Draw.color();
+        font.setColor(color);
+        font.draw(text, x - l.width/2f, y + yOffset, 90f, Align.left, true);
+        font.setUseIntegerPositions(ints);
+
+        font.getData().setScale(1f);
+
+        Pools.free(l);
     }
 
     public void DrawLine(float cx, float cy, float ux, float uy, Color color, float transparency) {

@@ -42,9 +42,11 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-hideNoUnitPlayers", true);
                 subTable.checkPref("cui-TrackPlayerCursor", true);
                 subTable.checkPref("cui-ShowOwnCursor", false);
-                subTable.sliderPref("cui-playerCursorStyle", 6, 1, 7, String::valueOf);
-                subTable.sliderPref("cui-playerTrackAlpha", 8, 0, 10, s -> s  > 0 ? s != 10 ? "0." + s + "%" : "1%" : "@off");
-                subTable.sliderPref("cui-playerTrackedAlpha", 10, 0, 10, s -> s > 0 ? s != 10 ? "0." + s + "%" : "1%" : "@off");
+                subTable.sliderPref("cui-playerCursorStyle", 3, 0, 4, s -> s == 0 ? "@off" : bundle.get("cui-cursor" + s ));
+                subTable.sliderPref("cui-playerLineStyle", 1, 0, 3, s -> s == 0 ? "@off" : bundle.get("cui-lines" + s ));
+                subTable.sliderPref("cui-playerDrawNames", 1, 0, 2, s -> s == 0 ? "@off" : bundle.get("cui-name" + s ));
+                subTable.sliderPref("cui-playerTrackAlpha", 7, 0, 10, s -> s  > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
+                subTable.sliderPref("cui-playerTrackedAlpha", 10, 0, 10, s -> s > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
                 subTable.sliderPref("cui-playerIconSize", 35, 1, 100, String::valueOf);
                 subTable.checkPref("cui-playerHoldTrackMouse", true);
 
@@ -80,7 +82,7 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-SendChatCoreLost", false);
                 subTable.checkPref("cui-ShowAlertsCircles", true);
                 subTable.sliderPref("cui-alertCircleSpeed", 12, 1 , 500, a -> (a*0.5f) + "x");
-                subTable.sliderPref("cui-alertStyle", 1, 1 , 5, String::valueOf);
+                subTable.sliderPref("cui-alertStyle", 1, 1 , 5, s -> bundle.get("cui-alert" + s ));
                 subTable.checkPref("cui-alertReverseGrow", false);
 
                 allCuiOptions.add(subTable);
@@ -99,9 +101,8 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-ShowBlockHealth", true);
                 subTable.checkPref("cui-BlockInfoShortenItems", true);
                 subTable.checkPref("cui-showFactoryProgress", true);
-                subTable.checkPref("cui-TrackLogicControl", false);
-                subTable.sliderPref("cui-logicLineAlpha", 4, 1, 10, s ->  s != 10 ? "0." + s + "%" : s + "%");
-                subTable.sliderPref("cui-rallyPointAlpha", 4, 1, 11,s -> s == 1 ? "@off" : s != 11 ? "0." + (s - 1) + "%" : "1%");
+                subTable.sliderPref("cui-logicLineAlpha", 5, 1, 11, s ->  s == 1 ? "@off" : s != 11 ?  (s - 1) + "0%" : "100%");
+                subTable.sliderPref("cui-rallyPointAlpha", 4, 1, 11,s -> s == 1 ? "@off" : s != 11 ? (s - 1) + "0%" : "100%");
 
                 allCuiOptions.add(subTable);
                 t.add(subTable);
@@ -114,7 +115,8 @@ public class CuiSettingsDialog {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
                 subTable.checkPref("cui-ShowTeamItems", true);
                 subTable.checkPref("cui-TeamItemsShortenItems", true);
-                subTable.sliderPref("cui-TeamItemsAlpha", 8, 0, 10, s -> s  > 0 ? s != 10 ? "0." + s + "%" : "1%" : "@off");
+                subTable.sliderPref("cui-TeamItemsAlpha", 8, 0, 10, s -> s  > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
+
 
                 allCuiOptions.add(subTable);
                 t.add(subTable);
@@ -141,16 +143,21 @@ public class CuiSettingsDialog {
             table.button("@setting.cui-advance-category.name", Icon.settings, Styles.togglet, () -> advanceHudShown[0] = !advanceHudShown[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> advanceHudShown[0]).padTop(5f).row();
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
-                subTable.checkPref("cui-playerunitstablecontols", true);
-                subTable.sliderPref("cui-playerunitstablestyle", 1, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
                 subTable.sliderPref("cui-blockinfostyle", 2, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
                 subTable.sliderPref("cui-TeamItemsUpdateRate", 2, 1, 3, s -> s == 1 ? "Fast" :  s == 2 ? "Normal" : "Slow");
 
                 subTable.sliderPref("cui-buttonSize", 40, 1, 100, String::valueOf);
                 subTable.sliderPref("cui-unitsPlayerTableUpdateRate", 10, 1, 100, String::valueOf);
-                subTable.sliderPref("cui-unitsPlayerTableSize", 6, 1, 20, String::valueOf);
                 subTable.sliderPref("cui-maxZoom", 10, 1, 10, String::valueOf);
                 subTable.checkPref("cui-animateSettings", true);
+
+                subTable.checkPref("cui-playerunitstablecontols", true);
+                subTable.sliderPref("cui-playerunitstablestyle", 0, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
+                subTable.sliderPref("cui-unitsPlayerTableSize", 6, 1, 20, String::valueOf);
+
+                subTable.sliderPref("cui-blockinfoSide", 7, 0, 8, s -> bundle.get("cui-side"+s));
+                subTable.sliderPref("cui-PlayerUnitsTableSide", 1, 0, 8, s -> bundle.get("cui-side"+s));
+                subTable.sliderPref("cui-TeamItemsSide", 8, 0, 8, s -> bundle.get("cui-side"+s));
                 allCuiOptions.add(subTable);
                 t.add(subTable);
             }, settings.getBool("cui-animateSettings") , () ->advanceHudShown[0]).growX().row();
