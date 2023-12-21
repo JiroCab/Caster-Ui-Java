@@ -116,6 +116,7 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-TeamItemsShortenItems", true);
                 subTable.sliderPref("cui-TeamItemsAlpha", 8, 0, 10, s -> s  > 0 ? s != 10 ? "0." + s + "%" : "1%" : "@off");
 
+
                 allCuiOptions.add(subTable);
                 t.add(subTable);
             }, settings.getBool("cui-animateSettings") , () ->teams[0]).growX().row();
@@ -141,16 +142,21 @@ public class CuiSettingsDialog {
             table.button("@setting.cui-advance-category.name", Icon.settings, Styles.togglet, () -> advanceHudShown[0] = !advanceHudShown[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> advanceHudShown[0]).padTop(5f).row();
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
-                subTable.checkPref("cui-playerunitstablecontols", true);
-                subTable.sliderPref("cui-playerunitstablestyle", 1, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
                 subTable.sliderPref("cui-blockinfostyle", 2, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
                 subTable.sliderPref("cui-TeamItemsUpdateRate", 2, 1, 3, s -> s == 1 ? "Fast" :  s == 2 ? "Normal" : "Slow");
 
                 subTable.sliderPref("cui-buttonSize", 40, 1, 100, String::valueOf);
                 subTable.sliderPref("cui-unitsPlayerTableUpdateRate", 10, 1, 100, String::valueOf);
-                subTable.sliderPref("cui-unitsPlayerTableSize", 6, 1, 20, String::valueOf);
                 subTable.sliderPref("cui-maxZoom", 10, 1, 10, String::valueOf);
                 subTable.checkPref("cui-animateSettings", true);
+
+                subTable.checkPref("cui-playerunitstablecontols", true);
+                subTable.sliderPref("cui-playerunitstablestyle", 0, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
+                subTable.sliderPref("cui-unitsPlayerTableSize", 6, 1, 20, String::valueOf);
+
+                subTable.sliderPref("cui-blockinfoSide", 7, 0, 8, s -> bundle.get("cui-side"+s));
+                subTable.sliderPref("cui-PlayerUnitsTableSide", 1, 0, 8, s -> bundle.get("cui-side"+s));
+                subTable.sliderPref("cui-TeamItemsSide", 8, 0, 8, s -> bundle.get("cui-side"+s));
                 allCuiOptions.add(subTable);
                 t.add(subTable);
             }, settings.getBool("cui-animateSettings") , () ->advanceHudShown[0]).growX().row();
