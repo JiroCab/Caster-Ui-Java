@@ -49,6 +49,7 @@ jobs:
         run:
           mv build/libs/${{ github.event.repository.name }}.jar build/libs/${{ github.event.repository.name }}-${{  steps.version.outputs.prop }}.jar
 
+
       - name: Upload built jar file
         uses: actions/upload-artifact@v2
         with:
