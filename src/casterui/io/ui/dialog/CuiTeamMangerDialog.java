@@ -37,7 +37,7 @@ public class CuiTeamMangerDialog extends BaseDialog {
         addOtherButtons();
         shown(this::setup);
         onResize(this::setup);
-        mapListner(() -> {});
+        mapListener(() -> {});
 
     }
 
@@ -112,7 +112,7 @@ public class CuiTeamMangerDialog extends BaseDialog {
         playerTable.center();
     }
 
-    public void mapListner(Runnable callback){
+    public void mapListener(Runnable callback){
         keyDown(key -> {
             if(key == KeyCode.num1) mapPlayer( selectedPlayer,  1);
             if(key == KeyCode.num2) mapPlayer( selectedPlayer,  2);

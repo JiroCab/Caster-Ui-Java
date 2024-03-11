@@ -4,10 +4,13 @@ import arc.Core;
 import arc.Events;
 import arc.graphics.Color;
 import arc.graphics.g2d.*;
+import arc.math.Interp;
+import arc.scene.actions.Actions;
+import arc.scene.style.Drawable;
 import arc.scene.ui.layout.Scl;
+import arc.scene.ui.layout.Table;
 import arc.struct.Seq;
-import arc.util.Align;
-import arc.util.Time;
+import arc.util.*;
 import arc.util.pooling.Pools;
 import casterui.CuiVars;
 import casterui.util.CuiCircleObjectHelper;
@@ -18,12 +21,15 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.Fonts;
 import mindustry.world.blocks.storage.CoreBlock;
+import mindustry.world.blocks.units.UnitFactory;
 
 import static arc.graphics.g2d.Draw.draw;
+import static mindustry.Vars.*;
 
 
 public class CuiWorldRenderer {
     public Seq<CuiCircleObjectHelper> circleQueue = new Seq<>();
+    private long lastToast;
 
     public void worldRenderer(){
         Events.run(EventType.Trigger.draw, ()-> {
@@ -33,20 +39,25 @@ public class CuiWorldRenderer {
 
             if (unitBars || trackLogicControl || trackPlayerCursor){
                 Groups.unit.each((unit -> {
-                    if (unitBars) DrawUnitBars(unit);
-                    if (trackLogicControl && unit.controller() instanceof LogicAI la) DrawLogicControl(unit, la.controller);
+                    if (unitBars) drawUnitBars(unit);
+                    if (trackLogicControl && unit.controller() instanceof LogicAI la) drawLogicControl(unit, la.controller);
                 }));
                 if(trackPlayerCursor) Groups.player.each(ply ->{
-                    if(ply.unit() != null){DrawPlayerCursor(ply);}
+                    if(ply.unit() != null){drawPlayerCursor(ply);}
                 });
             }
             if (circleQueue.size != 0 && Core.settings.getBool("cui-ShowAlertsCircles")){
                 /*Why would anyone need this amount control for the speed? ehh why not!*/
-                float maxSize = Math.max((Vars.state.map.height + Vars.state.map.width) / 1.85f, 3000f), growRate = Math.round(Core.settings.getInt("cui-alertCircleSpeed") * 0.5f);
+                float maxSize = Math.max((Vars.state.map.height + Vars.state.map.width) / 2.1f, 3000f), growRate = Math.round(Core.settings.getInt("cui-alertCircleSpeed") * 0.5f);
 
                 Draw.draw(Layer.overlayUI + 0.01f, () -> circleQueue.forEach((cir) -> {
                     float radius = Math.abs(cir.startTime - Time.time) * growRate + cir.size, size = Math.abs(cir.startTime - Time.time) * growRate + cir.size;
                     if (size > maxSize) circleQueue.remove(cir);
+                    if( Core.settings.getBool("cui-alertReverseGrow")){
+                        float pr = radius;
+                        radius = maxSize - radius;
+                        Log.err("pr:" + pr + " r:" + radius);
+                    }
                     Draw.color(cir.team.color);
 
                     int style = Core.settings.getInt("cui-alertStyle");
@@ -61,18 +72,19 @@ public class CuiWorldRenderer {
 
             if(CuiVars.drawRally && Core.settings.getInt("cui-logicLineAlpha" ) != 1){
                 Building block = CuiVars.fragment.mouseBuilding;
-                Draw.draw(Layer.overlayUI+0.01f, () -> DrawLine(block.getX(), block.getY(), block.getCommandPosition().x ,block.getCommandPosition().getY(), block.team.color, (Core.settings.getInt("cui-rallyPointAlpha") - 1) * 0.1f));
+                Draw.draw(Layer.overlayUI+0.01f, () -> drawLine(block.getX(), block.getY(), block.getCommandPosition().x ,block.getCommandPosition().getY(), block.team.color, (Core.settings.getInt("cui-rallyPointAlpha") - 1) * 0.1f));
             }
+            drawFactoryProgress();
         });
         Events.run(EventType.Trigger.update, () -> {
             boolean trackLogicControl = Core.settings.getInt("cui-logicLineAlpha") > 0;
             Groups.unit.each(unit -> {
-                if (trackLogicControl && unit.controller() instanceof LogicAI la) DrawLogicControl(unit, la.controller);
+                if (trackLogicControl && unit.controller() instanceof LogicAI la) drawLogicControl(unit, la.controller);
             });
         });
     }
 
-    public void DrawUnitBars(Unit unit){
+    public void drawUnitBars(Unit unit){
         if(unit.dead()) return;
         float x = unit.x(), y= unit.y(), offset = unit.hitSize  * 0.9f, width = unit.hitSize() * -0.9f, hp = (unit.health / unit.maxHealth);
         Draw.alpha(0.5f);
@@ -85,7 +97,7 @@ public class CuiWorldRenderer {
         Draw.reset();
     }
 
-    public void DrawPlayerCursor(Player ply){
+    public void drawPlayerCursor(Player ply){
         if(ply == Vars.player && !Core.settings.getBool("cui-ShowOwnCursor")) return;
         if(ply.unit() == null)return;
 
@@ -111,7 +123,7 @@ public class CuiWorldRenderer {
             Lines.stroke(1, ply.team().color);
             Draw.color(ply.team().color, alpha);
 
-            if(lines == 1) DrawLine(finalCursorX, finalCursorY, unitX, unitY, ply.team().color, alpha);
+            if(lines == 1) drawLine(finalCursorX, finalCursorY, unitX, unitY, ply.team().color, alpha);
             else if(lines == 2)Lines.dashLine(finalCursorX, finalCursorY, unitX, unitY, Math.round(unit.dst(finalCursorX, finalCursorY) / 2));
             else if(lines == 3)Drawf.line(ply.team().color, finalCursorX, finalCursorY, unitX, unitY);
             Draw.reset();
@@ -135,7 +147,7 @@ public class CuiWorldRenderer {
     }
 
 
-    public void drawLabel(float x, float y, String text, Color color){
+    public void drawLabel(float x, float y, String text, Color color, float yOffset, float margin){
         Font font = Fonts.outline;
         GlyphLayout l = Pools.obtain(GlyphLayout.class, GlyphLayout::new);
         boolean ints = font.usesIntegerPositions();
@@ -143,8 +155,7 @@ public class CuiWorldRenderer {
         font.setUseIntegerPositions(false);
 
         l.setText(font, text, color, 90f, Align.left, true);
-        float yOffset = 7f;
-        float margin = 1.7f;
+
 
         Draw.color(0f, 0f, 0f, 0.2f);
         Fill.rect(x, y + yOffset - l.height/2f, l.width + margin, l.height + margin);
@@ -157,23 +168,24 @@ public class CuiWorldRenderer {
 
         Pools.free(l);
     }
+    public void drawLabel(float x, float y, String text, Color color){drawLabel(x, y, text, color, 7f, 1.7f);}
 
-    public void DrawLine(float cx, float cy, float ux, float uy, Color color, float transparency) {
+    public void drawLine(float cx, float cy, float ux, float uy, Color color, float transparency) {
         Lines.stroke(1, color);
         Draw.color(color, transparency);
         Lines.line(ux, uy, cx, cy);
         Draw.reset();
     }
 
-    public void DrawLine(float cx, float cy, float ux, float uy, Color color) {
-        DrawLine(cx, cy, ux, uy, color, 1);
+    public void drawLine(float cx, float cy, float ux, float uy, Color color) {
+        drawLine(cx, cy, ux, uy, color, 1);
     }
 
-    public void DrawLogicControl(Unit unit, Building processor){
+    public void drawLogicControl(Unit unit, Building processor){
         float unitX = unit.getX(), unitY = unit.getY(), processorX = processor.getX(), processorY = processor.getY();
 
         draw(Layer.overlayUI+0.01f, () -> {
-            DrawLine(unitX, unitY, processorX, processorY, Color.purple, CuiVars.heldUnit != null && CuiVars.heldUnit.type == unit.type ? 1f : Core.settings.getInt("cui-logicLineAlpha") * 0.1f  );
+            drawLine(unitX, unitY, processorX, processorY, Color.purple, CuiVars.heldUnit != null && CuiVars.heldUnit.type == unit.type ? 1f : Core.settings.getInt("cui-logicLineAlpha") * 0.1f  );
 
             /*
             Lines.stroke(1, Color.purple);
@@ -183,7 +195,7 @@ public class CuiWorldRenderer {
         });
     }
 
-    public void CoreDestroyAlert(EventType.BlockDestroyEvent e){
+    public void coreDestroyAlert(EventType.BlockDestroyEvent e){
         if(!(e.tile.build instanceof CoreBlock.CoreBuild)) return;
 
         if (Core.settings.getBool("cui-ShowAlertsCircles")) {
@@ -191,7 +203,11 @@ public class CuiWorldRenderer {
         }
 
         if (Core.settings.getBool("cui-ShowAlerts")){
-            Vars.ui.hudfrag.showToast("[#" + e.tile.team().color.toString() + "]" + e.tile.team().localized()+ " " + Core.bundle.get("alerts.basic") + "[white] (" +e.tile.x + ", "+ e.tile.y + ")");
+            if(Vars.state.isPlaying()){
+                String alert = "[#" + e.tile.team().color.toString() + "]" + e.tile.team().localized()+ " " + Core.bundle.get("alerts.basic") + "[white] (" +e.tile.x + ", "+ e.tile.y + ")";
+                if(Core.settings.getBool("cui-AlertsHideWithUi") || Core.settings.getBool("cui-AlertsUseBottom")) showToastIndependent(alert, Core.settings.getBool("cui-AlertsUseBottom"));
+                else Vars.ui.hudfrag.showToast(alert);
+            }
         }
 
         if (Core.settings.getBool("cui-SendChatCoreLost")){
@@ -201,15 +217,28 @@ public class CuiWorldRenderer {
         CuiVars.lastCoreDestroyEvent = e.tile;
     }
 
-    public void DrawFactoryProgress(){
-        if (!Core.settings.getBool("cui-showFactoryProgress", true)) return;
+    public void drawFactoryProgress(){
+        int style = Core.settings.getInt("cui-showFactoryProgressStyle");
+        if(style == 1) return;
+        Groups.build.forEach(b ->{
+            if(!(b instanceof UnitFactory.UnitFactoryBuild fac)) return;
+            if(fac.currentPlan == -1) return;
 
-        Events.on(EventType.WorldLoadEvent.class, event -> {
-
+            if(style == 2 || style == 3 || style == 4 || style == 5){
+                float x = fac.x(), y= fac.y(), width = (fac.block.size * 4) * -0.9f, hp = (fac.fraction()),
+                              offset = ((fac.block.size * 4)  * 0.9f) * (style == 2 || style == 5 ? 1 : -1);
+                Draw.alpha(0.5f);
+                Draw.draw(Layer.flyingUnit +0.01f, () ->{
+                    Drawf.line(Pal.gray, x + width, y - offset, x - (width), y - offset);
+                    Drawf.line(fac.team.color, x + width * hp, y - offset, x - (width * hp), y - offset);
+                });
+            }
+            if(style == 2 || style == 3 || style == 6)drawLabel(fac.x(), fac.y, Math.round(fac.fraction() * 100) + "%", Color.white, 0f, 1.7f);
+            Draw.reset();
         });
     }
 
-    public void BarBuilder(float drawX, float drawY, float progress, float targetSizeInBlocks, float barSize, String labelText, Color color, float alpha ){
+    public void barBuilder(float drawX, float drawY, float progress, float targetSizeInBlocks, float barSize, String labelText, Color color, float alpha ){
         if (progress == 0) return;
 
         float borderSize = 1f;
@@ -240,4 +269,47 @@ public class CuiWorldRenderer {
 
     }
 
+    public void showToastIndependent(String text, boolean place){
+        showBottomToast(Icon.warning, -1, text, place);
+    }
+
+    public void showBottomToast(Drawable icon, float size, String text, boolean bottom){
+        float p = bottom ? -1 : 1;
+        scheduleToast(() -> {
+            Sounds.message.play();
+            Table table = new Table(Tex.button);
+            table.update(() -> {
+                if(state.isMenu() || !ui.hudfrag.shown && Core.settings.getBool("cui-AlertsHideWithUi") || !Core.settings.getBool("cui-AlertsHideWithUi") && !CuiVars.unitTableCollapse){
+                    table.remove();
+                }
+            });
+            table.margin(12);
+            var cell = table.image(icon).pad(3);
+            if(size > 0) cell.size(size);
+            table.add(text).wrap().width(280f).get().setAlignment(Align.center, Align.center);
+            table.pack();
+
+            //create container table which will align and move
+            Table container = Core.scene.table();
+            if(bottom)container.bottom();
+            else container.top();
+            container.add(table);
+            container.setTranslation(0, p * table.getPrefHeight());
+            container.actions(Actions.translateBy(0, p * -table.getPrefHeight(), 1f, Interp.fade), Actions.delay(2.5f),
+                    //nesting actions() calls is necessary so the right prefHeight() is used
+                    Actions.run(() -> container.actions(Actions.translateBy(0, p * table.getPrefHeight(), 1f, Interp.fade), Actions.remove())));
+        });
+    }
+
+    private void scheduleToast(Runnable run){
+        long duration = (int)(3.5 * 1000);
+        long since = Time.timeSinceMillis(lastToast);
+        if(since > duration){
+            lastToast = Time.millis();
+            run.run();
+        }else{
+            Time.runTask((duration - since) / 1000f * 60f, run);
+            lastToast += duration;
+        }
+    }
 }
