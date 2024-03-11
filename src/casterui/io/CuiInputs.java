@@ -46,6 +46,19 @@ public class CuiInputs {
         if(cuiKeyTap(toggle_table_summarize_players)) Core.settings.put("cui-playerTableSummarizePlayers", !Core.settings.getBool("cui-playerTableSummarizePlayers"));
         if(cuiKeyTap(toggle_team_items)) Core.settings.put("cui-ShowTeamItems", !Core.settings.getBool("cui-ShowTeamItems"));
         if(cuiKeyTap(toggle_shorten_team_items)) Core.settings.put("cui-TeamItemsShortenItems", !Core.settings.getBool("cui-TeamItemsShortenItems"));
+        if(cuiKeyTap(toggle_factory_style)){
+            if(Core.settings.getInt("cui-showFactoryProgressStyle") == 1) Core.settings.put("cui-showFactoryProgressStyle", Core.settings.getInt("cui-showFactoryProgressStylePreferred", 2));
+            else{
+                Core.settings.put("cui-showFactoryProgressStylePreferred", Core.settings.getInt("cui-showFactoryProgressStyle"));
+                Core.settings.put("cui-showFactoryProgressStyle", 1);
+        }}
+        if(cuiKeyTap(toggle_alerts_circle)) Core.settings.put("cui-ShowAlertsCircles", !Core.settings.getBool("cui-ShowAlertsCircles"));
+        if(cuiKeyTap(toggle_alerts_circle_reverse_growth)) Core.settings.put("cui-alertReverseGrow", !Core.settings.getBool("cui-alertReverseGrow"));
+        if(cuiKeyTap(toggle_alerts_toast)) Core.settings.put("cui-ShowAlerts", !Core.settings.getBool("cui-ShowAlerts"));
+        if(cuiKeyTap(toggle_alerts_toast_bottom)) Core.settings.put("cui-AlertsUseBottom", !Core.settings.getBool("cui-AlertsUseBottom"));
+
+
+
 
         /*TODO: something more elegant? */
         if(input.keyTap(KeyCode.num1) && CuiVars.mappedPlayers.get(1) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(1);

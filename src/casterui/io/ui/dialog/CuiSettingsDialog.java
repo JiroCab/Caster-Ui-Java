@@ -9,6 +9,7 @@ import arc.struct.Seq;
 import arc.util.Log;
 import arc.util.Scaling;
 import casterui.CuiVars;
+import mindustry.Vars;
 import mindustry.gen.Icon;
 import mindustry.gen.Tex;
 import mindustry.type.UnitType;
@@ -18,6 +19,8 @@ import mindustry.ui.dialogs.SettingsMenuDialog;
 import mindustry.ui.dialogs.SettingsMenuDialog.SettingsTable.Setting;
 import mindustry.world.blocks.storage.CoreBlock;
 
+import java.text.DecimalFormat;
+
 import static arc.Core.*;
 import static mindustry.Vars.*;
 
@@ -25,6 +28,7 @@ public class CuiSettingsDialog {
     public static Seq<SettingsMenuDialog.SettingsTable> allCuiOptions = new Seq<>();
     public static ObjectSet<UnitType>hiddenUnits = new ObjectSet<>(), coreUnitsTypes = new ObjectSet<>();
     public static float commonHeight = 60f;
+    static DecimalFormat decFor = new DecimalFormat("#.##");
     
     public static void buildCategory(){
         setDefults(hiddenUnits, false);
@@ -79,6 +83,7 @@ public class CuiSettingsDialog {
 
                 subTable.checkPref("cui-ShowAlerts", true);
                 subTable.checkPref("cui-AlertsUseBottom", true);
+                subTable.checkPref("cui-AlertsHideWithUi", true);
                 subTable.checkPref("cui-SendChatCoreLost", false);
                 subTable.checkPref("cui-ShowAlertsCircles", true);
                 subTable.sliderPref("cui-alertCircleSpeed", 12, 1 , 500, a -> (a*0.5f) + "x");
@@ -100,7 +105,7 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-ShowBlockInfo", true);
                 subTable.checkPref("cui-ShowBlockHealth", true);
                 subTable.checkPref("cui-BlockInfoShortenItems", true);
-                subTable.checkPref("cui-showFactoryProgress", true);
+                subTable.sliderPref("cui-showFactoryProgressStyle", 2, 1, 6, s -> s > 1 ? bundle.get("cui-factoryProgress" + s ) : "@off");
                 subTable.sliderPref("cui-logicLineAlpha", 5, 1, 11, s ->  s == 1 ? "@off" : s != 11 ?  (s - 1) + "0%" : "100%");
                 subTable.sliderPref("cui-rallyPointAlpha", 4, 1, 11,s -> s == 1 ? "@off" : s != 11 ? (s - 1) + "0%" : "100%");
 
@@ -121,6 +126,28 @@ public class CuiSettingsDialog {
                 allCuiOptions.add(subTable);
                 t.add(subTable);
             }, settings.getBool("cui-animateSettings") , () ->teams[0]).growX().row();
+
+            boolean[] inputs = {false};
+            table.button("@setting.cui-input-category.name", Icon.down , Styles.togglet, () -> inputs[0] = !inputs[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> inputs[0]).padTop(5f).row();
+            table.collapser( t -> {
+                SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
+
+                subTable.sliderPref("cui-maxZoom", 12, 0, 125, s -> {
+                    float f = s * 0.5f;
+                    if(s == 0) f = 0.01f;
+                    renderer.maxZoom = f;
+                    return decFor.format(f) + "x";
+                }); //Nearly every ui mod changes this lmao
+                subTable.sliderPref("cui-minZoom", 3, 1, 125, s -> {
+                    float f = s * 0.5f;
+                    renderer.minZoom = f;
+                    return decFor.format(f) + "x";
+                });
+                subTable.checkPref("cui-minimalCursor", false);
+
+                allCuiOptions.add(subTable);
+                t.add(subTable);
+            }, settings.getBool("cui-animateSettings") , () ->inputs[0]).growX().row();
 
             boolean[] hotkeys = {false};
             table.button("@setting.cui-hotkeys-category.name", Icon.move, Styles.togglet, () -> hotkeys[0] = !hotkeys[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> hotkeys[0]).padTop(5f).row();
@@ -148,7 +175,7 @@ public class CuiSettingsDialog {
 
                 subTable.sliderPref("cui-buttonSize", 40, 1, 100, String::valueOf);
                 subTable.sliderPref("cui-unitsPlayerTableUpdateRate", 10, 1, 100, String::valueOf);
-                subTable.sliderPref("cui-maxZoom", 10, 1, 10, String::valueOf);
+
                 subTable.checkPref("cui-animateSettings", true);
 
                 subTable.checkPref("cui-playerunitstablecontols", true);
@@ -163,6 +190,9 @@ public class CuiSettingsDialog {
             }, settings.getBool("cui-animateSettings") , () ->advanceHudShown[0]).growX().row();
 
             settings.getBoolOnce("cui-firstLoad", CuiSettingsDialog::firstLoadReset);
+            if(settings.getBool("cui-showFactoryProgress")) settings.remove("cui-showFactoryProgress");
+
+
             table.button(bundle.get("settings.cui-reset", "Reset [scarlet]ALL[] to Defaults"), Icon.warning, () -> allCuiOptions.forEach(a ->{
                 for(Setting setting : a.getSettings()){
                     if(setting.name == null || setting.title == null) continue;
