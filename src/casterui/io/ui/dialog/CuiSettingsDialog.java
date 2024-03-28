@@ -133,12 +133,14 @@ public class CuiSettingsDialog {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
 
                 subTable.sliderPref("cui-maxZoom", 12, 0, 125, s -> {
+                    if(s == 12) return "@off";
                     float f = s * 0.5f;
                     if(s == 0) f = 0.01f;
                     renderer.maxZoom = f;
                     return decFor.format(f) + "x";
                 }); //Nearly every ui mod changes this lmao
                 subTable.sliderPref("cui-minZoom", 3, 1, 125, s -> {
+                    if(s == 3) return "@off";
                     float f = s * 0.5f;
                     renderer.minZoom = f;
                     return decFor.format(f) + "x";
