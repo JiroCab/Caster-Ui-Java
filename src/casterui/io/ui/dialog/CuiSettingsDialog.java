@@ -3,6 +3,7 @@ package casterui.io.ui.dialog;
 import arc.Core;
 import arc.graphics.Color;
 import arc.scene.style.TextureRegionDrawable;
+import arc.scene.ui.CheckBox;
 import arc.scene.ui.ScrollPane;
 import arc.struct.ObjectSet;
 import arc.struct.Seq;
@@ -29,16 +30,65 @@ public class CuiSettingsDialog {
     public static ObjectSet<UnitType>hiddenUnits = new ObjectSet<>(), coreUnitsTypes = new ObjectSet<>();
     public static float commonHeight = 60f;
     static DecimalFormat decFor = new DecimalFormat("#.##");
-    
-    public static void buildCategory(){
-        setDefults(hiddenUnits, false);
-        setDefults(coreUnitsTypes, true);
 
-        ui.settings.addCategory("@settings.cui.settings", Icon.logic, table -> {
-            //Dropped the `eui` (extended-ui) prefix for `cui` (caster-ui) to avoid conflicts
-            /*Legacy Features From the Original Caster-ui Fork */
+    //Foo's complaint categories
+    public static class CollapserSetting extends SettingsMenuDialog.SettingsTable.Setting{
+        int type = -1;
+        public CollapserSetting (String name){
+            super(name);
+        }
+        public CollapserSetting (String name, int type){
+            super(name);
+            this.type = type;
+        }
+
+        public void add(SettingsMenuDialog.SettingsTable table) {
+            switch (type){
+                case 0:
+                    playerCategory(table);
+                    break;
+                case 1:
+                    unitsCategory(table);
+                    break;
+                case 2:
+                    alertsCategory(table);
+                    break;
+                case 3:
+                    blocksCategory(table);
+                    break;
+                case 4:
+                    teamsCategory(table);
+                    break;
+                case 5:
+                    inputCategory(table);
+                    break;
+                case 6:
+                    hotkeysCategory(table);
+                    break;
+                case 7:
+                    table.button(bundle.get("settings.cui-reset", "Reset [scarlet]ALL[] to Defaults"), Icon.warning, () -> {
+                        for (SettingsMenuDialog.SettingsTable a : allCuiOptions) {
+                            for (Setting setting : a.getSettings()) {
+                                if (setting.name == null || setting.title == null) continue;
+                                settings.remove(setting.name);
+                                hiddenUnits.clear();
+                                coreUnitsTypes.clear();
+                                setDefults(hiddenUnits, false);
+                                setDefults(coreUnitsTypes, true);
+                            }
+
+                        }
+                        Log.info("All Caster User Interface settings rested [ ;; m ;;]");
+                    }).margin(14).width(260f).pad(6).row();
+                    break;
+                default:
+                    advanceCategory(table);
+                    break;
+            }
+        }
+
+        public void playerCategory(SettingsMenuDialog.SettingsTable table){
             boolean[] players = {false};
-            table.row(); //foo's
             table.button("@setting.cui-players-category.name", Icon.players, Styles.togglet, () -> players[0] = !players[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> players[0]).padTop(5f).row();
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
@@ -57,7 +107,9 @@ public class CuiSettingsDialog {
                 allCuiOptions.add(subTable);
                 t.add(subTable);
             }, settings.getBool("cui-animateSettings") , () ->players[0]).growX().row();
+        }
 
+        public void unitsCategory(SettingsMenuDialog.SettingsTable table) {
             boolean[] units = {false};
             table.button("@setting.cui-units-category.name", Icon.units, Styles.togglet, () -> units[0] = !units[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> units[0]).padTop(5f).row();
             table.collapser( t -> {
@@ -67,15 +119,19 @@ public class CuiSettingsDialog {
                 t.button(bundle.get("cui-hiddenCoreUnits"), () -> showBanned(bundle.get("cui-hiddenCoreUnits"), coreUnitsTypes, true)).tooltip(bundle.get("cui-hiddenCoreInfo")).center().width(400f).top().row();
 
                 subTable.checkPref("cui-ShowUnitTable", true);
+                subTable.sliderPref("cui-unitsPlayerTableStyle", 1, 0, 1, s -> bundle.get("cui-unitsplayer-style" + s));
                 subTable.sliderPref("cui-unitsIconSize", 32, 1, 100, String::valueOf);
                 subTable.checkPref("cui-separateTeamsUnit", true);
-                subTable.checkPref("cui-showUnitBar", true);
+                subTable.checkPref("cui-teamtotalunitcount", true);
+                //subTable.sliderPref("cui-showUnitBarStyle", 1, 0, 1, s -> bundle.get("cui-unitsplayer-style" + s));
                 subTable.checkPref("cui-unitFlagCoreUnitHides", true);
 
                 allCuiOptions.add(subTable);
                 t.add(subTable);
             }, settings.getBool("cui-animateSettings") , () ->units[0]).growX().row();
+        }
 
+        public void alertsCategory(SettingsMenuDialog.SettingsTable table) {
             boolean[] alerts = {false};
             table.button("@setting.cui-alerts-category.name", Icon.chat, Styles.togglet, () -> alerts[0] = !alerts[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> alerts[0]).padTop(5f).row();
             table.collapser( t -> {
@@ -93,15 +149,13 @@ public class CuiSettingsDialog {
                 allCuiOptions.add(subTable);
                 t.add(subTable);
             }, settings.getBool("cui-animateSettings") , () ->alerts[0]).growX().row();
+        }
 
+        public void blocksCategory(SettingsMenuDialog.SettingsTable table){
             boolean[] blocks = {false};
             table.button("@setting.cui-blocks-category.name", Icon.effect, Styles.togglet, () -> blocks[0] = !blocks[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> blocks[0]).padTop(5f).row();
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
-
-                subTable.checkPref("cui-showPowerBar", true);
-                subTable.checkPref("cui-ShowResourceRate", false);
-
                 subTable.checkPref("cui-ShowBlockInfo", true);
                 subTable.checkPref("cui-ShowBlockHealth", true);
                 subTable.checkPref("cui-BlockInfoShortenItems", true);
@@ -109,11 +163,15 @@ public class CuiSettingsDialog {
                 subTable.sliderPref("cui-logicLineAlpha", 5, 1, 11, s ->  s == 1 ? "@off" : s != 11 ?  (s - 1) + "0%" : "100%");
                 subTable.sliderPref("cui-rallyPointAlpha", 4, 1, 11,s -> s == 1 ? "@off" : s != 11 ? (s - 1) + "0%" : "100%");
 
+                //subTable.checkPref("cui-showPowerBar", true);
+                //subTable.checkPref("cui-ShowResourceRate", false); // TODO
+
                 allCuiOptions.add(subTable);
                 t.add(subTable);
             }, settings.getBool("cui-animateSettings") , () ->blocks[0]).growX().row();
-            table.row();
+        }
 
+        public void teamsCategory(SettingsMenuDialog.SettingsTable table){
             boolean[] teams = {false};
             table.button("@setting.cui-teams-category.name", Icon.modePvp , Styles.togglet, () -> teams[0] = !teams[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> teams[0]).padTop(5f).row();
             table.collapser( t -> {
@@ -126,7 +184,9 @@ public class CuiSettingsDialog {
                 allCuiOptions.add(subTable);
                 t.add(subTable);
             }, settings.getBool("cui-animateSettings") , () ->teams[0]).growX().row();
+        }
 
+        public void inputCategory(SettingsMenuDialog.SettingsTable table){
             boolean[] inputs = {false};
             table.button("@setting.cui-input-category.name", Icon.down , Styles.togglet, () -> inputs[0] = !inputs[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> inputs[0]).padTop(5f).row();
             table.collapser( t -> {
@@ -150,7 +210,9 @@ public class CuiSettingsDialog {
                 allCuiOptions.add(subTable);
                 t.add(subTable);
             }, settings.getBool("cui-animateSettings") , () ->inputs[0]).growX().row();
+        }
 
+        public void hotkeysCategory(SettingsMenuDialog.SettingsTable table){
             boolean[] hotkeys = {false};
             table.button("@setting.cui-hotkeys-category.name", Icon.move, Styles.togglet, () -> hotkeys[0] = !hotkeys[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> hotkeys[0]).padTop(5f).row();
             table.collapser( t -> {
@@ -166,8 +228,9 @@ public class CuiSettingsDialog {
                 allCuiOptions.add(subTable);
                 t.add(subTable);
             }, settings.getBool("cui-animateSettings") , () ->hotkeys[0]).growX().row();
+        }
 
-            table.row();
+        public void advanceCategory(SettingsMenuDialog.SettingsTable table){
             boolean[] advanceHudShown = {false};
             table.button("@setting.cui-advance-category.name", Icon.settings, Styles.togglet, () -> advanceHudShown[0] = !advanceHudShown[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> advanceHudShown[0]).padTop(5f).row();
             table.collapser( t -> {
@@ -191,22 +254,27 @@ public class CuiSettingsDialog {
                 t.add(subTable);
             }, settings.getBool("cui-animateSettings") , () ->advanceHudShown[0]).growX().row();
 
+        }
+    }
+
+    public static void buildCategory(){
+        setDefults(hiddenUnits, false);
+        setDefults(coreUnitsTypes, true);
+
+        ui.settings.addCategory("@settings.cui.settings", Icon.logic, table -> {
+            table.pref(new CollapserSetting("cui-category-players", 0));
+            table.pref(new CollapserSetting("cui-category-units", 1));
+            table.pref(new CollapserSetting("cui-category-alerts", 2));
+            table.pref(new CollapserSetting("cui-category-blocks", 3));
+            table.pref(new CollapserSetting("cui-category-teams", 4));
+            table.pref(new CollapserSetting("cui-category-inputs", 5));
+            table.pref(new CollapserSetting("cui-category-hotkeys", 6));
+            table.pref(new CollapserSetting("cui-category-advance"));
+            table.pref(new CollapserSetting("cui-category-reset-all", 7));
             settings.getBoolOnce("cui-firstLoad", CuiSettingsDialog::firstLoadReset);
             if(settings.getBool("cui-showFactoryProgress")) settings.remove("cui-showFactoryProgress");
+            table.checkPref("cui-killswitch", false);
 
-
-            table.button(bundle.get("settings.cui-reset", "Reset [scarlet]ALL[] to Defaults"), Icon.warning, () -> allCuiOptions.forEach(a ->{
-                for(Setting setting : a.getSettings()){
-                    if(setting.name == null || setting.title == null) continue;
-                    settings.remove(setting.name);
-                    hiddenUnits.clear();
-                    coreUnitsTypes.clear();
-                    setDefults(hiddenUnits, false);
-                    setDefults(coreUnitsTypes, true);
-                }
-
-                Log.info("All Caster User Interface settings rested [ ;; m ;;]");
-            })).margin(14).width(260f).pad(6);
         });
 
     }
@@ -215,12 +283,12 @@ public class CuiSettingsDialog {
     public static void firstLoadReset(){
         /* Bandied fix to the player-unit table's control buttons having a weird size when not rest at first time loading the mod*/
         Log.info("Caster User Interface Loaded for 1st time! hope you enjoy it >w< ");
-        allCuiOptions.forEach(a ->{
-            for(Setting setting : a.getSettings()){
-                if(setting.name == null || setting.title == null) continue;
+        for (SettingsMenuDialog.SettingsTable a : allCuiOptions) {
+            for (Setting setting : a.getSettings()) {
+                if (setting.name == null || setting.title == null) continue;
                 settings.remove(setting.name);
             }
-        });
+        }
     }
 
     private static void showBanned(String title, ObjectSet<UnitType> set){
@@ -311,12 +379,14 @@ public class CuiSettingsDialog {
     }
 
     public static void setDefults(ObjectSet<UnitType> set, boolean showCoreUnits){
-        content.units().forEach(m -> {
-            if(m.isHidden())set.add(m);
-            if(showCoreUnits){
-                content.blocks().forEach(b ->{ if(b instanceof CoreBlock && ((CoreBlock) b).unitType == m && !set.contains(m))set.add(m);});
+        for (UnitType m : content.units()) {
+            if (m.isHidden()) set.add(m);
+            if (showCoreUnits) {
+                content.blocks().forEach(b -> {
+                    if (b instanceof CoreBlock && ((CoreBlock) b).unitType == m && !set.contains(m)) set.add(m);
+                });
             }
-        });
+        }
     }
 
 

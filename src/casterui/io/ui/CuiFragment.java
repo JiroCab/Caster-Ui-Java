@@ -1,6 +1,7 @@
 package casterui.io.ui;
 
 import arc.Core;
+import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.math.geom.Vec2;
 import arc.scene.Group;
@@ -16,6 +17,7 @@ import casterui.io.ui.dialog.CuiSettingsDialog;
 import mindustry.Vars;
 import mindustry.core.UI;
 import mindustry.game.Team;
+import mindustry.game.Teams;
 import mindustry.gen.*;
 import mindustry.logic.LAccess;
 import mindustry.type.UnitType;
@@ -66,7 +68,7 @@ public class CuiFragment {
                 if (settings.getBool("cui-ShowPlayerList")) unitPlayerTable.add(playersTable).left();
                 if (settings.getBool("cui-ShowPlayerList") && settings.getBool("cui-ShowUnitTable")) unitPlayerTable.row();
                 if (settings.getBool("cui-ShowUnitTable")) unitPlayerTable.add(unitTable).left();
-                parentCont.add(unitPlayerTable).visible(() -> CuiVars.unitTableCollapse && showTableUnitsPlayer);
+                parentCont.add(unitPlayerTable).visible(() -> CuiVars.unitTableCollapse && showTableUnitsPlayer && CuiVars.globalShow);
             });
         }
 
@@ -75,7 +77,7 @@ public class CuiFragment {
                 parentCont.name = "cui-block-table";
                 parentCont.align(alignSides.get(settings.getInt("cui-blockinfoSide")));
                 blockTable.background(tableStyles.get(settings.getInt("cui-blockinfostyle")));
-                parentCont.add(blockTable).visible(() -> CuiVars.unitTableCollapse && showBlockTable);
+                parentCont.add(blockTable).visible(() -> CuiVars.unitTableCollapse && showBlockTable  && CuiVars.globalShow);
             });
         }
 
@@ -84,7 +86,7 @@ public class CuiFragment {
                 parentCont.name = "cui-team-Items";
                 parentCont.align(alignSides.get(settings.getInt("cui-TeamItemsSide")));
                 blockTable.background(tableStyles.get(settings.getInt("cui-blockinfostyle")));
-                parentCont.add(teamItemsTable).visible(() -> CuiVars.unitTableCollapse);
+                parentCont.add(teamItemsTable).visible(() -> CuiVars.unitTableCollapse && CuiVars.globalShow);
             });
         }
 
@@ -128,13 +130,20 @@ public class CuiFragment {
 
                         teamUnits.merge(u.type.id, 1, Integer::sum);
                     }
-                    teamUnits.forEach((u, i ) ->{
+                    int style = settings.getInt("cui-unitsPlayerTableStyle"), tabSize = settings.getInt("cui-unitsPlayerTableSize");
+                    if(Core.settings.getBool("cui-teamtotalunitcount")){
+                        makeIcon(style, team.data().unitCount, team, Icon.units.getRegion(), "@wavemode.counts", true);
+                        icons.getAndIncrement();
+                        newRow.set(false);
+                    }
+                    for (Map.Entry<Short, Integer> entry : teamUnits.entrySet()) {
+                        Short u = entry.getKey();
+                        Integer i = entry.getValue();
                         UnitType unit = Vars.content.unit(u);
 
-                        unitTable.image(new TextureRegion(unit.fullIcon)).tooltip(unit.localizedName).size(unitsIconSize).scaling(Scaling.bounded).get();
-                        unitTable.add(new Label(() -> "[#" + team.color.toString() + "]" + i + "[white]")).get();
+                        makeIcon(style, i, unit, team);
 
-                        if (icons.get() >= settings.getInt("cui-unitsPlayerTableSize")) {
+                        if (icons.get() >= tabSize) {
                             unitTable.row();
                             icons.set(0);
                             newRow.set(true);
@@ -142,7 +151,7 @@ public class CuiFragment {
                             icons.getAndIncrement();
                             newRow.set(false);
                         }
-                    });
+                    }
                 }
             }
         }
@@ -270,8 +279,8 @@ public class CuiFragment {
     public void buildTeamItemTable() {
         teamItemsTable.clear();
         if (settings.getBool("cui-ShowTeamItems")) {
-            Vars.state.teams.active.forEach(team -> {
-                if(team.core() == null) return;
+            for (Teams.TeamData team : Vars.state.teams.active) {
+                if (team.core() == null) continue;
                 Table sub = new Table() {
                     @Override
                     public void draw() {
@@ -291,11 +300,11 @@ public class CuiFragment {
                     } else itemTypes.getAndIncrement();
                 });
                 teamItemsTable.add(sub).growX().row();
-            });
+            }
         }
     }
 
-        public static void setTrackPlayer(Player player){
+    public static void setTrackPlayer(Player player){
         if(CuiVars.clickedPlayer  == null || CuiVars.clickedPlayer  != player) CuiVars.clickedPlayer  = player;
         else CuiVars.clickedPlayer  = null;
     }
@@ -308,6 +317,29 @@ public class CuiFragment {
         playerIconSize = Core.settings.getInt("cui-playerIconSize");
         unitsIconSize = Core.settings.getInt("cui-unitsIconSize");
         unitPlayerTable.clear();
+    }
+
+
+    public void makeIcon(int style, int i, UnitType unit, Team team){
+        makeIcon(style, i, team, unit.uiIcon, unit.name, false);
+    }
+
+    public void makeIcon(int style, int i, Team team, TextureRegion icon, String name, boolean color){
+        var img = new Image(new TextureRegion(icon));
+        float fsize = color ? unitsIconSize * 0.85f:  unitsIconSize;
+        if(color)img.setColor(team.color);
+        if(style == 1){
+            //TODO: anything above 1k is hard to see
+            Table countTable = new Table(t -> t.center().add(new Label(() -> "[#" + team.color.toString() + "]" + i + "[white]")).style(Styles.outlineLabel).scaling(Scaling.bounded).color(new Color(1, 1, 1, 0.85f)));
+            countTable.setColor(new Color(1, 1, 1, 0.85f));
+            unitTable.stack(
+                    new Table(t -> t.add(img).scaling(Scaling.bounded).size(iconSizes)),
+                    countTable
+            ).tooltip(name).size(fsize).scaling(Scaling.bounded).get();
+        }else {
+            unitTable.add(img).tooltip(name).size(fsize).scaling(Scaling.bounded).get();
+            unitTable.add(new Label(() -> "[#" + team.color.toString() + "]" + i + "[white]")).style(Styles.outlineLabel).get();
+        }
     }
 
 }

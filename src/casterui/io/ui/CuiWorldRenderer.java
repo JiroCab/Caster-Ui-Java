@@ -33,6 +33,7 @@ public class CuiWorldRenderer {
 
     public void worldRenderer(){
         Events.run(EventType.Trigger.draw, ()-> {
+            if (Core.settings.getBool("cui-killswitch")) return;
             boolean unitBars = Core.settings.getBool("cui-showUnitBar");
             boolean trackPlayerCursor = Core.settings.getBool("cui-TrackPlayerCursor");
             boolean trackLogicControl = Core.settings.getInt("cui-logicLineAlpha") > 0;
@@ -50,24 +51,30 @@ public class CuiWorldRenderer {
                 /*Why would anyone need this amount control for the speed? ehh why not!*/
                 float maxSize = Math.max((Vars.state.map.height + Vars.state.map.width) / 2.1f, 3000f), growRate = Math.round(Core.settings.getInt("cui-alertCircleSpeed") * 0.5f);
 
-                Draw.draw(Layer.overlayUI + 0.01f, () -> circleQueue.forEach((cir) -> {
-                    float radius = Math.abs(cir.startTime - Time.time) * growRate + cir.size, size = Math.abs(cir.startTime - Time.time) * growRate + cir.size;
-                    if (size > maxSize) circleQueue.remove(cir);
-                    if( Core.settings.getBool("cui-alertReverseGrow")){
-                        float pr = radius;
-                        radius = maxSize - radius;
-                        Log.err("pr:" + pr + " r:" + radius);
-                    }
-                    Draw.color(cir.team.color);
+                Draw.draw(Layer.overlayUI + 0.01f, () -> {
+                    for (CuiCircleObjectHelper cir : circleQueue) {
+                        float radius = Math.abs(cir.startTime - Time.time) * growRate + cir.size, size = Math.abs(cir.startTime - Time.time) * growRate + cir.size;
+                        if (size > maxSize) circleQueue.remove(cir);
+                        if (Core.settings.getBool("cui-alertReverseGrow")) {
+                            float pr = radius;
+                            radius = maxSize - radius;
+                            Log.err("pr:" + pr + " r:" + radius);
+                        }
+                        Draw.color(cir.team.color);
 
-                    int style = Core.settings.getInt("cui-alertStyle");
-                    if (style == 2){Drawf.dashCircle(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);}
-                    else if(style == 3){Drawf.select(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);}
-                    else if(style == 4){Drawf.square(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);}
-                    else if(style == 5){Drawf.target(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);}
-                    else Drawf.circles(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);
-                    Draw.reset();
-                }));
+                        int style = Core.settings.getInt("cui-alertStyle");
+                        if (style == 2) {
+                            Drawf.dashCircle(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);
+                        } else if (style == 3) {
+                            Drawf.select(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);
+                        } else if (style == 4) {
+                            Drawf.square(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);
+                        } else if (style == 5) {
+                            Drawf.target(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);
+                        } else Drawf.circles(cir.pos.getX(), cir.pos.getY(), radius, cir.team.color);
+                        Draw.reset();
+                    }
+                });
             }
 
             if(CuiVars.drawRally && Core.settings.getInt("cui-logicLineAlpha" ) != 1){
@@ -77,6 +84,7 @@ public class CuiWorldRenderer {
             drawFactoryProgress();
         });
         Events.run(EventType.Trigger.update, () -> {
+            if (Core.settings.getBool("cui-killswitch")) return;
             boolean trackLogicControl = Core.settings.getInt("cui-logicLineAlpha") > 0;
             Groups.unit.each(unit -> {
                 if (trackLogicControl && unit.controller() instanceof LogicAI la) drawLogicControl(unit, la.controller);
@@ -220,22 +228,23 @@ public class CuiWorldRenderer {
     public void drawFactoryProgress(){
         int style = Core.settings.getInt("cui-showFactoryProgressStyle");
         if(style == 1) return;
-        Groups.build.forEach(b ->{
-            if(!(b instanceof UnitFactory.UnitFactoryBuild fac)) return;
-            if(fac.currentPlan == -1) return;
+        for (Building b : Groups.build) {
+            if (!(b instanceof UnitFactory.UnitFactoryBuild fac)) continue;
+            if (fac.currentPlan == -1) continue;
 
-            if(style == 2 || style == 3 || style == 4 || style == 5){
-                float x = fac.x(), y= fac.y(), width = (fac.block.size * 4) * -0.9f, hp = (fac.fraction()),
-                              offset = ((fac.block.size * 4)  * 0.9f) * (style == 2 || style == 5 ? 1 : -1);
+            if (style == 2 || style == 3 || style == 4 || style == 5) {
+                float x = fac.x(), y = fac.y(), width = (fac.block.size * 4) * -0.9f, hp = (fac.fraction()),
+                        offset = ((fac.block.size * 4) * 0.9f) * (style == 2 || style == 5 ? 1 : -1);
                 Draw.alpha(0.5f);
-                Draw.draw(Layer.flyingUnit +0.01f, () ->{
+                draw(Layer.flyingUnit + 0.01f, () -> {
                     Drawf.line(Pal.gray, x + width, y - offset, x - (width), y - offset);
                     Drawf.line(fac.team.color, x + width * hp, y - offset, x - (width * hp), y - offset);
                 });
             }
-            if(style == 2 || style == 3 || style == 6)drawLabel(fac.x(), fac.y, Math.round(fac.fraction() * 100) + "%", Color.white, 0f, 1.7f);
+            if (style == 2 || style == 3 || style == 6)
+                drawLabel(fac.x(), fac.y, Math.round(fac.fraction() * 100) + "%", Color.white, 0f, 1.7f);
             Draw.reset();
-        });
+        }
     }
 
     public void barBuilder(float drawX, float drawY, float progress, float targetSizeInBlocks, float barSize, String labelText, Color color, float alpha ){

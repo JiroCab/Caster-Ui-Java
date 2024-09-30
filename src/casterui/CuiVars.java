@@ -27,7 +27,7 @@ public class CuiVars {
     public static CuiTeamMangerDialog teamManger = new CuiTeamMangerDialog();
     public static CuiRebindDialog rebindDialog = new CuiRebindDialog();
 
-    public static boolean initialized = false, unitTableCollapse = true, fastUpdate = false, drawRally = false;
+    public static boolean initialized = false, unitTableCollapse = true, fastUpdate = false, drawRally = false, globalShow = true;
     public static Player hoveredPlayer, clickedPlayer;
     public static Unit heldUnit, hoveredEntity, clickedEntity;
     public static float  timer = 0, nextUpdate = 100, nextUpdateFast = 50;
@@ -57,6 +57,11 @@ public class CuiVars {
     }
 
     public static void update(){
+        if (Core.settings.getBool("cui-killswitch")){
+            globalShow = false;
+            return;
+        }
+        globalShow = true;
         inputs.update();
         fragment.UpdateTables();
 
