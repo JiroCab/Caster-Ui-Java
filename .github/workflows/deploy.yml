@@ -1,6 +1,6 @@
 name: Build Mod
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_call]
 
 jobs:
   buildJar:
@@ -24,7 +24,7 @@ jobs:
         run: ./gradlew deploy
 
       - name: Upload built jar file
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }} Pull Request
           path: build/libs/${{ github.event.repository.name }}.jar
