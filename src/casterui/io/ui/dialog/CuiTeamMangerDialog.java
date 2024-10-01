@@ -80,7 +80,7 @@ public class CuiTeamMangerDialog extends BaseDialog {
     }
 
     void rebuildPlayerTable(){
-        Groups.player.forEach(u -> {
+        for (Player u : Groups.player) {
             ClickListener listener = new ClickListener();
 
             Table iconTable = new Table() {
@@ -89,8 +89,8 @@ public class CuiTeamMangerDialog extends BaseDialog {
                     Draw.colorMul(u.team().color, listener.isOver() ? 1.3f : 1f);
                     Draw.alpha(parentAlpha);
                     Lines.stroke(Scl.scl(4f));
-                    if(u != selectedPlayer)Lines.rect(x, y, width, height);
-                    else Fill.rect( x + (width/2), y + (height/2) , width, height);
+                    if (u != selectedPlayer) Lines.rect(x, y, width, height);
+                    else Fill.rect(x + (width / 2), y + (height / 2), width, height);
                     Draw.reset();
 
                     super.draw();
@@ -108,7 +108,7 @@ public class CuiTeamMangerDialog extends BaseDialog {
             playerTable.add(iconTable).size(size);
             playerTable.labelWrap(u.name).style(Styles.outlineLabel).size(size).width(170f).pad(10).with(w -> w.tapped(() -> selectedPlayer = u)).row();
 
-        });
+        }
         playerTable.center();
     }
 

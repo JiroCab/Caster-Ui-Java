@@ -133,10 +133,10 @@ public class CuiInputs {
 
     void cyclePlayers(boolean increment){
         ply.clear();
-        Groups.player.forEach(p -> {
-            if(settings.getBool("cui-hideNoUnitPlayers") && (p.unit() == null && !p.team().data().hasCore())) return;
-            if(p != player) ply.add(p);
-        });
+        for (Player p : Groups.player) {
+            if (settings.getBool("cui-hideNoUnitPlayers") && (p.unit() == null && !p.team().data().hasCore())) continue;
+            if (p != player) ply.add(p);
+        }
         ply.remove(player);
 
         if (ply.size < 1) return;
