@@ -5,6 +5,7 @@ import arc.Events;
 import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.math.Interp;
+import arc.math.Mathf;
 import arc.scene.actions.Actions;
 import arc.scene.style.Drawable;
 import arc.scene.ui.layout.Scl;
@@ -34,13 +35,15 @@ public class CuiWorldRenderer {
     public void worldRenderer(){
         Events.run(EventType.Trigger.draw, ()-> {
             if (Core.settings.getBool("cui-killswitch")) return;
-            boolean unitBars = Core.settings.getBool("cui-showUnitBar");
+            boolean unitBars = Core.settings.getInt("cui-showUnitBarStyle") > 0;
             boolean trackPlayerCursor = Core.settings.getBool("cui-TrackPlayerCursor");
             boolean trackLogicControl = Core.settings.getInt("cui-logicLineAlpha") > 0;
 
             if (unitBars || trackLogicControl || trackPlayerCursor){
+                int style = Core.settings.getInt("cui-showUnitBarStyle");
+                float alpha = Core.settings.getInt("cui-showUnitBarAlpha") * 0.1f, stroke = Core.settings.getInt("cui-showUnitBarSize") * 0.25f;
                 Groups.unit.each((unit -> {
-                    if (unitBars) drawUnitBars(unit);
+                    if (unitBars) drawUnitBars(unit, style, alpha, stroke);
                     if (trackLogicControl && unit.controller() instanceof LogicAI la) drawLogicControl(unit, la.controller);
                 }));
                 if(trackPlayerCursor) Groups.player.each(ply ->{
@@ -92,14 +95,87 @@ public class CuiWorldRenderer {
         });
     }
 
-    public void drawUnitBars(Unit unit){
+    public void drawUnitBars(Unit unit, int style, float alpha, float stroke){
         if(unit.dead()) return;
-        float x = unit.x(), y= unit.y(), offset = unit.hitSize  * 0.9f, width = unit.hitSize() * -0.9f, hp = (unit.health / unit.maxHealth);
-        Draw.alpha(0.5f);
-        Draw.draw(Layer.flyingUnit +0.01f, () ->{
+        if(unit.health == unit.maxHealth) return;
+        float x = unit.x(), y= unit.y(), offset = unit.hitSize  * 0.9f, width = unit.hitSize() * -0.9f, hp = Mathf.clamp(unit.health / unit.maxHealth), shield = Mathf.clamp(unit.shield / unit.maxHealth);
+        Color colour = new Color().set(unit.team.color).a(alpha), bg = new Color().set(Pal.gray).a(alpha);
+        Color shclr = new Color().set(unit.team.color).lerp(Color.black, 0.25f).a(alpha);
 
-            Drawf.line(Pal.gray, x + width, y - offset, x - (width), y - offset);
-            Drawf.line(unit.team.color, x + width * hp, y - offset, x - (width * hp), y - offset);
+        Draw.alpha(alpha);
+        Draw.draw(Layer.flyingUnit +2, () ->{
+            if(Core.settings.getInt("cui-showUnitTextStyle") > 0){
+                int tstyle = Core.settings.getInt("cui-showUnitTextStyle");
+                String txt = "[red]";
+                if(tstyle == 1){
+                    txt  += Mathf.round(hp * 100) + "%[]";
+                    if(shield > 0) txt += "\n" + CuiVars.decFor.format(unit.shield);
+                }else if(style == 2){
+                    txt  += CuiVars.decFor.format(unit.health) + "[]";
+                    if(shield > 0) txt += "\n" + CuiVars.decFor.format(unit.shield);
+                } else {
+                    txt  += (CuiVars.decFor.format(unit.health) + "[][white]/[][pink]"+ Math.round(unit.maxHealth) +"[]");
+                    if(shield > 0) txt += "\n" + CuiVars.decFor.format(unit.shield);
+                }
+
+                drawLabel(unit.x, unit.y, txt, colour);
+
+            }
+
+            float yShield = y - offset + stroke, yShieldAlt = yShield + (stroke /2.5f);
+            float yOff = y - offset;
+            switch (style) {
+                case 9 -> {//boarder - right
+                    if(shield > 0)drawBoardedLine(colour, x + width, yShield, x - (width), yShield,x + offset + ((width * 2) * shield), yShield, x + offset, yShield, stroke, bg);
+                    drawBoardedLine(colour, x + width, yOff, x - (width), yOff,x + offset + ((width * 2) * hp), yOff, x + offset, yOff, stroke, bg);
+                }
+                case 8 -> {//boarder - left
+                    if(shield > 0)drawBoardedLine(colour, x + width, yShield, x - (width), yShield,x - offset, yShield, x - offset - ((width * 2) * shield), yShield, stroke, bg);
+                    drawBoardedLine(colour, x + width, yOff, x - (width), yOff,x - offset, yOff, x - offset - ((width * 2) * hp), yOff, stroke, bg);
+                }
+                case 7 -> {//boarder - center
+                    if(shield > 0)drawBoardedLine(shclr, x + width, yShieldAlt, x - (width), yShieldAlt, x + (width * shield), yShieldAlt, x - (width * shield), yShieldAlt, stroke, bg);
+                    drawBoardedLine(colour, x + width, yOff, x - (width), yOff, x - (width * hp), yOff, x + (width * hp), yOff, stroke, bg);
+                }
+                case 6 -> {//right
+                    drawLine(x + offset, yOff, x + offset + ((width * 2) * hp), yOff, colour, alpha, stroke);
+                    if (shield == 0) break;
+                    drawLine(x + offset, yShield, x + offset + ((width * 2) * shield), yShield, shclr, alpha, stroke);
+                }
+                case 5 -> { //left
+                    drawLine(x - offset, yOff, x - offset - ((width * 2) * hp), yOff, colour, alpha, stroke);
+                    if (shield == 0) break;
+                    drawLine(x - offset, yShield, x - offset - ((width * 2) * shield), yShield, shclr, alpha, stroke);
+                }
+                case 4 -> {//center
+                    drawLine(x + width * hp, yOff, x - (width * hp), yOff, colour, alpha, stroke);
+                    if (shield == 0) break;
+                    drawLine(x + width * shield, yShield, x - (width * shield), yShield, shclr, alpha, stroke);
+                }
+                case 3 -> {//bg left
+                    drawLine(x - width, yOff, x + (width), yOff, bg, alpha, stroke);
+                    drawLine(x - offset - ((width * 2) * hp), yOff, x - offset, yOff, colour, alpha, stroke);
+                    if (shield == 0) break;
+                    drawLine(x - width, yShield, x + (width), yShield, bg, alpha, stroke);
+                    drawLine(x - offset - ((width * 2) * shield), yShield, x - offset, yShield, shclr, alpha, stroke);
+                }
+                case 2 -> {//bg right
+                    drawLine(x + width, yOff, x - (width), yOff, bg, alpha, stroke);
+                    drawLine(x + offset + ((width * 2) * hp), yOff, x + offset, yOff, colour, alpha, stroke);
+                    if (shield == 0) break;
+                    drawLine(x + width, yShield, x - (width), yShield, bg, alpha, stroke);
+                    drawLine(x + offset + ((width * 2) * shield), yShield, x + offset, yShield, shclr, alpha, stroke);
+                }
+                case 1 -> { //bg center
+                    drawLine(x + width, yOff, x - (width), yOff, bg, alpha, stroke);
+                    drawLine(x + width * hp, yOff, x - (width * hp), yOff, colour, alpha, stroke);
+                    if (shield == 0) break;
+                    drawLine(x + width, yShield, x - (width), yShield, bg, alpha, stroke);
+                    drawLine(x + width * shield, yShield, x - (width * shield), yShield, shclr, alpha, stroke);
+                }
+                default -> {
+                }
+            }
             //wip
         });
         Draw.reset();
@@ -179,9 +255,26 @@ public class CuiWorldRenderer {
     public void drawLabel(float x, float y, String text, Color color){drawLabel(x, y, text, color, 7f, 1.7f);}
 
     public void drawLine(float cx, float cy, float ux, float uy, Color color, float transparency) {
-        Lines.stroke(1, color);
+        drawLine(cx, cy, ux, uy, color, transparency, 1);
+    }
+
+    public void drawLine(float cx, float cy, float ux, float uy, Color color, float transparency, float stroke) {
+        Lines.stroke(stroke, color);
         Draw.color(color, transparency);
         Lines.line(ux, uy, cx, cy);
+        Draw.reset();
+    }
+
+    public static void drawBoardedLine(Color color, float x, float y, float x2, float y2, float x3, float y3, float stoke, Color bg){
+        drawBoardedLine(color, x, y, x2, y2, x3, y3, x, y, stoke, bg);
+    }
+
+    public static void drawBoardedLine(Color color, float x, float y, float x2, float y2, float x3, float y3, float x4, float y4, float stoke, Color bg){
+        Lines.stroke(stoke * 2.5f);
+        Draw.color(bg, color.a);
+        Lines.line(x, y, x2, y2);
+        Lines.stroke(stoke, color);
+        Lines.line(x4, y4, x3, y3);
         Draw.reset();
     }
 

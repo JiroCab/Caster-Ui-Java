@@ -132,9 +132,15 @@ public class CuiFragment {
                     }
                     int style = settings.getInt("cui-unitsPlayerTableStyle"), tabSize = settings.getInt("cui-unitsPlayerTableSize");
                     if(Core.settings.getBool("cui-teamtotalunitcount")){
-                        makeIcon(style, team.data().unitCount, team, Icon.units.getRegion(), "@wavemode.counts", true);
-                        icons.getAndIncrement();
-                        newRow.set(false);
+                        int total = 0;
+                        for (Map.Entry<Short, Integer> entry : teamUnits.entrySet()) total += entry.getValue();
+
+                        if(total > 0){
+                            makeIcon(style, total, team, Icon.units.getRegion(), "@wavemode.counts", true);
+                            icons.getAndIncrement();
+                            newRow.set(false);
+                        }
+
                     }
                     for (Map.Entry<Short, Integer> entry : teamUnits.entrySet()) {
                         Short u = entry.getKey();

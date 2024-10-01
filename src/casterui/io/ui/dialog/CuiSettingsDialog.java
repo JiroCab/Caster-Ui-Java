@@ -3,14 +3,12 @@ package casterui.io.ui.dialog;
 import arc.Core;
 import arc.graphics.Color;
 import arc.scene.style.TextureRegionDrawable;
-import arc.scene.ui.CheckBox;
 import arc.scene.ui.ScrollPane;
 import arc.struct.ObjectSet;
 import arc.struct.Seq;
 import arc.util.Log;
 import arc.util.Scaling;
 import casterui.CuiVars;
-import mindustry.Vars;
 import mindustry.gen.Icon;
 import mindustry.gen.Tex;
 import mindustry.type.UnitType;
@@ -18,6 +16,7 @@ import mindustry.ui.Styles;
 import mindustry.ui.dialogs.BaseDialog;
 import mindustry.ui.dialogs.SettingsMenuDialog;
 import mindustry.ui.dialogs.SettingsMenuDialog.SettingsTable.Setting;
+import mindustry.world.Block;
 import mindustry.world.blocks.storage.CoreBlock;
 
 import java.text.DecimalFormat;
@@ -73,8 +72,8 @@ public class CuiSettingsDialog {
                                 settings.remove(setting.name);
                                 hiddenUnits.clear();
                                 coreUnitsTypes.clear();
-                                setDefults(hiddenUnits, false);
-                                setDefults(coreUnitsTypes, true);
+                                setDefaults(hiddenUnits, false);
+                                setDefaults(coreUnitsTypes, true);
                             }
 
                         }
@@ -123,7 +122,10 @@ public class CuiSettingsDialog {
                 subTable.sliderPref("cui-unitsIconSize", 32, 1, 100, String::valueOf);
                 subTable.checkPref("cui-separateTeamsUnit", true);
                 subTable.checkPref("cui-teamtotalunitcount", true);
-                //subTable.sliderPref("cui-showUnitBarStyle", 1, 0, 1, s -> bundle.get("cui-unitsplayer-style" + s));
+                subTable.sliderPref("cui-showUnitBarStyle", 7, 0, 9, s -> s == 0 ? "@off" :bundle.get("cui-unitshealtbar-style" + s));
+                subTable.sliderPref("cui-showUnitBarSize", 4, 1, 100, s -> decFor.format(s * 0.25f));
+                subTable.sliderPref("cui-showUnitBarAlpha", 10, 1, 10, s ->  s + "0%");
+                subTable.sliderPref("cui-showUnitTextStyle", 1, 0, 3, s -> s == 0 ? "@off" :bundle.get("cui-unittext-style" + s));
                 subTable.checkPref("cui-unitFlagCoreUnitHides", true);
 
                 allCuiOptions.add(subTable);
@@ -258,8 +260,8 @@ public class CuiSettingsDialog {
     }
 
     public static void buildCategory(){
-        setDefults(hiddenUnits, false);
-        setDefults(coreUnitsTypes, true);
+        setDefaults(hiddenUnits, false);
+        setDefaults(coreUnitsTypes, true);
 
         ui.settings.addCategory("@settings.cui.settings", Icon.logic, table -> {
             table.pref(new CollapserSetting("cui-category-players", 0));
@@ -366,7 +368,7 @@ public class CuiSettingsDialog {
 
         bd.buttons.button("@defaults", Icon.exit, () -> {
             set.clear();
-            setDefults(set, showCoreUnits);
+            setDefaults(set, showCoreUnits);
             rebuild[0].run();
         }).size(180, 64f);
 
@@ -378,13 +380,13 @@ public class CuiSettingsDialog {
         bd.show();
     }
 
-    public static void setDefults(ObjectSet<UnitType> set, boolean showCoreUnits){
+    public static void setDefaults(ObjectSet<UnitType> set, boolean showCoreUnits){
         for (UnitType m : content.units()) {
             if (m.isHidden()) set.add(m);
             if (showCoreUnits) {
-                content.blocks().forEach(b -> {
+                for (Block b : content.blocks()) {
                     if (b instanceof CoreBlock && ((CoreBlock) b).unitType == m && !set.contains(m)) set.add(m);
-                });
+                }
             }
         }
     }
