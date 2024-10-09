@@ -305,7 +305,7 @@ public class CuiWorldRenderer {
 
         if (Core.settings.getBool("cui-ShowAlerts")){
             if(Vars.state.isPlaying()){
-                String alert = "[#" + e.tile.team().color.toString() + "]" + e.tile.team().localized()+ " " + Core.bundle.get("alerts.basic") + "[white] (" +e.tile.x + ", "+ e.tile.y + ")";
+                String alert = "[#" + e.tile.team().color.toString() + "]" + e.tile.team().localized()+ " " + Core.bundle.get("alerts.basic") + "\n[white] (" +e.tile.x + ", "+ e.tile.y + ")";
                 if(Core.settings.getBool("cui-AlertsHideWithUi") || Core.settings.getBool("cui-AlertsUseBottom")) showToastIndependent(alert, Core.settings.getBool("cui-AlertsUseBottom"));
                 else Vars.ui.hudfrag.showToast(alert);
             }
