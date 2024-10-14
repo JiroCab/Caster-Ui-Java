@@ -3,6 +3,7 @@ package casterui.io.ui;
 import arc.Core;
 import arc.graphics.Color;
 import arc.graphics.g2d.*;
+import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.scene.Group;
 import arc.scene.style.Drawable;
@@ -10,8 +11,7 @@ import arc.scene.ui.Image;
 import arc.scene.ui.Label;
 import arc.scene.ui.layout.Table;
 import arc.struct.Seq;
-import arc.util.Align;
-import arc.util.Scaling;
+import arc.util.*;
 import casterui.CuiVars;
 import casterui.io.ui.dialog.CuiSettingsDialog;
 import mindustry.Vars;
@@ -61,6 +61,7 @@ public class CuiFragment {
         if(settings.getBool("cui-ShowUnitTable") || settings.getBool("cui-ShowPlayerList") ) {
             parent.fill(parentCont -> {
                 parentCont.name = "cui-unit-player-table";
+                marginHandler(parentCont, settings.getInt("cui-playerunitstables-x"), settings.getInt("cui-playerunitstables-y"), settings.getBool("cui-playerunitstables-x-abs"), settings.getBool("cui-playerunitstables-y-abs"));
                 parentCont.align(alignSides.get(settings.getInt("cui-PlayerUnitsTableSide")));
                 unitPlayerTable.background(tableStyles.get(settings.getInt("cui-playerunitstablestyle")));
                 parentCont.clear();
@@ -76,6 +77,7 @@ public class CuiFragment {
             parent.fill(parentCont -> {
                 parentCont.name = "cui-block-table";
                 parentCont.align(alignSides.get(settings.getInt("cui-blockinfoSide")));
+                marginHandler(parentCont, settings.getInt("cui-blockinfo-x"), settings.getInt("cui-blockinfo-y"), settings.getBool("cui-blockinfo-x-abs"), settings.getBool("cui-blockinfo-y-abs"));
                 blockTable.background(tableStyles.get(settings.getInt("cui-blockinfostyle")));
                 parentCont.add(blockTable).visible(() -> CuiVars.unitTableCollapse && showBlockTable  && CuiVars.globalShow);
             });
@@ -85,6 +87,7 @@ public class CuiFragment {
             parent.fill(parentCont -> {
                 parentCont.name = "cui-team-Items";
                 parentCont.align(alignSides.get(settings.getInt("cui-TeamItemsSide")));
+                marginHandler(parentCont, settings.getInt("cui-TeamItems-x"), settings.getInt("cui-TeamItems-y"), settings.getBool("cui-TeamItems-x-abs"), settings.getBool("cui-TeamItems-y-abs"));
                 blockTable.background(tableStyles.get(settings.getInt("cui-blockinfostyle")));
                 parentCont.add(teamItemsTable).visible(() -> CuiVars.unitTableCollapse && CuiVars.globalShow);
             });
@@ -346,6 +349,19 @@ public class CuiFragment {
             unitTable.add(img).tooltip(name).size(fsize).scaling(Scaling.bounded).get();
             unitTable.add(new Label(() -> "[#" + team.color.toString() + "]" + i + "[white]")).style(Styles.outlineLabel).get();
         }
+    }
+
+    public void marginHandler(Table tab, int x, int y, boolean xPer, boolean yPer){
+        float fx = x, fy = y;
+        int xp = Math.round(Mathf.clamp(fx, -1, 1)),
+             yp = Math.round(Mathf.clamp(fy, -1, 1));
+
+
+        //todo: make this work
+        if(xPer) fx = Mathf.lerp( Core.graphics.getWidth(), 0,  Math.abs((x -100)/100)) * xp;
+        if(yPer) fy = Mathf.lerp( Core.graphics.getHeight(), 0,  Math.abs((y -100)/100)) * yp;
+
+        tab.moveBy(fx, fy);
     }
 
 }

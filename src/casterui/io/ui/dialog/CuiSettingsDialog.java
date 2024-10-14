@@ -1,10 +1,11 @@
 package casterui.io.ui.dialog;
 
 import arc.Core;
+import arc.func.Cons;
 import arc.graphics.Color;
 import arc.scene.style.TextureRegionDrawable;
-import arc.scene.ui.Label;
-import arc.scene.ui.ScrollPane;
+import arc.scene.ui.*;
+import arc.scene.ui.layout.Table;
 import arc.struct.ObjectSet;
 import arc.struct.Seq;
 import arc.util.*;
@@ -29,6 +30,7 @@ public class CuiSettingsDialog {
     public static Seq<SettingsMenuDialog.SettingsTable> allCuiOptions = new Seq<>();
     public static ObjectSet<UnitType>hiddenUnits = new ObjectSet<>(), coreUnitsTypes = new ObjectSet<>();
     public static float commonHeight = 60f;
+    private static final int cursorStyles = 8, offsetMinMax  = 200;
     static DecimalFormat decFor = new DecimalFormat("#.##");
 
     //Foo's complaint categories
@@ -68,14 +70,14 @@ public class CuiSettingsDialog {
         }
         
         public void trackingCategory(SettingsMenuDialog.SettingsTable table){
-            boolean[] players = {false};
-            table.button("@setting.cui-tracker-category.name", Icon.players, Styles.togglet, () -> players[0] = !players[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> players[0]).padTop(5f).row();
+            boolean[] tracking = {false};
+            table.button("@setting.cui-tracker-category.name", Icon.players, Styles.togglet, () -> tracking[0] = !tracking[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> tracking[0]).padTop(5f).row();
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
                 subTable.checkPref("cui-TrackPlayerCursor", true);
                 subTable.checkPref("cui-ShowOwnCursor", false);
                 subTable.checkPref("cui-playerHoldTrackMouse", true);
-                subTable.sliderPref("cui-playerCursorStyle", 3, 0, 4, s -> s == 0 ? "@off" : bundle.get("cui-cursor" + s ));
+                subTable.sliderPref("cui-playerCursorStyle", 3, 0, cursorStyles, s -> s == 0 ? "@off" : bundle.get("cui-cursor" + s ));
                 subTable.sliderPref("cui-playerLineStyle", 1, 0, 3, s -> s == 0 ? "@off" : bundle.get("cui-lines" + s ));
                 subTable.sliderPref("cui-playerDrawNames", 1, 0, 2, s -> s == 0 ? "@off" : bundle.get("cui-name" + s ));
                 subTable.sliderPref("cui-playerTrackAlpha", 7, 0, 10, s -> s  > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
@@ -84,12 +86,12 @@ public class CuiSettingsDialog {
 
                 allCuiOptions.add(subTable);
                 t.add(subTable);
-            }, settings.getBool("cui-animateSettings") , () ->players[0]).growX().row();
+            }, CuiVars.animateCats , () ->tracking[0]).growX().row();
         }
 
         public void counterCategory(SettingsMenuDialog.SettingsTable table) {
-            boolean[] units = {false};
-            table.button("@setting.cui-counter-category.name", Icon.menu, Styles.togglet, () -> units[0] = !units[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> units[0]).padTop(5f).row();
+            boolean[] counter = {false};
+            table.button("@setting.cui-counter-category.name", Icon.menu, Styles.togglet, () -> counter[0] = !counter[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> counter[0]).padTop(5f).row();
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
                 //TODO: SAVE THESE AND LOAD THEM
@@ -105,17 +107,22 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-unitFlagCoreUnitHides", true);
                 subTable.checkPref("cui-separateTeamsUnit", true);
                 subTable.checkPref("cui-teamtotalunitcount", true);
-                subTable.sliderPref("cui-PlayerUnitsTableSide", 1, 0, 8, s -> bundle.get("cui-side"+s));
                 subTable.sliderPref("cui-unitsPlayerTableSize", 6, 1, 20, String::valueOf);
-                subTable.sliderPref("cui-playerunitstablestyle", 0, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
                 subTable.checkPref("cui-playerunitstablecontols", false);
                 subTable.sliderPref("cui-buttonSize", 40, 1, 100, String::valueOf);
+
+                subTable.pref(new CollapserSetting("cui-offset-div", 6));
+                subTable.sliderPref("cui-PlayerUnitsTableSide", 1, 0, 8, s -> bundle.get("cui-side"+s));
+                subTable.sliderPref("cui-playerunitstablestyle", 0, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
+                subTable.sliderPref("cui-playerunitstables-x", 0, -offsetMinMax , offsetMinMax, String::valueOf);
+                subTable.sliderPref("cui-playerunitstables-y", 0, -offsetMinMax , offsetMinMax, String::valueOf);
+//                subTable.checkPref("cui-playerunitstables-x-abs", false);
+//                subTable.checkPref("cui-playerunitstables-y-abs", false);
 
                 allCuiOptions.add(subTable);
 
                 t.add(subTable).row();
-                t.image().color(Pal.lightishGray).height(3f).padTop(10).growX().row();
-            }, settings.getBool("cui-animateSettings") , () ->units[0]).growX().row();
+            }, CuiVars.animateCats , () ->counter[0]).growX().row();
         }
 
         public void unitsCategory(SettingsMenuDialog.SettingsTable table) {
@@ -129,10 +136,17 @@ public class CuiSettingsDialog {
                 subTable.sliderPref("cui-showUnitBarAlpha", 10, 1, 10, s ->  s + "0%");
                 subTable.sliderPref("cui-showUnitTextStyle", 1, 0, 3, s -> s == 0 ? "@off" :bundle.get("cui-unittext-style" + s));
 
+                subTable.pref(new CollapserSetting("cui-category-div", 6));
+                //cmd preview
+                subTable.sliderPref("cui-unitscommands", 1, 0, 3, s -> s == 0 ? "@off" : bundle.get("cui-cmd-limits" + s));
+                subTable.sliderPref("cui-unitCmdRange", 6, 1, 40, s -> decFor.format( s* 0.5) + " " + bundle.get("unit.blocks"));
+                subTable.sliderPref("cui-unitCmdTrans", 10, 1, 10, s ->  s + "0%");
+                subTable.sliderPref("cui-unitCmdStyle", 1, 0, 3, s -> s == 0 ? "@off" : bundle.get("cui-lines" + s ));
+                subTable.sliderPref("cui-unitCmdPointer", 3, 0, cursorStyles, s -> s == 0 ? "@off" : bundle.get("cui-cursor" + s ));
                 allCuiOptions.add(subTable);
                 allCuiOptions.add(subTable);
                 t.add(subTable);
-            }, settings.getBool("cui-animateSettings") , () ->units[0]).growX().row();
+            }, CuiVars.animateCats , () ->units[0]).growX().row();
         }
 
         public void alertsCategory(SettingsMenuDialog.SettingsTable table) {
@@ -152,7 +166,7 @@ public class CuiSettingsDialog {
 
                 allCuiOptions.add(subTable);
                 t.add(subTable);
-            }, settings.getBool("cui-animateSettings") , () ->alerts[0]).growX().row();
+            }, CuiVars.animateCats , () ->alerts[0]).growX().row();
         }
 
         public void blocksCategory(SettingsMenuDialog.SettingsTable table){
@@ -164,19 +178,25 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-ShowBlockHealth", true);
                 subTable.checkPref("cui-BlockInfoShortenItems", true);
 
-                subTable.pref(new CollapserSetting("cui-category-hotkeys", 6));
+                subTable.pref(new CollapserSetting("cui-offset-div", 6));
+                subTable.sliderPref("cui-blockinfoSide", 7, 0, 8, s -> bundle.get("cui-side"+s));
+                subTable.sliderPref("cui-blockinfo-x", 0, -offsetMinMax , offsetMinMax, String::valueOf);
+                subTable.sliderPref("cui-blockinfo-y", 0, -offsetMinMax , offsetMinMax, String::valueOf);
+//                subTable.checkPref("cui-blockinfo-x-abs", false);
+//                subTable.checkPref("cui-blockinfo-y-abs", false);
+
+                subTable.pref(new CollapserSetting("cui-cat-div", 6));
 
                 subTable.sliderPref("cui-showFactoryProgressStyle", 2, 1, 6, s -> s > 1 ? bundle.get("cui-factoryProgress" + s ) : "@off");
                 subTable.sliderPref("cui-logicLineAlpha", 5, 1, 11, s ->  s == 1 ? "@off" : s != 11 ?  (s - 1) + "0%" : "100%");
                 subTable.sliderPref("cui-rallyPointAlpha", 4, 1, 11,s -> s == 1 ? "@off" : s != 11 ? (s - 1) + "0%" : "100%");
-                subTable.sliderPref("cui-blockinfoSide", 7, 0, 8, s -> bundle.get("cui-side"+s));
                 subTable.sliderPref("cui-blockinfostyle", 2, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
                 //subTable.checkPref("cui-showPowerBar", true);
                 //subTable.checkPref("cui-ShowResourceRate", false); // TODO
 
                 allCuiOptions.add(subTable);
                 t.add(subTable);
-            }, settings.getBool("cui-animateSettings") , () ->blocks[0]).growX().row();
+            }, CuiVars.animateCats , () ->blocks[0]).growX().row();
         }
 
         public void teamsCategory(SettingsMenuDialog.SettingsTable table){
@@ -187,11 +207,17 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-ShowTeamItems", true);
                 subTable.checkPref("cui-TeamItemsShortenItems", true);
                 subTable.sliderPref("cui-TeamItemsAlpha", 8, 0, 10, s -> s  > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
+
+                subTable.pref(new CollapserSetting("cui-offset-div", 6));
                 subTable.sliderPref("cui-TeamItemsSide", 8, 0, 8, s -> bundle.get("cui-side"+s));
+                subTable.sliderPref("cui-TeamItems-x", 0, -offsetMinMax , offsetMinMax, String::valueOf );
+                subTable.sliderPref("cui-TeamItems-y", 0, -offsetMinMax , offsetMinMax, String::valueOf);
+//                subTable.checkPref("cui-TeamItems-x-abs", false);
+//                subTable.checkPref("cui-TeamItems-y-abs", false);
 
                 allCuiOptions.add(subTable);
                 t.add(subTable);
-            }, settings.getBool("cui-animateSettings") , () ->teams[0]).growX().row();
+            }, CuiVars.animateCats , () ->teams[0]).growX().row();
         }
 
         public void inputCategory(SettingsMenuDialog.SettingsTable table){
@@ -201,12 +227,12 @@ public class CuiSettingsDialog {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
 
                 subTable.checkPref("cui-respectCommandMode", true);
-                subTable.checkPref("cui-respectTyping", true);
-                subTable.checkPref("cui-respectLockInputs", false);
+                subTable.checkPref("cui-respectTyping", false);
+                subTable.checkPref("cui-respectLockInputs", true);
                 subTable.checkPref("cui-respectDialog", true);
                 subTable.checkPref("cui-hideWithMenus", true);
 
-                subTable.pref(new CollapserSetting("cui-category-hotkeys", 6));
+                subTable.pref(new CollapserSetting("cui-category-div", 6));
 
                 subTable.sliderPref("cui-maxZoom", 12, 0, 125, s -> {
                     if(s == 12) return "@off";
@@ -224,9 +250,9 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-minimalCursor", false);
 
                 allCuiOptions.add(subTable);
-                t.button(bundle.get("keybind.title"), () -> CuiVars.rebindDialog.show()).tooltip(bundle.get("cui-hiddenInfo")).center().width(400f).top().row();
+                t.button(bundle.get("keybind.title"), Icon.move,() -> CuiVars.rebindDialog.show()).tooltip(bundle.get("cui-hiddenInfo")).center().width(400f).top().row();
                 t.add(subTable);
-            }, settings.getBool("cui-animateSettings") , () ->inputs[0]).growX().row();
+            }, CuiVars.animateCats , () ->inputs[0]).growX().row();
         }
 
         public void categoryDivider(SettingsMenuDialog.SettingsTable table){
@@ -249,8 +275,7 @@ public class CuiSettingsDialog {
                     for (SettingsMenuDialog.SettingsTable a : allCuiOptions) a.rebuild();
                 }).center().width(400f).top().tooltip(bundle.get("cui-rebuild-info")).row();
                 t.add(subTable).row();
-            }, settings.getBool("cui-animateSettings") , () ->advanceHudShown[0]).growX().row();
-
+            }, CuiVars.animateCats , () ->advanceHudShown[0]).growX().row();
         }
     }
 
@@ -272,7 +297,19 @@ public class CuiSettingsDialog {
             t.button("@cui-preset1", Styles.defaultt, () -> {
                 restAllSettings();
                 settings.put("cui-playerunitstablecontols", true);
+                settings.put("cui-playerunitstables-y", -80);
+                settings.put("cui-PlayerUnitsTableSide", 4);
+                settings.put("cui-teamtotalunitcount", false);
+                settings.put("cui-TeamItemsSide", 3);
+                settings.put("cui-blockinfoSide", 1);
+                settings.put("cui-TrackPlayerCursor", false);
+                settings.put("cui-playerCursorStyle", 0);
+                settings.put("cui-ShowPlayerList", false);
+                settings.put("cui-unitscommands", 0);
+                settings.put("cui-showUnitTextStyle", 0);
+                settings.put("cui-showUnitBarStyle", 8);
 
+                bd.hide();
                 Log.info("Caster-ui present 1 loaded!");
             });
         });

@@ -13,6 +13,7 @@ import arc.scene.ui.layout.Stack;
 import arc.scene.ui.layout.Table;
 import arc.struct.*;
 import arc.util.*;
+import casterui.CuiVars;
 import casterui.io.CuiBinding;
 import mindustry.graphics.Pal;
 import mindustry.ui.Styles;
@@ -58,7 +59,6 @@ public class CuiRebindDialog extends KeybindDialog {
         ButtonGroup<TextButton> group = new ButtonGroup<>();
         ScrollPane pane = new ScrollPane(stack);
         pane.setFadeScrollBars(false);
-        pane.update(() -> scroll = pane.getScrollY());
         this.section = sections[0];
 
 
