@@ -2,8 +2,8 @@ name: "caster-ui-java"
 displayName: "Caster User interface"
 description: "Aming to make the client a bit better for casting! with ease of use, simplicity and elegance in mind \n \n Java rewrite of 'JiroCab/Caster-Ui' which was based off 'Ferlern/extended-UI' \nconflicts with 'Ferlern/extended-UI'  \n\nPLEASE DON'T THIS FOR AN ADVANTAGE IN PVP THANKS"
 author: "RushieWashie"
-subtitle: "v4.2 Helping you cast games~"
-version: 4.2
+subtitle: "v4.3 Helping you cast games~"
+version: 4.3
 
 minGameVersion: 140.4
 hidden: true

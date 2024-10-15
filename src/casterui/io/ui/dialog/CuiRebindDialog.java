@@ -13,6 +13,7 @@ import arc.scene.ui.layout.Stack;
 import arc.scene.ui.layout.Table;
 import arc.struct.*;
 import arc.util.*;
+import casterui.CuiVars;
 import casterui.io.CuiBinding;
 import mindustry.graphics.Pal;
 import mindustry.ui.Styles;
@@ -58,7 +59,6 @@ public class CuiRebindDialog extends KeybindDialog {
         ButtonGroup<TextButton> group = new ButtonGroup<>();
         ScrollPane pane = new ScrollPane(stack);
         pane.setFadeScrollBars(false);
-        pane.update(() -> scroll = pane.getScrollY());
         this.section = sections[0];
 
 
@@ -149,19 +149,19 @@ public class CuiRebindDialog extends KeybindDialog {
                         openDialog(section, keybind);
                     }).width(130f);
                 }else{
-                    table.add(bundle.get("keybind." + keybind.name() + ".name", Strings.capitalize(keybind.name())), Color.white).left().padRight(40).padLeft(8);
-                    table.label(() -> cuiKeyBinds.get(section, keybind).key.toString()).color(Pal.accent).left().minWidth(90).padRight(20);
+                    table.add(bundle.get("keybind." + keybind.name() + ".name", Strings.capitalize(keybind.name())), Color.white).left().padRight(40).padLeft(8).tooltip(bundle.getOrNull("keybind." + keybind.name() + ".description"));
+                    table.label(() -> cuiKeyBinds.get(section, keybind).key.toString()).color(Pal.accent).left().minWidth(90).padRight(20).tooltip(bundle.getOrNull("keybind." + keybind.name() + ".description"));
 
                     table.button("@settings.rebind", tstyle, () -> {
                         rebindAxis = false;
                         rebindMin = false;
                         openDialog(section, keybind);
-                    }).width(130f);
+                    }).width(130f).tooltip(bundle.getOrNull("keybind." + keybind.name() + ".description"));
                 }
                 table.button("@settings.resetKey", tstyle, () ->{
                     cuiKeyBinds.resetToDefault(section, keybind);
                     settings.remove("cui-keybind-"+keybind.name());
-                }).width(130f).pad(2f).padLeft(4f);
+                }).width(130f).pad(2f).padLeft(4f).tooltip(bundle.getOrNull("keybind." + keybind.name() + ".description"));
                 table.row();
             }
 

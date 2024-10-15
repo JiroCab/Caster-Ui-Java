@@ -4,8 +4,9 @@ import arc.Core;
 import arc.Events;
 import arc.graphics.Color;
 import arc.graphics.g2d.*;
-import arc.math.Interp;
-import arc.math.Mathf;
+import arc.math.*;
+import arc.math.geom.Position;
+import arc.math.geom.Vec2;
 import arc.scene.actions.Actions;
 import arc.scene.style.Drawable;
 import arc.scene.ui.layout.Scl;
@@ -15,14 +16,20 @@ import arc.util.*;
 import arc.util.pooling.Pools;
 import casterui.CuiVars;
 import casterui.util.CuiCircleObjectHelper;
+import casterui.util.CuiPointerHelper;
 import mindustry.Vars;
+import mindustry.ai.UnitCommand;
 import mindustry.ai.types.LogicAI;
+import mindustry.content.UnitTypes;
 import mindustry.game.EventType;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.Fonts;
+import mindustry.world.Block;
 import mindustry.world.blocks.storage.CoreBlock;
 import mindustry.world.blocks.units.UnitFactory;
+
+import java.util.HashMap;
 
 import static arc.graphics.g2d.Draw.draw;
 import static mindustry.Vars.*;
@@ -30,7 +37,10 @@ import static mindustry.Vars.*;
 
 public class CuiWorldRenderer {
     public Seq<CuiCircleObjectHelper> circleQueue = new Seq<>();
+    public Seq<CuiPointerHelper> cmdPointerHelper = new Seq<>();
     private long lastToast;
+    float cmdRange = 0, cmdTrans = 0;
+    int cmdStyle = 0, cmdPointer = 0, cmdLimit = 0;
 
     public void worldRenderer(){
         Events.run(EventType.Trigger.draw, ()-> {
@@ -38,14 +48,23 @@ public class CuiWorldRenderer {
             boolean unitBars = Core.settings.getInt("cui-showUnitBarStyle") > 0;
             boolean trackPlayerCursor = Core.settings.getBool("cui-TrackPlayerCursor");
             boolean trackLogicControl = Core.settings.getInt("cui-logicLineAlpha") > 0;
+            boolean unitCmds = Core.settings.getInt("cui-unitscommands") > 0;
 
-            if (unitBars || trackLogicControl || trackPlayerCursor){
+            if (unitBars || trackLogicControl || trackPlayerCursor || unitCmds){
                 int style = Core.settings.getInt("cui-showUnitBarStyle");
                 float alpha = Core.settings.getInt("cui-showUnitBarAlpha") * 0.1f, stroke = Core.settings.getInt("cui-showUnitBarSize") * 0.25f;
+                cmdRange = (Core.settings.getInt("cui-unitCmdRange") * 0.5f) * tilesize;
+                cmdTrans = Core.settings.getInt("cui-showUnitBarAlpha") * 0.1f;
+                cmdStyle =  Core.settings.getInt("cui-unitCmdStyle");
+                cmdPointer =  Core.settings.getInt("cui-unitCmdPointer");
+                cmdLimit = Core.settings.getInt("cui-unitscommands");
+
                 Groups.unit.each((unit -> {
                     if (unitBars) drawUnitBars(unit, style, alpha, stroke);
                     if (trackLogicControl && unit.controller() instanceof LogicAI la) drawLogicControl(unit, la.controller);
+                    if (unitCmds)drawUnitCmds(unit);
                 }));
+                if(unitCmds) drawUnitPointer();
                 if(trackPlayerCursor) Groups.player.each(ply ->{
                     if(ply.unit() != null){drawPlayerCursor(ply);}
                 });
@@ -181,6 +200,50 @@ public class CuiWorldRenderer {
         Draw.reset();
     }
 
+    public  void  drawUnitPointer(){
+        for (CuiPointerHelper p : cmdPointerHelper) drawPointer(p.color, p.x(), p.y(), p.unit, cmdPointer);
+        cmdPointerHelper.clear();
+    }
+
+    public void drawUnitCmds(Unit unit){
+        Tmp.v1.set(player.mouseX, player.mouseY());
+        boolean draw  = false;
+
+        if(!(unit.isCommandable() && (unit.command().hasCommand() || unit.command().command != UnitCommand.moveCommand))) return;
+        if(cmdLimit == 1 && unit.within(Tmp.v1, cmdRange)) draw = true;
+        if(cmdLimit == 2 && unit.within(Core.camera.position, Math.max(Core.camera.height, Core.camera.width))) draw = true;
+        if(cmdLimit == 3) draw = true;
+        if(player.team() == unit.team && control.input.commandMode) draw = false;
+
+        if(draw){
+            Draw.draw(Layer.overlayUI+0.01f, () ->{
+                if(!unit.command().hasCommand()){
+                    if(Core.settings.getBool("cui-unitCmdNonMv")){
+                        Draw.color(Color.black, cmdTrans);
+
+                        Draw.scl(0.85f);
+                        Draw.color(Color.white, cmdTrans);
+                        Draw.rect(unit.command().command.getIcon().getRegion(), unit.x, unit.y);
+                    }
+                }else {
+                    Tmp.v2.set(unit.command().targetPos);
+                    Lines.stroke(1, unit.team.color);
+                    Draw.color(unit.team.color, cmdTrans);
+
+                    cmdPointerHelper.addUnique(new CuiPointerHelper(Tmp.v2, unit.team.color, unit));
+                    if(cmdStyle == 1) drawLine(unit.x, unit.y, Tmp.v2.x, Tmp.v2.y, unit.team.color, cmdTrans);
+                    else if(cmdStyle == 2)Lines.dashLine(unit.x, unit.y, Tmp.v2.x, Tmp.v2.y, Math.round(unit.dst(Tmp.v2.x, Tmp.v2.y) / 2));
+                    else if(cmdStyle == 3)Drawf.line(unit.team.color, unit.x, unit.y, Tmp.v2.x, Tmp.v2.y);
+                    Draw.reset();
+                }
+
+            });
+
+
+        }
+        Draw.reset();
+    }
+
     public void drawPlayerCursor(Player ply){
         if(ply == Vars.player && !Core.settings.getBool("cui-ShowOwnCursor")) return;
         if(ply.unit() == null)return;
@@ -213,15 +276,7 @@ public class CuiWorldRenderer {
             Draw.reset();
         });
 
-        Draw.draw(Layer.overlayUI+0.02f, () ->{
-            Draw.color(ply.team().color, alpha);
-
-            if (style == 2) Drawf.circles(finalCursorX, finalCursorY, 3, ply.team().color); // Circle
-            else if (style == 3) Drawf.target(finalCursorX, finalCursorY, 3, alpha, ply.team().color); //Target (aka mobile mindustry)
-            else if (style == 4) Fill.circle(finalCursorX, finalCursorY, 3); //Foo's style
-            else Drawf.square(finalCursorX, finalCursorY, 2,  ply.team().color); // Square (Inspired from Mindustry Ranked Server's spectator mode )
-            Draw.reset();
-        });
+        drawPointer(ply.team().color, finalCursorX, finalCursorY, ply.unit(), style);
         Draw.reset();
         if(Core.settings.getInt("cui-playerDrawNames") == 2 || Core.settings.getInt("cui-playerDrawNames") == 1 && isTracked ){
             drawLabel(finalCursorX, finalCursorY, ply.name, ply.team().color);
@@ -230,6 +285,20 @@ public class CuiWorldRenderer {
 
     }
 
+    public void drawBindingSelected(float x, float y, Color color){
+        drawBindingSelected(x, y, color, -1, -1);
+    }
+
+    public void drawBindingSelected(float x, float y, Color color, float sin, float mag){
+        float fx = x, fy = y, absin = 1;
+        //so it always bind to the block despite the size and where the x-y is
+        if(world.tileWorld(x, y).build != null){
+            fx = world.tileWorld(x, y).build.x;
+            fy = world.tileWorld(x, y).build.y;
+        }
+        if(sin > -1 || mag > -1) absin = Mathf.absin(sin, mag);
+        Drawf.selected(world.tileWorld(fx, fy), Tmp.c1.set(color).a(absin));
+    }
 
     public void drawLabel(float x, float y, String text, Color color, float yOffset, float margin){
         Font font = Fonts.outline;
@@ -265,6 +334,31 @@ public class CuiWorldRenderer {
         Draw.reset();
     }
 
+    public void drawDirectionalTriangle(float cx, float cy, float rot, float width, float height, Color color, float transparency) {
+        Draw.color(color, transparency);
+        Drawf.tri(cx, cy, width, height, rot);
+        Draw.reset();
+    }
+
+    public void drawPointer(Color color, float x, float y, Position unit, int style){
+        if(style == 0 )return;
+        Draw.draw(Layer.overlayUI+0.02f, () -> {
+            Lines.stroke(1, color);
+            Draw.color(color, cmdTrans);
+            switch (style) {
+                case 2 -> Drawf.circles(x, y, 3, color); // Circle
+                case 3 -> Drawf.target(x, y, 3, cmdTrans, color); //Target (aka mobile mindustry)
+                case 4 -> Fill.circle(x, y, 3); //Foo's style
+                case 5 -> drawDirectionalTriangle(x, y, unit.angleTo(x, y), 5, 5, color, cmdTrans);
+                case 6 -> drawDirectionalTriangle(x, y, Tmp.v1.set(x, y).angleTo(unit), 5, 5, color, cmdTrans);
+                case 7 -> drawBindingSelected(x, y, color);
+                case 8 -> drawBindingSelected(x, y, color, 4 , 1);
+                default -> Drawf.square(x, y, 2, color); // Square (Inspired from Mindustry Ranked Server's spectator mode )
+            }
+        });
+        Draw.reset();
+    }
+
     public static void drawBoardedLine(Color color, float x, float y, float x2, float y2, float x3, float y3, float stoke, Color bg){
         drawBoardedLine(color, x, y, x2, y2, x3, y3, x, y, stoke, bg);
     }
@@ -283,6 +377,7 @@ public class CuiWorldRenderer {
     }
 
     public void drawLogicControl(Unit unit, Building processor){
+        if(processor == null || unit == null) return;
         float unitX = unit.getX(), unitY = unit.getY(), processorX = processor.getX(), processorY = processor.getY();
 
         draw(Layer.overlayUI+0.01f, () -> {
@@ -305,7 +400,7 @@ public class CuiWorldRenderer {
 
         if (Core.settings.getBool("cui-ShowAlerts")){
             if(Vars.state.isPlaying()){
-                String alert = "[#" + e.tile.team().color.toString() + "]" + e.tile.team().localized()+ " " + Core.bundle.get("alerts.basic") + "[white] (" +e.tile.x + ", "+ e.tile.y + ")";
+                String alert = "[#" + e.tile.team().color.toString() + "]" + e.tile.team().localized()+ " " + Core.bundle.get("alerts.basic") + "\n[white] (" +e.tile.x + ", "+ e.tile.y + ")";
                 if(Core.settings.getBool("cui-AlertsHideWithUi") || Core.settings.getBool("cui-AlertsUseBottom")) showToastIndependent(alert, Core.settings.getBool("cui-AlertsUseBottom"));
                 else Vars.ui.hudfrag.showToast(alert);
             }

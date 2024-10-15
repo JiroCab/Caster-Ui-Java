@@ -39,6 +39,12 @@ public class CuiInputs {
                 Core.settings.put("cui-logicLineAlphaPreferred", Core.settings.getInt("cui-logicLineAlpha"));
                 Core.settings.put("cui-logicLineAlpha", 0);
         }}
+        if(cuiKeyTap(toggle_unit_cmd)){
+            if(Core.settings.getInt("cui-unitscommands") == 0) Core.settings.put("cui-unitscommands", Core.settings.getInt("cui-unitscommandsPreferred", 1));
+            else{
+                Core.settings.put("cui-unitscommandsPreferred", Core.settings.getInt("cui-unitscommands"));
+                Core.settings.put("cui-unitscommands", 0);
+        }}
         if(cuiKeyTap(toggle_shorten_items_info)) Core.settings.put("cui-BlockInfoShortenItems", !Core.settings.getBool("cui-BlockInfoShortenItems"));
         if(cuiKeyTap(toggle_block_hp)) Core.settings.put("cui-ShowBlockHealth", !Core.settings.getBool("cui-ShowBlockHealth"));
         if(cuiKeyTap(toggle_units_player_table_controls)) Core.settings.put("cui-playerunitstablecontols", !Core.settings.getBool("cui-playerunitstablecontols"));
@@ -56,6 +62,8 @@ public class CuiInputs {
         if(cuiKeyTap(toggle_alerts_circle_reverse_growth)) Core.settings.put("cui-alertReverseGrow", !Core.settings.getBool("cui-alertReverseGrow"));
         if(cuiKeyTap(toggle_alerts_toast)) Core.settings.put("cui-ShowAlerts", !Core.settings.getBool("cui-ShowAlerts"));
         if(cuiKeyTap(toggle_alerts_toast_bottom)) Core.settings.put("cui-AlertsUseBottom", !Core.settings.getBool("cui-AlertsUseBottom"));
+        if(cuiKeyTap(toggle_cui_kill_switch)) Core.settings.put("cui-killswitch", !Core.settings.getBool("cui-killswitch")); //haha this will be one way but lulz
+        if(cuiKeyTap(toggle_unit_Cmd_type)) Core.settings.put("cui-unitCmdNonMv", !Core.settings.getBool("cui-unitCmdNonMv"));
 
 
 

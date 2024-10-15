@@ -10,6 +10,7 @@ import casterui.io.ui.CuiFragment;
 import casterui.io.ui.CuiWorldRenderer;
 import casterui.io.ui.dialog.*;
 import mindustry.Vars;
+import mindustry.core.Version;
 import mindustry.gen.Player;
 import mindustry.gen.Unit;
 import mindustry.mod.Mods;
@@ -27,7 +28,7 @@ public class CuiVars {
     public static CuiTeamMangerDialog teamManger = new CuiTeamMangerDialog();
     public static CuiRebindDialog rebindDialog = new CuiRebindDialog();
 
-    public static boolean initialized = false, unitTableCollapse = true, fastUpdate = false, drawRally = false, globalShow = true;
+    public static boolean initialized = false, unitTableCollapse = true, fastUpdate = false, drawRally = false, globalShow = true, animateCats = Core.settings.getBool("cui-animateSettings");
     public static Player hoveredPlayer, clickedPlayer;
     public static Unit heldUnit, hoveredEntity, clickedEntity;
     public static float  timer = 0, nextUpdate = 100, nextUpdateFast = 50;
@@ -41,6 +42,7 @@ public class CuiVars {
         renderer.worldRenderer();
         rebindDialog.load();
         if(Core.settings.getBool("cui-minimalCursor")) overrideCursors();
+        animateCats = Core.settings.getBool("cui-animateSettings");
         Log.info("Caster user interface loaded! happy casting!! owo");
         //Vars.ui.join.connect("localhost", 6567);  stream lining testing
     }
@@ -52,6 +54,7 @@ public class CuiVars {
         CuiVars.heldUnit = null;
         initialized = false;
         lastCoreDestroyEvent = null;
+        animateCats = Core.settings.getBool("cui-animateSettings");
         nextUpdate = timer + (Core.settings.getInt("cui-unitsPlayerTableUpdateRate") * 5);
         fragment.BuildTables(Vars.ui.hudGroup);
     }
