@@ -18,11 +18,14 @@ import casterui.CuiVars;
 import casterui.util.CuiCircleObjectHelper;
 import casterui.util.CuiPointerHelper;
 import mindustry.Vars;
+import mindustry.ai.UnitCommand;
 import mindustry.ai.types.LogicAI;
+import mindustry.content.UnitTypes;
 import mindustry.game.EventType;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.Fonts;
+import mindustry.world.Block;
 import mindustry.world.blocks.storage.CoreBlock;
 import mindustry.world.blocks.units.UnitFactory;
 
@@ -206,25 +209,37 @@ public class CuiWorldRenderer {
         Tmp.v1.set(player.mouseX, player.mouseY());
         boolean draw  = false;
 
-        if(!(unit.isCommandable() && unit.command().hasCommand())) return;
+        if(!(unit.isCommandable() && (unit.command().hasCommand() || unit.command().command != UnitCommand.moveCommand))) return;
         if(cmdLimit == 1 && unit.within(Tmp.v1, cmdRange)) draw = true;
         if(cmdLimit == 2 && unit.within(Core.camera.position, Math.max(Core.camera.height, Core.camera.width))) draw = true;
         if(cmdLimit == 3) draw = true;
+        if(player.team() == unit.team && control.input.commandMode) draw = false;
 
         if(draw){
-            Tmp.v2.set(unit.command().targetPos);
-
-            cmdPointerHelper.addUnique(new CuiPointerHelper(Tmp.v2, unit.team.color, unit));
-
             Draw.draw(Layer.overlayUI+0.01f, () ->{
-                Lines.stroke(1, unit.team.color);
-                Draw.color(unit.team.color, cmdTrans);
+                if(!unit.command().hasCommand()){
+                    if(Core.settings.getBool("cui-unitCmdNonMv")){
+                        Draw.color(Color.black, cmdTrans);
 
-                if(cmdStyle == 1) drawLine(unit.x, unit.y, Tmp.v2.x, Tmp.v2.y, unit.team.color, cmdTrans);
-                else if(cmdStyle == 2)Lines.dashLine(unit.x, unit.y, Tmp.v2.x, Tmp.v2.y, Math.round(unit.dst(Tmp.v2.x, Tmp.v2.y) / 2));
-                else if(cmdStyle == 3)Drawf.line(unit.team.color, unit.x, unit.y, Tmp.v2.x, Tmp.v2.y);
-                Draw.reset();
+                        Draw.scl(0.85f);
+                        Draw.color(Color.white, cmdTrans);
+                        Draw.rect(unit.command().command.getIcon().getRegion(), unit.x, unit.y);
+                    }
+                }else {
+                    Tmp.v2.set(unit.command().targetPos);
+                    Lines.stroke(1, unit.team.color);
+                    Draw.color(unit.team.color, cmdTrans);
+
+                    cmdPointerHelper.addUnique(new CuiPointerHelper(Tmp.v2, unit.team.color, unit));
+                    if(cmdStyle == 1) drawLine(unit.x, unit.y, Tmp.v2.x, Tmp.v2.y, unit.team.color, cmdTrans);
+                    else if(cmdStyle == 2)Lines.dashLine(unit.x, unit.y, Tmp.v2.x, Tmp.v2.y, Math.round(unit.dst(Tmp.v2.x, Tmp.v2.y) / 2));
+                    else if(cmdStyle == 3)Drawf.line(unit.team.color, unit.x, unit.y, Tmp.v2.x, Tmp.v2.y);
+                    Draw.reset();
+                }
+
             });
+
+
         }
         Draw.reset();
     }

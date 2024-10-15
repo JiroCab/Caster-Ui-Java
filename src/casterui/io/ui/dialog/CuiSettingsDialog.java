@@ -143,6 +143,7 @@ public class CuiSettingsDialog {
                 subTable.sliderPref("cui-unitCmdTrans", 10, 1, 10, s ->  s + "0%");
                 subTable.sliderPref("cui-unitCmdStyle", 1, 0, 3, s -> s == 0 ? "@off" : bundle.get("cui-lines" + s ));
                 subTable.sliderPref("cui-unitCmdPointer", 3, 0, cursorStyles, s -> s == 0 ? "@off" : bundle.get("cui-cursor" + s ));
+                subTable.checkPref("cui-unitCmdNonMv", true);
                 allCuiOptions.add(subTable);
                 allCuiOptions.add(subTable);
                 t.add(subTable);
@@ -188,9 +189,9 @@ public class CuiSettingsDialog {
                 subTable.pref(new CollapserSetting("cui-cat-div", 6));
 
                 subTable.sliderPref("cui-showFactoryProgressStyle", 2, 1, 6, s -> s > 1 ? bundle.get("cui-factoryProgress" + s ) : "@off");
-                subTable.sliderPref("cui-logicLineAlpha", 5, 1, 11, s ->  s == 1 ? "@off" : s != 11 ?  (s - 1) + "0%" : "100%");
                 subTable.sliderPref("cui-rallyPointAlpha", 4, 1, 11,s -> s == 1 ? "@off" : s != 11 ? (s - 1) + "0%" : "100%");
                 subTable.sliderPref("cui-blockinfostyle", 2, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
+                subTable.sliderPref("cui-logicLineAlpha", 5, 1, 11, s ->  s == 1 ? "@off" : s != 11 ?  (s - 1) + "0%" : "100%");
                 //subTable.checkPref("cui-showPowerBar", true);
                 //subTable.checkPref("cui-ShowResourceRate", false); // TODO
 
