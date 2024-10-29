@@ -44,7 +44,6 @@ public class CuiSettingsDialog {
             this.type = type;
         }
 
-        //TODO: x/y offset for each table, absolute or %
         public void add(SettingsMenuDialog.SettingsTable table) {
             switch (type) {
                 case 0 -> trackingCategory(table);
@@ -65,6 +64,7 @@ public class CuiSettingsDialog {
                     }).growX().row();
                 }
                 case 8 -> unitsCategory(table);
+                case 9 -> dominationSubCategory(table);
                 default -> advanceCategory(table);
             }
         }
@@ -186,7 +186,7 @@ public class CuiSettingsDialog {
 //                subTable.checkPref("cui-blockinfo-x-abs", false);
 //                subTable.checkPref("cui-blockinfo-y-abs", false);
 
-                subTable.pref(new CollapserSetting("cui-cat-div", 6));
+                subTable.pref(new CollapserSetting("cui-cat-div-bars", 6));
 
                 subTable.sliderPref("cui-showFactoryProgressStyle", 2, 1, 6, s -> s > 1 ? bundle.get("cui-factoryProgress" + s ) : "@off");
                 subTable.sliderPref("cui-rallyPointAlpha", 4, 1, 11,s -> s == 1 ? "@off" : s != 11 ? (s - 1) + "0%" : "100%");
@@ -216,6 +216,16 @@ public class CuiSettingsDialog {
 //                subTable.checkPref("cui-TeamItems-x-abs", false);
 //                subTable.checkPref("cui-TeamItems-y-abs", false);
 
+                subTable.pref(new CollapserSetting("cui-cat-div-counter", 6));
+                subTable.checkPref("cui-domination-toggle", false);
+                subTable.checkPref("cui-domination-vertical", false);
+                subTable.sliderPref("cui-domination-trans", 8, 0, 10, s -> s  > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
+                subTable.pref(new CollapserSetting("cui-domination-more", 9));
+
+                subTable.sliderPref("cui-domination-side", 0, 0, 8, s -> bundle.get("cui-side"+s));
+                subTable.sliderPref("cui-domination-x", 0, -offsetMinMax , offsetMinMax, String::valueOf);
+                subTable.sliderPref("cui-domination-y", 0, -offsetMinMax , offsetMinMax, String::valueOf);
+
                 allCuiOptions.add(subTable);
                 t.add(subTable);
             }, CuiVars.animateCats , () ->teams[0]).growX().row();
@@ -232,6 +242,7 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-respectLockInputs", true);
                 subTable.checkPref("cui-respectDialog", true);
                 subTable.checkPref("cui-hideWithMenus", true);
+                subTable.checkPref("cui-auto-toggle-menu", true);
 
                 subTable.pref(new CollapserSetting("cui-category-div", 6));
 
@@ -277,6 +288,34 @@ public class CuiSettingsDialog {
                 }).center().width(400f).top().tooltip(bundle.get("cui-rebuild-info")).row();
                 t.add(subTable).row();
             }, CuiVars.animateCats , () ->advanceHudShown[0]).growX().row();
+        }
+
+        public void dominationSubCategory(SettingsMenuDialog.SettingsTable table){
+            boolean[] dominactionShown = {false};
+            table.button("@setting.cui-domination-category.name", Icon.export, Styles.togglet, () -> dominactionShown[0] = !dominactionShown[0]).marginLeft(14f).width(400f).height(commonHeight).checked(a -> dominactionShown[0]).padTop(5f).row();
+            table.collapser( t -> {
+                SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
+                subTable.checkPref("cui-domination-totals", false);
+                subTable.checkPref("cui-domination-raw", false);
+                subTable.checkPref("cui-domination-core", false);
+                subTable.checkPref("cui-domination-percent", false);
+
+                subTable.pref(new CollapserSetting("cui-offset-div", 6));
+
+                subTable.checkPref("cui-domination-turret", false);
+                subTable.checkPref("cui-domination-production", false);
+                subTable.checkPref("cui-domination-distribution", false);
+                subTable.checkPref("cui-domination-liquid", false);
+                subTable.checkPref("cui-domination-power", false);
+                subTable.checkPref("cui-domination-defence", false);
+                subTable.checkPref("cui-domination-crafting", false);
+                subTable.checkPref("cui-domination-units", false);
+                subTable.checkPref("cui-domination-effect", false);
+                subTable.checkPref("cui-domination-logic", false);
+
+                allCuiOptions.add(subTable);
+                t.add(subTable).row();
+            }, CuiVars.animateCats , () ->dominactionShown[0]).growX().row();
         }
     }
 

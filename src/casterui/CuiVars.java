@@ -10,16 +10,18 @@ import casterui.io.ui.CuiFragment;
 import casterui.io.ui.CuiWorldRenderer;
 import casterui.io.ui.dialog.*;
 import mindustry.Vars;
-import mindustry.core.Version;
 import mindustry.gen.Player;
 import mindustry.gen.Unit;
 import mindustry.mod.Mods;
 import mindustry.ui.Fonts;
 import mindustry.world.Tile;
+import mindustry.world.blocks.storage.CoreBlock;
 
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
+
+import static arc.Core.settings;
 
 public class CuiVars {
     public static CuiWorldRenderer renderer = new CuiWorldRenderer();
@@ -28,13 +30,20 @@ public class CuiVars {
     public static CuiTeamMangerDialog teamManger = new CuiTeamMangerDialog();
     public static CuiRebindDialog rebindDialog = new CuiRebindDialog();
 
-    public static boolean initialized = false, unitTableCollapse = true, fastUpdate = false, drawRally = false, globalShow = true, animateCats = Core.settings.getBool("cui-animateSettings");
-    public static Player hoveredPlayer, clickedPlayer;
-    public static Unit heldUnit, hoveredEntity, clickedEntity;
+    public static boolean initialized = false, globalHidden = true, fastUpdate = false, drawRally = false, globalShow = true, animateCats = Core.settings.getBool("cui-animateSettings"), killswitch = false;
+    public static Player clickedPlayer;
+    public static CoreBlock.CoreBuild clickedCore;
+    public static Unit heldUnit, hoveredEntity;
     public static float  timer = 0, nextUpdate = 100, nextUpdateFast = 50;
     public static Tile lastCoreDestroyEvent;
     public static Map<Integer, Player> mappedPlayers = new HashMap<>();
-    public static DecimalFormat decFor = new DecimalFormat("#.##");
+    public static DecimalFormat decFor = new DecimalFormat("#.##"), decForMini = new DecimalFormat("#.#");
+    public static boolean[] dominationSettings = new boolean[14];
+    public static boolean
+            showBlockInfo = false, showCountersUnits = false, showCountersPlayers = false, showCountersButton = false,
+            countersSeparateTeams = false, countersCoreUnits = false, countersCoreFlagged = false, countersTotals = false,
+            dominationVertical = false, dominationColoured = false,
+            showTeamItems = false, showDomination = false;
 
 
     public static void init(){
@@ -45,26 +54,26 @@ public class CuiVars {
         animateCats = Core.settings.getBool("cui-animateSettings");
         Log.info("Caster user interface loaded! happy casting!! owo");
         //Vars.ui.join.connect("localhost", 6567);  stream lining testing
+
     }
 
     public static void postInt(){
         fragment.clearTables();
         renderer.circleQueue.clear();
+        updateSettings(true);
 
         CuiVars.heldUnit = null;
         initialized = false;
         lastCoreDestroyEvent = null;
+        if(Core.settings.getBool("cui-auto-toggle-menu"))Vars.ui.hudfrag.shown = false;
         animateCats = Core.settings.getBool("cui-animateSettings");
         nextUpdate = timer + (Core.settings.getInt("cui-unitsPlayerTableUpdateRate") * 5);
         fragment.BuildTables(Vars.ui.hudGroup);
     }
 
     public static void update(){
-        if (Core.settings.getBool("cui-killswitch")){
-            globalShow = false;
-            return;
-        }
-        globalShow = true;
+        globalShow = !Core.settings.getBool("cui-killswitch");
+        if (!globalShow) return;
         inputs.update();
         fragment.UpdateTables();
 
@@ -107,4 +116,36 @@ public class CuiVars {
         return Core.graphics.newCursor(result, result.width /2, result.height /2);
     }
 
+
+    public static void updateSettings(boolean full){
+        dominationColoured = settings.getInt("cui-domination-trans") > 0;
+        dominationVertical = settings.getBool("cui-domination-vertical");
+
+        dominationSettings[0] = settings.getBool("cui-domination-totals");
+        dominationSettings[1] = settings.getBool("cui-domination-turret");
+        dominationSettings[2] = settings.getBool("cui-domination-production");
+        dominationSettings[3] = settings.getBool("cui-domination-distribution");
+        dominationSettings[4] = settings.getBool("cui-domination-liquid");
+        dominationSettings[5] = settings.getBool("cui-domination-power");
+        dominationSettings[6] = settings.getBool("cui-domination-defence");
+        dominationSettings[7] = settings.getBool("cui-domination-crafting");
+        dominationSettings[8] = settings.getBool("cui-domination-units");
+        dominationSettings[9] = settings.getBool("cui-domination-effect");
+        dominationSettings[10] = settings.getBool("cui-domination-logic");
+        dominationSettings[11] = settings.getBool("cui-domination-core");
+        dominationSettings[12] = settings.getBool("cui-domination-percent");
+        dominationSettings[13] = settings.getBool("cui-domination-raw");
+
+        if(!full) return;
+
+        showTeamItems = settings.getBool("cui-ShowTeamItems");
+        showBlockInfo = settings.getBool("cui-ShowBlockInfo");
+        showCountersUnits = settings.getBool("cui-ShowUnitTable");
+        showCountersPlayers = settings.getBool("cui-ShowPlayerList");
+        showDomination = settings.getBool("cui-domination-toggle");
+        showCountersButton = settings.getBool("cui-playerunitstablecontols");
+        countersSeparateTeams = settings.getBool("cui-separateTeamsUnit");
+        countersCoreUnits = settings.getBool("cui-unitsTableCoreUnits");
+        countersTotals = settings.getBool("cui-teamtotalunitcount");
+    }
 }

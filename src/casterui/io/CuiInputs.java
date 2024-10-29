@@ -5,10 +5,14 @@ import arc.KeyBinds;
 import arc.input.KeyCode;
 import arc.struct.Seq;
 import casterui.CuiVars;
+import mindustry.Vars;
+import mindustry.game.Teams;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
 import mindustry.input.Binding;
 import mindustry.input.DesktopInput;
+import mindustry.world.Build;
+import mindustry.world.blocks.storage.CoreBlock;
 
 import static arc.Core.*;
 import static casterui.io.CuiBinding.*;
@@ -18,17 +22,18 @@ public class CuiInputs {
     public boolean tracking = false, keepMouseTracking = false;
     public int trackingType = 4;
     Seq<Player> ply = new Seq<>();
-    public int playerNumber = 0;
+    Seq<CoreBlock.CoreBuild> cor = new Seq<>();
+    public int playerNumber = 0, coreNumber = 0;
 
     public void update(){
         if (settings.getBool("cui-respectCommandMode") && control.input.commandMode) return;
-        if (settings.getBool("cui-respectTyping") && ui.chatfrag.shown())return;
+        if (settings.getBool("cui-respectTyping") && (ui.chatfrag.shown() || scene.getKeyboardFocus() != null) || ui.consolefrag.shown())return;
         if (settings.getBool("cui-respectLockInputs") && control.input.locked())return;
         if(settings.getBool("cui-respectDialog") && scene.hasDialog()) return;
         if (state.isMenu()) return;
 
-        if(cuiKeyTap(toggle_cui_menu) && !settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = !CuiVars.unitTableCollapse;
-        else if(settings.getBool("cui-hideWithMenus")) CuiVars.unitTableCollapse = ui.hudfrag.shown;
+        if(cuiKeyTap(toggle_cui_menu) && !settings.getBool("cui-hideWithMenus")) CuiVars.globalHidden = !CuiVars.globalHidden;
+        else if(settings.getBool("cui-hideWithMenus")) CuiVars.globalHidden = ui.hudfrag.shown;
 
         if(cuiKeyTap(change_teams)) CuiVars.teamManger.show();
         if(cuiKeyTap(toggle_unit_hp_bars)) Core.settings.put("cui-showUnitBar", !Core.settings.getBool("cui-showUnitBar"));
@@ -87,22 +92,26 @@ public class CuiInputs {
 
         if(cuiKeyTap(spectate_next_player)) cyclePlayers(true);
         if(cuiKeyTap(spectate_previous_player)) cyclePlayers(false);
+        if(cuiKeyTap(spectate_next_core)) cycleCore(true);
+        if(cuiKeyTap(spectate_previous_core)) cycleCore(false);
 
         if (CuiVars.lastCoreDestroyEvent != null && cuiKeyDown(last_destroyed_core) && !tracking){
             if(control.input instanceof DesktopInput input) input.panning = true;
-            if(CuiVars.clickedPlayer != null) CuiVars.clickedPlayer = null;
+            stopTracking();
 
             Core.camera.position.set(CuiVars.lastCoreDestroyEvent);
             tracking = true;
         }
 
-        if (CuiVars.clickedPlayer != null && CuiVars.clickedPlayer.unit() != null && state.isPlaying() && !tracking){
-            if((Math.abs(Core.input.axis(Binding.move_x)) > 0 || Math.abs(Core.input.axis(Binding.move_y)) > 0 || Core.input.keyTap(Binding.mouse_move) || Core.input.keyTap(Binding.pan)) && (!scene.hasField())){
-                CuiVars.clickedPlayer = null;
-                return;
-            }
+        if(CuiVars.clickedCore != null && !CuiVars.clickedCore.dead() && state.isPlaying() && !tracking){
+            startTracking();
 
-            if(control.input instanceof DesktopInput input) input.panning = true;
+            tracking = true;
+            if(CuiVars.clickedCore != null)Core.camera.position.lerpDelta(CuiVars.clickedCore, cameraFloat);
+        }
+
+        if (CuiVars.clickedPlayer != null && CuiVars.clickedPlayer.unit() != null && state.isPlaying() && !tracking){
+            startTracking();
             trackingType = 4;
 
             //workaround for when in multiplayer, sometimes respawning puts you in 0,0 during the animation before moving your unit
@@ -159,6 +168,40 @@ public class CuiInputs {
         playerNumber = number;
 
         CuiVars.clickedPlayer = ply.get(playerNumber);
+    }
+
+
+    void cycleCore(boolean increment){
+        cor.clear();
+        for (Teams.TeamData t : state.teams.present) cor.addAll(t.cores);
+        cor.sort(c-> c.team.id);
+
+        if (cor.size < 1) return;
+        int number = coreNumber;
+
+        if(increment) number++;
+        else number--;
+
+        if(number >= cor.size ) number = 0;
+        if(number <= -1) number = cor.size - 1;
+
+        coreNumber = number;
+
+        CuiVars.clickedCore = cor.get(coreNumber);
+    }
+
+    public void stopTracking(){
+        if(CuiVars.clickedPlayer != null) CuiVars.clickedPlayer = null;
+        if(CuiVars.clickedCore != null) CuiVars.clickedCore = null;
+    }
+
+    public void startTracking(){
+        if((Math.abs(Core.input.axis(Binding.move_x)) > 0 || Math.abs(Core.input.axis(Binding.move_y)) > 0 || Core.input.keyTap(Binding.mouse_move) || Core.input.keyTap(Binding.pan)) && (!scene.hasField())){
+            stopTracking();
+            return;
+        }
+
+        if(control.input instanceof DesktopInput input) input.panning = true;
     }
 
     public boolean cuiKeyTap(KeyBinds.KeyBind key){
