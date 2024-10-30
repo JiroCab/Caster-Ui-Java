@@ -15,6 +15,7 @@ import arc.struct.*;
 import arc.util.*;
 import casterui.CuiVars;
 import casterui.io.CuiBinding;
+import mindustry.gen.Icon;
 import mindustry.graphics.Pal;
 import mindustry.ui.Styles;
 import mindustry.ui.dialogs.KeybindDialog;
@@ -242,6 +243,9 @@ public class CuiRebindDialog extends KeybindDialog {
                 }
             });
         }
+
+        rebindDialog.titleTable.defaults().size(210f, 64).margin(5).row();
+        rebindDialog.titleTable.button("@back", Icon.left, () -> rebindDialog.hide()).size(210f, 64f);
 
         rebindDialog.show();
         Time.runTask(1f, () -> getScene().setScrollFocus(rebindDialog));

@@ -6,7 +6,6 @@ import arc.graphics.Color;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.math.geom.Position;
-import arc.math.geom.Vec2;
 import arc.scene.actions.Actions;
 import arc.scene.style.Drawable;
 import arc.scene.ui.layout.Scl;
@@ -20,16 +19,12 @@ import casterui.util.CuiPointerHelper;
 import mindustry.Vars;
 import mindustry.ai.UnitCommand;
 import mindustry.ai.types.LogicAI;
-import mindustry.content.UnitTypes;
 import mindustry.game.EventType;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.Fonts;
-import mindustry.world.Block;
 import mindustry.world.blocks.storage.CoreBlock;
 import mindustry.world.blocks.units.UnitFactory;
-
-import java.util.HashMap;
 
 import static arc.graphics.g2d.Draw.draw;
 import static mindustry.Vars.*;
@@ -44,7 +39,7 @@ public class CuiWorldRenderer {
 
     public void worldRenderer(){
         Events.run(EventType.Trigger.draw, ()-> {
-            if (Core.settings.getBool("cui-killswitch")) return;
+            if (!CuiVars.globalShow) return;
             boolean unitBars = Core.settings.getInt("cui-showUnitBarStyle") > 0;
             boolean trackPlayerCursor = Core.settings.getBool("cui-TrackPlayerCursor");
             boolean trackLogicControl = Core.settings.getInt("cui-logicLineAlpha") > 0;
@@ -106,7 +101,7 @@ public class CuiWorldRenderer {
             drawFactoryProgress();
         });
         Events.run(EventType.Trigger.update, () -> {
-            if (Core.settings.getBool("cui-killswitch")) return;
+            if (!CuiVars.globalShow) return;
             boolean trackLogicControl = Core.settings.getInt("cui-logicLineAlpha") > 0;
             Groups.unit.each(unit -> {
                 if (trackLogicControl && unit.controller() instanceof LogicAI la) drawLogicControl(unit, la.controller);
@@ -217,7 +212,7 @@ public class CuiWorldRenderer {
 
         if(draw){
             Draw.draw(Layer.overlayUI+0.01f, () ->{
-                if(!unit.command().hasCommand()){
+                if(!unit.command().hasCommand() && unit.command().command != null){
                     if(Core.settings.getBool("cui-unitCmdNonMv")){
                         Draw.color(Color.black, cmdTrans);
 
@@ -225,7 +220,7 @@ public class CuiWorldRenderer {
                         Draw.color(Color.white, cmdTrans);
                         Draw.rect(unit.command().command.getIcon().getRegion(), unit.x, unit.y);
                     }
-                }else {
+                }else if (unit.command().targetPos != null){
                     Tmp.v2.set(unit.command().targetPos);
                     Lines.stroke(1, unit.team.color);
                     Draw.color(unit.team.color, cmdTrans);
@@ -392,6 +387,7 @@ public class CuiWorldRenderer {
     }
 
     public void coreDestroyAlert(EventType.BlockDestroyEvent e){
+        if(!CuiVars.globalShow)return;
         if(!(e.tile.build instanceof CoreBlock.CoreBuild)) return;
 
         if (Core.settings.getBool("cui-ShowAlertsCircles")) {
@@ -476,7 +472,7 @@ public class CuiWorldRenderer {
             Sounds.message.play();
             Table table = new Table(Tex.button);
             table.update(() -> {
-                if(state.isMenu() || !ui.hudfrag.shown && Core.settings.getBool("cui-AlertsHideWithUi") || !Core.settings.getBool("cui-AlertsHideWithUi") && !CuiVars.unitTableCollapse){
+                if(state.isMenu() || !ui.hudfrag.shown && Core.settings.getBool("cui-AlertsHideWithUi") || !Core.settings.getBool("cui-AlertsHideWithUi") && !CuiVars.globalHidden){
                     table.remove();
                 }
             });

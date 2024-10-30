@@ -9,8 +9,11 @@ public enum CuiBinding implements KeyBinds.KeyBind {
     last_destroyed_core(KeyCode.g),
     toggle_cui_menu(KeyCode.f7),
     change_teams(KeyCode.home),
-    spectate_next_player(KeyCode.semicolon), // [ & ] is used by default cargo pickup/drop mb
+
+    spectate_next_player(KeyCode.semicolon, "cui-cycle"), // [ & ] is used by default cargo pickup/drop mb
     spectate_previous_player(KeyCode.apostrophe),
+    spectate_next_core(KeyCode.unknown),
+    spectate_previous_core(KeyCode.unknown),
 
     toggle_units_player_table_controls(KeyCode.unknown, "cui-counter"),
     toggle_table_core_units(KeyCode.unknown),
