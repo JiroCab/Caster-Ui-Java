@@ -9,8 +9,7 @@ import arc.math.Mathf;
 import arc.scene.event.InputEvent;
 import arc.scene.event.InputListener;
 import arc.scene.ui.*;
-import arc.scene.ui.layout.Stack;
-import arc.scene.ui.layout.Table;
+import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import casterui.CuiVars;
@@ -215,13 +214,14 @@ public class CuiRebindDialog extends KeybindDialog {
         rebindKey = name;
 
         rebindDialog.titleTable.getCells().first().pad(4);
+        final boolean[] no = {false};
 
         if(section.device.type() == InputDevice.DeviceType.keyboard){
 
             rebindDialog.addListener(new InputListener(){
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
-                    if(Core.app.isAndroid()) return false;
+                    if(Core.app.isAndroid() || no[0]) return false;
                     rebind(section, name, button);
                     return false;
                 }
@@ -244,8 +244,21 @@ public class CuiRebindDialog extends KeybindDialog {
             });
         }
 
-        rebindDialog.titleTable.defaults().size(210f, 64).margin(5).row();
-        rebindDialog.titleTable.button("@back", Icon.left, () -> rebindDialog.hide()).size(210f, 64f);
+        rebindDialog.titleTable.defaults().size(210f, 64).margin(5).pad(5f).row();
+
+        rebindDialog.titleTable.button("@back", Icon.left, () -> rebindDialog.hide()).size(210f, 64f).pad(5f).get().hovered(() -> {
+            no[0] = true;
+        });
+
+        rebindDialog.titleTable.row();
+
+        rebindDialog.titleTable.button("@cui-unbind", Icon.cancel, () ->{
+            rebindDialog.hide();
+            Time.runTask(1f, () -> rebind(section, name, KeyCode.unknown));
+        } ).size(210f, 64f).pad(5f).get().hovered(() -> {
+            no[0] = true;
+        });
+
 
         rebindDialog.show();
         Time.runTask(1f, () -> getScene().setScrollFocus(rebindDialog));
