@@ -114,15 +114,16 @@ public class CuiTeamMangerDialog extends BaseDialog {
 
     public void mapListener(Runnable callback){
         keyDown(key -> {
-            if(key == KeyCode.num1) mapPlayer( selectedPlayer,  1);
-            if(key == KeyCode.num2) mapPlayer( selectedPlayer,  2);
-            if(key == KeyCode.num3) mapPlayer( selectedPlayer,  3);
-            if(key == KeyCode.num4) mapPlayer( selectedPlayer,  4);
-            if(key == KeyCode.num5) mapPlayer( selectedPlayer,  5);
-            if(key == KeyCode.num6) mapPlayer( selectedPlayer,  6);
-            if(key == KeyCode.num7) mapPlayer( selectedPlayer,  7);
-            if(key == KeyCode.num8) mapPlayer( selectedPlayer,  8);
-            if(key == KeyCode.num9) mapPlayer( selectedPlayer,  9);
+            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_1).key) mapPlayer( selectedPlayer,  1);
+            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_2).key) mapPlayer( selectedPlayer,  2);
+            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_3).key) mapPlayer( selectedPlayer,  3);
+            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_4).key) mapPlayer( selectedPlayer,  4);
+            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_5).key) mapPlayer( selectedPlayer,  5);
+            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_6).key) mapPlayer( selectedPlayer,  6);
+            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_7).key) mapPlayer( selectedPlayer,  7);
+            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_8).key) mapPlayer( selectedPlayer,  8);
+            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_9).key) mapPlayer( selectedPlayer,  9);
+            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_10).key) mapPlayer( selectedPlayer,  9);
 
             callback.run();
         });

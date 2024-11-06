@@ -4,6 +4,7 @@ import arc.Core;
 import arc.Graphics;
 import arc.graphics.Pixmap;
 import arc.graphics.Pixmaps;
+import arc.math.geom.*;
 import arc.util.*;
 import casterui.io.CuiInputs;
 import casterui.io.ui.CuiFragment;
@@ -37,6 +38,8 @@ public class CuiVars {
     public static float  timer = 0, nextUpdate = 100, nextUpdateFast = 50;
     public static Tile lastCoreDestroyEvent;
     public static Map<Integer, Player> mappedPlayers = new HashMap<>();
+    public static Vec2[] savedCameras = new Vec2[11];
+
     public static DecimalFormat decFor = new DecimalFormat("#.##"), decForMini = new DecimalFormat("#.#");
     public static boolean[] dominationSettings = new boolean[14];
     public static boolean
@@ -65,6 +68,7 @@ public class CuiVars {
         CuiVars.heldUnit = null;
         initialized = false;
         lastCoreDestroyEvent = null;
+        savedCameras = new Vec2[11];
         if(Core.settings.getBool("cui-auto-toggle-menu"))Vars.ui.hudfrag.shown = false;
         animateCats = Core.settings.getBool("cui-animateSettings");
         nextUpdate = timer + (Core.settings.getInt("cui-unitsPlayerTableUpdateRate") * 5);
