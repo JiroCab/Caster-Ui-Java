@@ -1,30 +1,27 @@
 package casterui.io.ui.dialog;
 
-import arc.Core;
+import arc.*;
 import arc.graphics.g2d.*;
-import arc.input.KeyCode;
-import arc.scene.event.ClickListener;
-import arc.scene.event.Touchable;
+import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
-import arc.util.Log;
-import arc.util.Scaling;
-import casterui.CuiVars;
-import casterui.io.CuiBinding;
-import mindustry.Vars;
-import mindustry.game.Team;
+import arc.util.*;
+import casterui.*;
+import casterui.io.*;
+import mindustry.*;
+import mindustry.game.*;
 import mindustry.gen.*;
-import mindustry.net.Packets;
-import mindustry.ui.Styles;
-import mindustry.ui.dialogs.BaseDialog;
+import mindustry.net.*;
+import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.*;
 
 /*I'm so sorry */
 public class CuiTeamMangerDialog extends BaseDialog {
     public Player selectedPlayer = Vars.player, lastPlayer = null;
     public Team selectedTeam = Vars.player.team(), lastTeam = null;
-    public int size = 100, teamSize = 40;
+    public int size = 100, teamSize = 50;
     public Cell<ScrollPane> playerPane, teamPane;
     public Table playerTable = new Table(), teamTable = new Table(), header = new Table();
     public boolean clearUnit = true;
@@ -61,9 +58,21 @@ public class CuiTeamMangerDialog extends BaseDialog {
         if (Vars.net.server() || !Vars.net.active() || Vars.player.admin) {
             for (int id = 0 ; id < Team.all.length ; id++){
                 int finalId = id;
-                ImageButton button = teamTable.button(Tex.whiteui, Styles.clearNoneTogglei, 40f, () -> selectedTeam = Team.get(finalId)).tooltip(Team.get(id).emoji.equals("") ? "[#" + Team.get(id).color + "]" + Team.get(id).id + "[]" :  "[white]" +Team.get(id).emoji ).size(teamSize).margin(6f).get();
+
+                ImageButton button = new ImageButton(Tex.whiteui, Styles.clearNoneTogglei);
+                button.clicked(() -> selectedTeam = Team.get(finalId));
+                button.resizeImage(teamSize);
                 button.getImageCell();
                 button.getStyle().imageUpColor = Team.get(id).color;
+
+                Label lab = new Label(Team.get(id).emoji.isEmpty() ? finalId + "":  "[white]" +Team.get(id).emoji);
+
+                lab.touchable(() -> Touchable.disabled);
+                lab.setAlignment(Align.center);
+                teamTable.stack(
+                    button,
+                    lab
+                ).size(teamSize).margin(5f).grow().get();
 
                 if (icons.get() >= 7){
                     teamTable.row();

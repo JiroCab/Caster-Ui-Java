@@ -34,8 +34,8 @@ public class CuiWorldRenderer {
     public Seq<CuiCircleObjectHelper> circleQueue = new Seq<>();
     public Seq<CuiPointerHelper> cmdPointerHelper = new Seq<>();
     private long lastToast;
-    float cmdRange = 0, cmdTrans = 0;
-    int cmdStyle = 0, cmdPointer = 0, cmdLimit = 0;
+    float cmdRange = 0, cmdTrans = 0, logicRange;
+    int cmdStyle = 0, cmdPointer = 0, cmdLimit = 0, logicLimit = 0;
 
     public void worldRenderer(){
         Events.run(EventType.Trigger.draw, ()-> {
@@ -53,6 +53,8 @@ public class CuiWorldRenderer {
                 cmdStyle =  Core.settings.getInt("cui-unitCmdStyle");
                 cmdPointer =  Core.settings.getInt("cui-unitCmdPointer");
                 cmdLimit = Core.settings.getInt("cui-unitscommands");
+                logicLimit = Core.settings.getInt("cui-unitscommands");
+                logicRange = (Core.settings.getInt("cui-unitCmdRange") * 0.5f) * tilesize;
 
                 Groups.unit.each((unit -> {
                     if (unitBars) drawUnitBars(unit, style, alpha, stroke);
@@ -135,7 +137,7 @@ public class CuiWorldRenderer {
                 drawLabel(unit.x, unit.y, txt, colour);
 
             }
-
+            if(stroke == 0) return;
             float yShield = y - offset + stroke, yShieldAlt = yShield + (stroke /2.5f);
             float yOff = y - offset;
             switch (style) {
@@ -374,7 +376,14 @@ public class CuiWorldRenderer {
     public void drawLogicControl(Unit unit, Building processor){
         if(processor == null || unit == null) return;
         float unitX = unit.getX(), unitY = unit.getY(), processorX = processor.getX(), processorY = processor.getY();
+        Tmp.v1.set(player.mouseX, player.mouseY());
+        boolean draw  = false;
+        if(logicLimit == 1 && unit.within(Tmp.v1, logicRange)) draw = true;
+        if(logicLimit == 2 && unit.within(Core.camera.position, Math.max(Core.camera.height, Core.camera.width))) draw = true;
+        if(logicLimit == 3) draw = true;
 
+
+        if(!draw) return;
         draw(Layer.overlayUI+0.01f, () -> {
             drawLine(unitX, unitY, processorX, processorY, Color.purple, CuiVars.heldUnit != null && CuiVars.heldUnit.type == unit.type ? 1f : Core.settings.getInt("cui-logicLineAlpha") * 0.1f  );
 
@@ -400,6 +409,11 @@ public class CuiWorldRenderer {
                 if(Core.settings.getBool("cui-AlertsHideWithUi") || Core.settings.getBool("cui-AlertsUseBottom")) showToastIndependent(alert, Core.settings.getBool("cui-AlertsUseBottom"));
                 else Vars.ui.hudfrag.showToast(alert);
             }
+        };
+
+        if(Vars.net.server() && Core.settings.getBool("cui-alertsOtherPlayers")){
+            String alert = "[#" + e.tile.team().color.toString() + "]" + e.tile.team().localized()+ " " + Core.bundle.get("alerts.basic") + "\n[white] (" +e.tile.x + ", "+ e.tile.y + ")";
+            Call.warningToast(Iconc.warning, alert);
         }
 
         if (Core.settings.getBool("cui-SendChatCoreLost")){

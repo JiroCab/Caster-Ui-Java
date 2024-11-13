@@ -77,6 +77,7 @@ public class CuiInputs {
         if(cuiKeyTap(toggle_alerts_toast_bottom)) settings.put("cui-AlertsUseBottom", !settings.getBool("cui-AlertsUseBottom"));
         if(cuiKeyTap(toggle_cui_kill_switch)) settings.put("cui-killswitch", !settings.getBool("cui-killswitch")); //haha this will be one way but lulz
         if(cuiKeyTap(toggle_unit_Cmd_type)) settings.put("cui-unitCmdNonMv", !settings.getBool("cui-unitCmdNonMv"));
+        if(cuiKeyTap(toggle_domination)) settings.put("cui-domination-toggle", !settings.getBool("cui-domination-toggle"));
 
 
 

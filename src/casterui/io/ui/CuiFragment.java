@@ -58,6 +58,7 @@ public class CuiFragment {
     Seq<Integer> alignSides = Seq.with(Align.bottom, Align.bottomLeft, Align.bottomRight, Align.top, Align.topLeft, Align.topRight, Align.center, Align.left, Align.right);
     public int[][] blockCats = new int[Team.all.length][Category.all.length + 4];
     public int worldBlocks;
+    public String[] dominationIconList = {Iconc.host + "", Iconc.turret + "", Iconc.production + "", Iconc.distribution + "", Iconc.liquid + "", Iconc.power + "", Iconc.defense + "", Iconc.crafting + "", Iconc.units + "", Iconc.effect + "", Iconc.logic + "", Iconc.home + "",Iconc.map + "", Iconc.list + ""};
 
 
     public void BuildTables(Group parent){
@@ -243,6 +244,7 @@ public class CuiFragment {
         //endregion
         if(showDomination){
             Vars.state.teams.present.each(data -> {
+                if(hiddenTeams[data.team.id]) return;
                 blockCats[data.team.id][11] = data.cores.size;
                 blockCats[data.team.id][12] = data.buildings.size;
                 worldBlocks += data.buildings.size;
@@ -317,6 +319,9 @@ public class CuiFragment {
                     }
                 }
                 if(mouseBuilding.block instanceof Turret)blockTable.label(() -> "[accent]"+  decFor.format(mouseBuilding.sense(LAccess.ammo)) + "[white]/[orange]"+ ((Turret) mouseBuilding.block).maxAmmo).row();
+                if(settings.getBool("cui-ShowBlockHealth") && mouseBuilding.lastAccessed != null){
+                    blockTable.table(a-> a.label(() -> mouseBuilding.lastAccessed).pad(1f));
+                }
                 //TODO: heat, block constructors, Payload
 
             }
@@ -366,21 +371,19 @@ public class CuiFragment {
 
         int trans = settings.getInt("cui-domination-trans");
 
-        String[] icons = {Iconc.host + "", Iconc.turret + "", Iconc.production + "", Iconc.distribution + "", Iconc.liquid + "", Iconc.power + "", Iconc.defense + "", Iconc.crafting + "", Iconc.units + "", Iconc.effect + "", Iconc.logic + "", Iconc.home + "",Iconc.map + "", Iconc.list + ""};
-
         float[] size ={35, 20};
 
         Seq<Label> equlize = new Seq<>(), teamsizes = new Seq<>();
 
         Table iconTab = new Table();
         iconTab.defaults().pad(5f).grow().minWidth(size[0]).minHeight(size[1]).align(Align.center).scaling(Scaling.fill);
-        iconTab.label(() -> " ");
+        if(dominationIcons)iconTab.label(() -> " ");
 
-        for(int i = 0; i < icons.length; i++) {
+        for(int i = 0; i < dominationIconList.length; i++) {
             if (!dominationSettings[i]) continue;
             if(!dominationVertical) iconTab.row();
 
-            Label rawTxt = new Label(icons[i]);
+            Label rawTxt = new Label(dominationIconList[i]);
             rawTxt.setAlignment(Align.center);
 
             if(rawTxt.getMinHeight() > size[1]) size[1] = rawTxt.getMinHeight();
@@ -398,18 +401,20 @@ public class CuiFragment {
             tab.defaults().pad(5f).grow().minWidth(size[0]).minHeight(size[1]).align(Align.center).scaling(Scaling.fill);
 
             float[] tsize ={35, 20};
-            Label team = new Label(Team.get(t).emoji.equals("") ? "[#" + Team.get(t).color + "]#"+ Team.get(t).id + "[]" :  "[white]" +Team.get(t).emoji );
+            if(dominationIcons){
+                Label team = new Label(Team.get(t).emoji.equals("") ? "[#" + Team.get(t).color + "]#"+ Team.get(t).id + "[]" :  "[white]" +Team.get(t).emoji );
+                team.setStyle(Styles.outlineLabel);
+                team.setAlignment(Align.center);
+                tab.add(team);
 
-            team.setStyle(Styles.outlineLabel);
-            team.setAlignment(Align.center);
-            tab.add(team);
+                teamsizes.add(team);
+                if(team.getMinHeight() > tsize[1]) tsize[1] = team.getMinHeight();
+                if(team.getMinWidth() > tsize[0]) tsize[0] = team.getMinWidth();
+            }
 
-            teamsizes.add(team);
-            if(team.getMinHeight() > tsize[1]) tsize[1] = team.getMinHeight();
-            if(team.getMinWidth() > tsize[0]) tsize[0] = team.getMinWidth();
             tab.defaults().minHeight(tsize[1]).minWidth(tsize[0]);
             
-            for(int i = 0; i < icons.length; i++) {
+            for(int i = 0; i < dominationIconList.length; i++) {
                 if (!dominationSettings[i]) continue;
                 //if(!dominationSettings[i]) continue;
                 if(!dominationVertical) tab.row();
@@ -469,9 +474,11 @@ public class CuiFragment {
         if(style == 1){
             //TODO: anything above 1k is hard to see
             Table countTable = new Table(t -> t.center().add(new Label(() -> "[#" + team.color.toString() + "]" + i + "[white]")).style(Styles.outlineLabel).scaling(Scaling.bounded).color(new Color(1, 1, 1, 0.85f)));
+            img.setSize(iconSizes);
             countTable.setColor(new Color(1, 1, 1, 0.85f));
             unitTable.stack(
-                    new Table(t -> t.add(img).scaling(Scaling.bounded).size(iconSizes)),
+                    img.setScaling(Scaling.bounded),
+                    //new Table(t -> t.add(img).scaling(Scaling.bounded).size(iconSizes)),
                     countTable
             ).tooltip(name).size(fsize).scaling(Scaling.bounded).get();
         }else {

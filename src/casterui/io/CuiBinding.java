@@ -35,6 +35,7 @@ public enum CuiBinding implements KeyBinds.KeyBind {
     toggle_alerts_toast(KeyCode.unknown),
     toggle_alerts_toast_bottom(KeyCode.unknown),
     toggle_factory_style(KeyCode.unknown),
+    toggle_domination(KeyCode.unknown),
 
     toggle_cui_kill_switch(KeyCode.unknown),
 

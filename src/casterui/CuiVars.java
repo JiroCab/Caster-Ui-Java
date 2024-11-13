@@ -10,7 +10,9 @@ import casterui.io.CuiInputs;
 import casterui.io.ui.CuiFragment;
 import casterui.io.ui.CuiWorldRenderer;
 import casterui.io.ui.dialog.*;
+import casterui.util.*;
 import mindustry.Vars;
+import mindustry.game.*;
 import mindustry.gen.Player;
 import mindustry.gen.Unit;
 import mindustry.mod.Mods;
@@ -30,12 +32,14 @@ public class CuiVars {
     public static CuiInputs inputs = new CuiInputs();
     public static CuiTeamMangerDialog teamManger = new CuiTeamMangerDialog();
     public static CuiRebindDialog rebindDialog = new CuiRebindDialog();
+    public static TeamBlackListerDialog teamBlackListerDialog = new TeamBlackListerDialog();
+    public static CuiUpdateChecker updateChecker = new CuiUpdateChecker();
 
     public static boolean initialized = false, globalHidden = true, fastUpdate = false, drawRally = false, globalShow = true, animateCats = Core.settings.getBool("cui-animateSettings"), killswitch = false;
     public static Player clickedPlayer;
     public static CoreBlock.CoreBuild clickedCore;
     public static Unit heldUnit, hoveredEntity;
-    public static float  timer = 0, nextUpdate = 100, nextUpdateFast = 50;
+    public static float  timer = 0, nextUpdate = 100, nextUpdateFast = 50, nextVersion = 0.0f;
     public static Tile lastCoreDestroyEvent;
     public static Map<Integer, Player> mappedPlayers = new HashMap<>();
     public static Vec2[] savedCameras = new Vec2[11];
@@ -45,19 +49,20 @@ public class CuiVars {
     public static boolean
             showBlockInfo = false, showCountersUnits = false, showCountersPlayers = false, showCountersButton = false,
             countersSeparateTeams = false, countersCoreUnits = false, countersCoreFlagged = false, countersTotals = false,
-            dominationVertical = false, dominationColoured = false,
+            dominationVertical = false, dominationColoured = false, dominationIcons = false,
             showTeamItems = false, showDomination = false;
-
+    public static boolean[] hiddenTeams = new boolean[Team.all.length];
 
     public static void init(){
+        updateChecker.run();
         CuiSettingsDialog.buildCategory();
         renderer.worldRenderer();
         rebindDialog.load();
         if(Core.settings.getBool("cui-minimalCursor")) overrideCursors();
         animateCats = Core.settings.getBool("cui-animateSettings");
-        Log.info("Caster user interface loaded! happy casting!! owo");
-        //Vars.ui.join.connect("localhost", 6567);  stream lining testing
+        updateHiddenTeams();
 
+        Log.info("Caster user interface loaded! happy casting!! owo");
     }
 
     public static void postInt(){
@@ -142,14 +147,27 @@ public class CuiVars {
 
         if(!full) return;
 
+        updateHiddenTeams();
+
         showTeamItems = settings.getBool("cui-ShowTeamItems");
         showBlockInfo = settings.getBool("cui-ShowBlockInfo");
         showCountersUnits = settings.getBool("cui-ShowUnitTable");
         showCountersPlayers = settings.getBool("cui-ShowPlayerList");
         showDomination = settings.getBool("cui-domination-toggle");
+        dominationIcons = settings.getBool("cui-domination-TeamIcons");
         showCountersButton = settings.getBool("cui-playerunitstablecontols");
         countersSeparateTeams = settings.getBool("cui-separateTeamsUnit");
         countersCoreUnits = settings.getBool("cui-unitsTableCoreUnits");
         countersTotals = settings.getBool("cui-teamtotalunitcount");
+    }
+
+    public static void updateHiddenTeams(){
+        String in = settings.getString("cui-hiddenTeamsList", "0");
+        if(in == null || in.isEmpty()) return;
+        String[] params = in.split(",");
+        for(String param : params){
+            hiddenTeams[Integer.parseInt(param)] = true;
+        }
+
     }
 }
