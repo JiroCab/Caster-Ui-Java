@@ -12,7 +12,6 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import casterui.CuiVars;
 import casterui.io.CuiBinding;
 import mindustry.gen.Icon;
 import mindustry.graphics.Pal;
@@ -134,6 +133,7 @@ public class CuiRebindDialog extends KeybindDialog {
                     table.image().color(Color.gray).fillX().height(3).pad(6).colspan(4).padTop(0).padBottom(10).row();
                     lastCategory = keybind.category();
                 }
+                String tip = bundle.getOrNull("keybind." + keybind.name() + ".description");
 
                 if(keybind.defaultValue(section.device.type()) instanceof KeyBinds.Axis){
                     table.add(bundle.get("keybind." + keybind.name() + ".name", Strings.capitalize(keybind.name())), Color.white).left().padRight(40).padLeft(8);
@@ -149,20 +149,28 @@ public class CuiRebindDialog extends KeybindDialog {
                         openDialog(section, keybind);
                     }).width(130f);
                 }else{
-                    table.add(bundle.get("keybind." + keybind.name() + ".name", Strings.capitalize(keybind.name())), Color.white).left().padRight(40).padLeft(8).tooltip(bundle.getOrNull("keybind." + keybind.name() + ".description"));
-                    table.label(() -> cuiKeyBinds.get(section, keybind).key.toString()).color(Pal.accent).left().minWidth(90).padRight(20).tooltip(bundle.getOrNull("keybind." + keybind.name() + ".description"));
+                    Cell<Label> kname = table.add(bundle.get("keybind." + keybind.name() + ".name", Strings.capitalize(keybind.name())), Color.white).left().padRight(40).padLeft(8);
 
-                    table.button("@settings.rebind", tstyle, () -> {
+                    Cell<Label> kbind = table.label(() -> cuiKeyBinds.get(section, keybind).key.toString()).color(Pal.accent).left().minWidth(90).padRight(20);
+
+                    Cell<TextButton> rebBut = table.button("@settings.rebind", tstyle, () -> {
                         rebindAxis = false;
                         rebindMin = false;
                         openDialog(section, keybind);
-                    }).width(130f).tooltip(bundle.getOrNull("keybind." + keybind.name() + ".description"));
+                    }).width(130f);
+
+                    if(tip != null && !tip.isEmpty()){
+                        kname.tooltip(tip);
+                        rebBut.tooltip(tip);
+                        kbind.tooltip(tip);
+                    }
                 }
-                table.button("@settings.resetKey", tstyle, () ->{
+                Cell<TextButton> resKey = table.button("@settings.resetKey", tstyle, () ->{
                     cuiKeyBinds.resetToDefault(section, keybind);
                     settings.remove("cui-keybind-"+keybind.name());
-                }).width(130f).pad(2f).padLeft(4f).tooltip(bundle.getOrNull("keybind." + keybind.name() + ".description"));
+                }).width(130f).pad(2f).padLeft(4f);
                 table.row();
+                if(tip != null && !tip.isEmpty())resKey.tooltip(tip);
             }
 
             table.visible(() -> this.section.equals(section));

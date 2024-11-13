@@ -1,27 +1,26 @@
 package casterui.io.ui.dialog;
 
-import arc.Core;
-import arc.func.Cons;
-import arc.graphics.Color;
-import arc.scene.style.TextureRegionDrawable;
+import arc.*;
+import arc.graphics.*;
+import arc.math.*;
+import arc.scene.actions.*;
+import arc.scene.style.*;
 import arc.scene.ui.*;
-import arc.scene.ui.layout.Table;
-import arc.struct.ObjectSet;
-import arc.struct.Seq;
+import arc.struct.*;
 import arc.util.*;
-import casterui.CuiVars;
-import mindustry.gen.Icon;
-import mindustry.gen.Tex;
-import mindustry.graphics.Pal;
-import mindustry.type.UnitType;
-import mindustry.ui.Styles;
-import mindustry.ui.dialogs.BaseDialog;
-import mindustry.ui.dialogs.SettingsMenuDialog;
-import mindustry.ui.dialogs.SettingsMenuDialog.SettingsTable.Setting;
-import mindustry.world.Block;
-import mindustry.world.blocks.storage.CoreBlock;
+import casterui.*;
+import casterui.util.*;
+import mindustry.game.*;
+import mindustry.gen.*;
+import mindustry.graphics.*;
+import mindustry.type.*;
+import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
+import mindustry.ui.dialogs.SettingsMenuDialog.SettingsTable.*;
+import mindustry.world.*;
+import mindustry.world.blocks.storage.*;
 
-import java.text.DecimalFormat;
+import java.text.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -65,6 +64,7 @@ public class CuiSettingsDialog {
                 }
                 case 8 -> unitsCategory(table);
                 case 9 -> dominationSubCategory(table);
+                case 10 -> updateHeader(table);
                 default -> advanceCategory(table);
             }
         }
@@ -132,7 +132,7 @@ public class CuiSettingsDialog {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
                 //hp bars
                 subTable.sliderPref("cui-showUnitBarStyle", 7, 0, 9, s -> s == 0 ? "@off" :bundle.get("cui-unitshealtbar-style" + s));
-                subTable.sliderPref("cui-showUnitBarSize", 4, 1, 100, s -> decFor.format(s * 0.25f));
+                subTable.sliderPref("cui-showUnitBarSize", 4, 0, 100, s -> s == 0 ? "@off" : decFor.format(s * 0.25f));
                 subTable.sliderPref("cui-showUnitBarAlpha", 10, 1, 10, s ->  s + "0%");
                 subTable.sliderPref("cui-showUnitTextStyle", 1, 0, 3, s -> s == 0 ? "@off" :bundle.get("cui-unittext-style" + s));
 
@@ -160,6 +160,7 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-AlertsUseBottom", true);
                 subTable.checkPref("cui-AlertsHideWithUi", true);
                 subTable.checkPref("cui-SendChatCoreLost", false);
+                subTable.checkPref("cui-alertsOtherPlayers", false);
                 subTable.checkPref("cui-ShowAlertsCircles", true);
                 subTable.sliderPref("cui-alertCircleSpeed", 12, 1 , 500, a -> (a*0.5f) + "x");
                 subTable.sliderPref("cui-alertStyle", 1, 1 , 5, s -> bundle.get("cui-alert" + s ));
@@ -178,6 +179,7 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-ShowBlockInfo", true);
                 subTable.checkPref("cui-ShowBlockHealth", true);
                 subTable.checkPref("cui-BlockInfoShortenItems", true);
+                subTable.checkPref("cui-BlockInfoLastPlayer", true);
 
                 subTable.pref(new CollapserSetting("cui-offset-div", 6));
                 subTable.sliderPref("cui-blockinfoSide", 7, 0, 8, s -> bundle.get("cui-side"+s));
@@ -191,7 +193,11 @@ public class CuiSettingsDialog {
                 subTable.sliderPref("cui-showFactoryProgressStyle", 2, 1, 6, s -> s > 1 ? bundle.get("cui-factoryProgress" + s ) : "@off");
                 subTable.sliderPref("cui-rallyPointAlpha", 4, 1, 11,s -> s == 1 ? "@off" : s != 11 ? (s - 1) + "0%" : "100%");
                 subTable.sliderPref("cui-blockinfostyle", 2, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
+
+                subTable.pref(new CollapserSetting("cui-logic-bars", 6));
                 subTable.sliderPref("cui-logicLineAlpha", 5, 1, 11, s ->  s == 1 ? "@off" : s != 11 ?  (s - 1) + "0%" : "100%");
+                subTable.sliderPref("cui-logicLineLimit", 0, 1, 3,  s -> s == 0 ? "@off" : bundle.get("cui-cmd-limits" + s));
+                subTable.sliderPref("cui-logicLineRange", 6, 1, 40, s -> decFor.format( s* 0.5) + " " + bundle.get("unit.blocks"));
                 //subTable.checkPref("cui-showPowerBar", true);
                 //subTable.checkPref("cui-ShowResourceRate", false); // TODO
 
@@ -219,6 +225,7 @@ public class CuiSettingsDialog {
                 subTable.pref(new CollapserSetting("cui-cat-div-counter", 6));
                 subTable.checkPref("cui-domination-toggle", false);
                 subTable.checkPref("cui-domination-vertical", false);
+                subTable.checkPref("cui-domination-TeamIcons", true);
                 subTable.sliderPref("cui-domination-trans", 8, 0, 10, s -> s  > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
                 subTable.pref(new CollapserSetting("cui-domination-more", 9));
 
@@ -292,7 +299,8 @@ public class CuiSettingsDialog {
 
         public void dominationSubCategory(SettingsMenuDialog.SettingsTable table){
             boolean[] dominactionShown = {false};
-            table.button("@setting.cui-domination-category.name", Icon.export, Styles.togglet, () -> dominactionShown[0] = !dominactionShown[0]).marginLeft(14f).width(400f).height(commonHeight).checked(a -> dominactionShown[0]).padTop(5f).row();
+            table.button(bundle.get("cui-filterTeams"), Icon.eraser,() -> CuiVars.teamBlackListerDialog.show()).marginLeft(14f).width(400f).height(commonHeight).padTop(5f).scaling(Scaling.bounded).row();
+            table.button("@setting.cui-domination-category.name", Icon.export, Styles.togglet, () -> dominactionShown[0] = !dominactionShown[0]).marginLeft(14f).width(400f).height(commonHeight).checked(a -> dominactionShown[0]).padTop(5f).scaling(Scaling.bounded).row();
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
                 subTable.checkPref("cui-domination-totals", false);
@@ -316,6 +324,17 @@ public class CuiSettingsDialog {
                 allCuiOptions.add(subTable);
                 t.add(subTable).row();
             }, CuiVars.animateCats , () ->dominactionShown[0]).growX().row();
+        }
+
+        public void updateHeader(SettingsMenuDialog.SettingsTable table){
+
+            if(!CuiVars.updateChecker.out)return;
+
+            table.table(t -> {
+                t.label(() -> bundle.format("setting.cui-updateAvailable", CuiVars.nextVersion)).row();
+                t.image().color(Pal.heal).height(3f).growX().row();
+            }).growX().center().row();
+
         }
     }
 
@@ -348,7 +367,6 @@ public class CuiSettingsDialog {
                 settings.put("cui-unitscommands", 0);
                 settings.put("cui-showUnitTextStyle", 0);
                 settings.put("cui-showUnitBarStyle", 8);
-
                 bd.hide();
                 Log.info("Caster-ui present 1 loaded!");
             });
@@ -376,6 +394,7 @@ public class CuiSettingsDialog {
         setDefaults(coreUnitsTypes, true);
 
         ui.settings.addCategory("@settings.cui.settings", Icon.logic, table -> {
+            table.pref(new CollapserSetting("cui-update-header", 10));
             table.pref(new CollapserSetting("cui-category-trackers", 0));
             table.pref(new CollapserSetting("cui-category-counter", 1));
             table.pref(new CollapserSetting("cui-category-alerts", 2));
@@ -453,11 +472,12 @@ public class CuiSettingsDialog {
                     int[] i = {0};
                     int cols = mobile && Core.graphics.isPortrait() ? 4 : 12;
                     content.units().each(b -> !set.contains(b), b ->{
+                        String mod = b.isModded() ? "\n(" + b.minfo.mod.meta.displayName + ")": "";
                         t.button(new TextureRegionDrawable(b.uiIcon), Styles.flati, iconMed, () -> {
                             set.add(b);
                             rebuild[0].run();
                             dialog.hide();
-                        }).size(60f);
+                        }).tooltip(b.localizedName + mod).size(60f);
 
                         if(++i[0] % cols == 0){
                             t.row();
