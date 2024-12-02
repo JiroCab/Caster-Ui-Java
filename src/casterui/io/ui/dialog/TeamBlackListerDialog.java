@@ -6,22 +6,34 @@ import arc.math.*;
 import arc.scene.actions.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
+import arc.scene.ui.Label.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.serialization.*;
 import casterui.*;
+import mindustry.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.io.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
+
+import java.io.*;
+import java.util.*;
+
+import static casterui.CuiVars.*;
+import static mindustry.Vars.*;
 
 public class TeamBlackListerDialog extends BaseDialog{
     public Cell<ScrollPane> selectedPane, unselectedPane;
     public int teamSize = 50;
-    public Table selectedTable = new Table(), unselectedTable = new Table(), header = new Table();
+    public Table selectedTable = new Table(), unselectedTable = new Table();
     public int sort = 0;
     public String sortTxt = "";
+    private int write;
+    public static String headerSub[] = {"teams", "counter", "team"};
 
 
     public TeamBlackListerDialog(){
@@ -33,19 +45,23 @@ public class TeamBlackListerDialog extends BaseDialog{
             StringBuilder out = new StringBuilder();
             boolean first = true;
             for (int id = 0; id < Team.all.length ; id++){
-                if(CuiVars.hiddenTeams[id] ){
+                if(hiddenTeamList[write][id]){
                     if(first) first = false;
                     else out.append(",");
                     out.append(id);
                 }
             }
 
-            Core.settings.put("cui-hiddenTeamsList", out.toString());
-            CuiVars.updateHiddenTeams();
+            Core.settings.put("cui-hiddenTeams-" + headerSub[write], out.toString());
+            updateHiddenTeams();
             return Actions.fadeOut(0.2F, Interp.fade);
         });
     }
 
+    public void show(int write){
+        this.write = write;
+        show();
+    }
 
     void setup() {
         cont.top();
@@ -79,10 +95,10 @@ public class TeamBlackListerDialog extends BaseDialog{
         else tmSz.sort(t -> t.id);
 
 
-
+        int max = (Vars.mobile || Vars.testMobile) ? 4 : 7;
         for (int id = 0; id < tmSz.size ; id++){
             int finalId = id;
-            boolean selected = CuiVars.hiddenTeams[tmSz.get(finalId).id];
+            boolean selected = hiddenTeamList[write][tmSz.get(finalId).id];
             Table tab = selected ? selectedTable : unselectedTable;
 
             ImageButton button = new ImageButton(Tex.whiteui, Styles.clearNoneTogglei);
@@ -103,13 +119,13 @@ public class TeamBlackListerDialog extends BaseDialog{
 
             if(selected){
                 icons[3]++;
-                if (icons[1] >= 7){
+                if (icons[1] >= max){
                     tab.row();
                     icons[1] = 0;
                 } else icons[1]++;
             } else {
                 icons[2]++;
-                if (icons[0] >= 7){
+                if (icons[0] >= max){
                     tab.row();
                     icons[0] = 0;
                 } else icons[0]++;
@@ -120,41 +136,103 @@ public class TeamBlackListerDialog extends BaseDialog{
     }
 
     public void click(boolean add, int id){
-        CuiVars.hiddenTeams[id] = !add;
+        hiddenTeamList[write][id] = !add;
         setup();
     }
 
     void rebuildOtherButtons() {
-        buttons.defaults().size(width, 64f);
-        buttons.button("@back", Icon.left, this::hide).size(210f, 64f).tooltip("@cui-domination.tip");
+        buttons.clear();
+        //buttons.defaults().size(width, 64f);
 
         addCloseListener();
+        Table but = new Table(), but1 = new Table();
 
-        buttons.button("@defaults", Icon.exit, () -> {
-            CuiVars.hiddenTeams = new boolean[Team.all.length];
-            CuiVars.hiddenTeams[0] = true;
+        but1.button("@back", Icon.left, this::hide).size(170f, 64f).tooltip("@cui-domination.tip");
+        but1.button("@defaults", Icon.exit, () -> {
+            hiddenTeamList[write] = new boolean[Team.all.length];
+            hiddenTeamList[write][0] = true;
             setup();
 
-        }).size(180, 64f);
-        buttons.button("@clear", Icon.trash, () -> {
-            CuiVars.hiddenTeams = new boolean[Team.all.length];
+        }).size(170, 64f);
+        but1.button(Icon.export, this::exportOptions).size(60, 64f);
+        
+        but.button("@clear", Icon.trash, () -> {
+            hiddenTeamList[write] = new boolean[Team.all.length];
             setup();
         }).size(120, 64f);
-        buttons.button("@waves.spawn.all", Icon.move, () -> {
-            CuiVars.hiddenTeams = new boolean[Team.all.length];
-            for(int i = 0; i < Team.all.length; i++) CuiVars.hiddenTeams[i] = true;
+
+        but.button("@waves.spawn.all", Icon.move, () -> {
+            hiddenTeamList[write] = new boolean[Team.all.length];
+            for(int i = 0; i < Team.all.length; i++) hiddenTeamList[write][i] = true;
             setup();
         }).size(120, 64f);
         sortTxt = Core.bundle.get("cui-teams-sort." + sort);
-        buttons.button(Core.bundle.get("cui-teams-sort.base") + sortTxt, () -> {
+        but.button(Core.bundle.get("cui-teams-sort.base") + sortTxt, () -> {
             sort++;
             if(sort > 3) sort = 0;
             setup();
-            buttons.clear();
             rebuildOtherButtons();
         }).size(150, 64f);
-        titleTable.row();
-        titleTable.add(header);
+
+        buttons.add(but1).center();
+        if(Vars.mobile || Vars.testMobile) buttons.row();
+        buttons.add(but).center();
+    }
+
+    public void exportOptions(){
+        BaseDialog dialog = new BaseDialog("@waves.edit");
+        dialog.addCloseButton();
+        dialog.setFillParent(false);
+        dialog.cont.table(Tex.button, t -> {
+            var style = Styles.cleart;
+            t.defaults().size(280f, 64f).pad(2f);
+
+            t.button("@waves.copy", Icon.copy, style, () -> {
+                ui.showInfoFade("@waves.copied");
+                writeTeams();
+                dialog.hide();
+            }).marginLeft(12f).row();
+
+            t.button("@waves.load", Icon.download, style, () -> {
+                readTeams();
+                dialog.hide();
+            }).disabled(Core.app.getClipboardText() == null || !Core.app.getClipboardText().startsWith("[")).marginLeft(12f).row();
+
+        });
+
+        dialog.show();
+    }
+
+    public void writeTeams(){
+        StringBuilder buffer = new StringBuilder();
+        buffer.append("[");
+        boolean first = true;
+        for(int i = 0; i < hiddenTeamList[write].length; i++){
+            if(hiddenTeamList[write][i]){
+                if(first)first = false;
+                else buffer.append(",");
+
+                buffer.append(i);
+        }}
+        buffer.append("]");
+
+        Core.app.setClipboardText(buffer.toString());
+        ui.showInfoFade(buffer.toString());
+
+    }
+
+    public void readTeams(){
+        if(Core.app.getClipboardText() == null || Core.app.getClipboardText().isEmpty()) return;
+        String[] buffer = Core.app.getClipboardText().replace("[", "").replace("]", "").split(",");
+
+        hiddenTeamList[write] = new boolean[Team.all.length];
+        try{
+            for(String param : buffer) if(Integer.parseInt(param) >= 0 && Integer.parseInt(param) < Team.all.length) hiddenTeamList[write][Integer.parseInt(param)] = true;
+        }catch(Exception e){
+            e.printStackTrace();
+            ui.showErrorMessage("@invalid");
+        }
+        setup();
 
     }
 }

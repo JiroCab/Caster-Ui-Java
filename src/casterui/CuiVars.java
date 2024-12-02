@@ -5,6 +5,7 @@ import arc.Graphics;
 import arc.graphics.Pixmap;
 import arc.graphics.Pixmaps;
 import arc.math.geom.*;
+import arc.struct.*;
 import arc.util.*;
 import casterui.io.CuiInputs;
 import casterui.io.ui.CuiFragment;
@@ -32,10 +33,9 @@ public class CuiVars {
     public static CuiInputs inputs = new CuiInputs();
     public static CuiTeamMangerDialog teamManger = new CuiTeamMangerDialog();
     public static CuiRebindDialog rebindDialog = new CuiRebindDialog();
-    public static TeamBlackListerDialog teamBlackListerDialog = new TeamBlackListerDialog();
     public static CuiUpdateChecker updateChecker = new CuiUpdateChecker();
 
-    public static boolean initialized = false, globalHidden = true, fastUpdate = false, drawRally = false, globalShow = true, animateCats = Core.settings.getBool("cui-animateSettings"), killswitch = false;
+    public static boolean initialized = false, globalHidden = true, fastUpdate = false, drawRally = false, globalShow = true, animateCats = Core.settings.getBool("cui-animateSettings");
     public static Player clickedPlayer;
     public static CoreBlock.CoreBuild clickedCore;
     public static Unit heldUnit, hoveredEntity;
@@ -51,7 +51,8 @@ public class CuiVars {
             countersSeparateTeams = false, countersCoreUnits = false, countersCoreFlagged = false, countersTotals = false,
             dominationVertical = false, dominationColoured = false, dominationIcons = false,
             showTeamItems = false, showDomination = false;
-    public static boolean[] hiddenTeams = new boolean[Team.all.length];
+    public static boolean[] hiddenTeamsDomination = new boolean[Team.all.length], hiddenTeamsUnits = new boolean[Team.all.length], hiddenTeamsItems = new boolean[Team.all.length];
+    public static boolean[][]  hiddenTeamList = {hiddenTeamsDomination, hiddenTeamsUnits, hiddenTeamsItems};
 
     public static void init(){
         updateChecker.run();
@@ -162,12 +163,19 @@ public class CuiVars {
     }
 
     public static void updateHiddenTeams(){
-        String in = settings.getString("cui-hiddenTeamsList", "0");
-        if(in == null || in.isEmpty()) return;
-        String[] params = in.split(",");
-        for(String param : params){
-            hiddenTeams[Integer.parseInt(param)] = true;
-        }
+        for(int i = 0; i < hiddenTeamList.length; i++){
+            boolean[] booleans = hiddenTeamList[i];
 
+            String in = settings.getString("cui-hiddenTeams-" + TeamBlackListerDialog.headerSub[i], "0");
+            if(in == null || in.isEmpty()) continue;
+            String[] params = in.split(",");
+
+            for(String param : params){
+                booleans[Integer.parseInt(param)] = true;
+            }
+        }
     }
+
+
+
 }

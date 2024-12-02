@@ -132,6 +132,8 @@ public class CuiFragment {
             boolean[] newRow = {false};
 
             for (int id = 0 ; id < Team.all.length ; id++){
+                if(hiddenTeamsUnits[id]) continue;
+
                 Team team = Team.get(id);
                 if(team.data().units.size >= 1) {
                     if(countersSeparateTeams && !newRow[0]){
@@ -244,7 +246,7 @@ public class CuiFragment {
         //endregion
         if(showDomination){
             Vars.state.teams.present.each(data -> {
-                if(hiddenTeams[data.team.id]) return;
+                if(hiddenTeamsDomination[data.team.id]) return;
                 blockCats[data.team.id][11] = data.cores.size;
                 blockCats[data.team.id][12] = data.buildings.size;
                 worldBlocks += data.buildings.size;
@@ -347,17 +349,19 @@ public class CuiFragment {
         teamItemsTable.clear();
 
         if (settings.getBool("cui-ShowTeamItems")) {
+            int teamItemsMax = settings.getInt("cui-TeamItemsRow");
+
             for (Teams.TeamData team : Vars.state.teams.active) {
                 if (team.core() == null) continue;
                 Table sub = colouredTable(team.team.color, team.team.color.a * (settings.getInt("cui-TeamItemsAlpha") * 0.1f));
-                AtomicInteger itemTypes = new AtomicInteger();
+                int[] itemTypes = {0};
                 team.core().items.each((item, amount) -> {
                     sub.image(item.uiIcon).size(iconSizes).left();
                     sub.label(() -> (!settings.getBool("cui-TeamItemsShortenItems") ? amount : UI.formatAmount(amount)) + " ");
-                    if (itemTypes.get() > 4) {
-                        itemTypes.set(0);
+                    if (itemTypes[0] >= teamItemsMax) {
+                        itemTypes[0] = 0;
                         sub.row();
-                    } else itemTypes.getAndIncrement();
+                    } else itemTypes[0]++;
                 });
                 teamItemsTable.add(sub).growX().row();
             }
