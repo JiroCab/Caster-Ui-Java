@@ -56,6 +56,7 @@ public class CuiTeamMangerDialog extends BaseDialog {
         AtomicInteger icons = new AtomicInteger();
 
         if (Vars.net.server() || !Vars.net.active() || Vars.player.admin) {
+            int max = (Vars.mobile || Vars.testMobile) ? 4 : 7;
             for (int id = 0 ; id < Team.all.length ; id++){
                 int finalId = id;
 
@@ -74,7 +75,7 @@ public class CuiTeamMangerDialog extends BaseDialog {
                     lab
                 ).size(teamSize).margin(5f).grow().get();
 
-                if (icons.get() >= 7){
+                if (icons.get() >= max){
                     teamTable.row();
                     icons.set(0);
                 } else icons.getAndIncrement();
