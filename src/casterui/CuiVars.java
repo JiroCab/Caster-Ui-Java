@@ -5,6 +5,7 @@ import arc.Graphics;
 import arc.graphics.Pixmap;
 import arc.graphics.Pixmaps;
 import arc.math.geom.*;
+import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import casterui.io.CuiInputs;
@@ -53,6 +54,7 @@ public class CuiVars {
             showTeamItems = false, showDomination = false;
     public static boolean[] hiddenTeamsDomination = new boolean[Team.all.length], hiddenTeamsUnits = new boolean[Team.all.length], hiddenTeamsItems = new boolean[Team.all.length];
     public static boolean[][]  hiddenTeamList = {hiddenTeamsDomination, hiddenTeamsUnits, hiddenTeamsItems};
+    public static Table updateCheckTable = new Table();
 
     public static void init(){
         updateChecker.run();

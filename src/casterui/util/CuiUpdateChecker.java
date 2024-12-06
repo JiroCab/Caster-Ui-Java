@@ -3,6 +3,7 @@ package casterui.util;
 import arc.util.*;
 import arc.util.serialization.*;
 import casterui.*;
+import mindustry.graphics.*;
 import mindustry.mod.Mods.*;
 
 import static arc.Core.bundle;
@@ -13,6 +14,7 @@ public class CuiUpdateChecker{
     public boolean out = false;
 
     public void run(){
+        CuiVars.updateCheckTable.clear();
         LoadedMod mod = mods.getMod(CuiMain.class);
         String repo = mod.getRepo() != null ? mod.getRepo() : "JiroCab/Caster-Ui-Java";
         out = false;
@@ -37,6 +39,8 @@ public class CuiUpdateChecker{
             }
             out = true;
             Log.info(bundle.format("setting.cui-updateAvailable", CuiVars.nextVersion));
+            CuiVars.updateCheckTable.label(() -> bundle.format("setting.cui-updateAvailable", CuiVars.nextVersion)).row();
+            CuiVars.updateCheckTable.image().color(Pal.heal).height(3f).growX().row();
 
 
         }, thr -> Log.info("Cui failed to fetch updates qmq: @", thr));

@@ -353,6 +353,7 @@ public class CuiFragment {
 
             for (Teams.TeamData team : Vars.state.teams.active) {
                 if (team.core() == null) continue;
+                if(hiddenTeamsItems[team.team.id]) continue;
                 Table sub = colouredTable(team.team.color, team.team.color.a * (settings.getInt("cui-TeamItemsAlpha") * 0.1f));
                 int[] itemTypes = {0};
                 team.core().items.each((item, amount) -> {
