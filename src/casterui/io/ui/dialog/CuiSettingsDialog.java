@@ -338,14 +338,7 @@ public class CuiSettingsDialog {
         }
 
         public void updateHeader(SettingsMenuDialog.SettingsTable table){
-
-            if(!CuiVars.updateChecker.out)return;
-
-            table.table(t -> {
-                t.label(() -> bundle.format("setting.cui-updateAvailable", CuiVars.nextVersion)).row();
-                t.image().color(Pal.heal).height(3f).growX().row();
-            }).growX().center().row();
-
+            table.add(CuiVars.updateCheckTable).growX().center().row();
         }
     }
 
