@@ -14,12 +14,14 @@ public enum CuiBinding implements KeyBinds.KeyBind {
     spectate_previous_player(KeyCode.apostrophe),
     spectate_next_core(KeyCode.unknown),
     spectate_previous_core(KeyCode.unknown),
+    spectate_ignore_coreless(KeyCode.unknown),
 
     toggle_units_player_table_controls(KeyCode.unknown, "cui-counter"),
     toggle_table_core_units(KeyCode.unknown),
     toggle_table_summarize_players(KeyCode.unknown),
 
     toggle_player_cursor(KeyCode.unknown, "cui-trackers"),
+    filter_player_cursor(KeyCode.unknown),
     toggle_track_logic(KeyCode.unknown),
     toggle_unit_cmd(KeyCode.unknown),
     toggle_unit_Cmd_type(KeyCode.unknown),
