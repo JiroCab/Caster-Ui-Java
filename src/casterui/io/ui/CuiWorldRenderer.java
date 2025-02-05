@@ -26,7 +26,7 @@ import mindustry.ui.Fonts;
 import mindustry.world.blocks.storage.CoreBlock;
 import mindustry.world.blocks.units.UnitFactory;
 
-import static arc.graphics.g2d.Draw.draw;
+import static arc.graphics.g2d.Draw.*;
 import static mindustry.Vars.*;
 
 
@@ -42,6 +42,7 @@ public class CuiWorldRenderer {
             if (!CuiVars.globalShow) return;
             boolean unitBars = Core.settings.getInt("cui-showUnitBarStyle") > 0;
             boolean trackPlayerCursor = Core.settings.getBool("cui-TrackPlayerCursor");
+            boolean filterPlayerCursor = Core.settings.getBool("cui-useCycleFilter"), filterNoCores = Core.settings.getBool("cui-cyclePlayersIgnoreNoCore");
             boolean trackLogicControl = Core.settings.getInt("cui-logicLineAlpha") > 0;
             boolean unitCmds = Core.settings.getInt("cui-unitscommands") > 0;
 
@@ -63,6 +64,7 @@ public class CuiWorldRenderer {
                 }));
                 if(unitCmds) drawUnitPointer();
                 if(trackPlayerCursor) Groups.player.each(ply ->{
+                    if(filterPlayerCursor && (CuiVars.hiddenCycleTeam[ply.team().id] || (filterNoCores && ply.team().cores().size == 0))) return;
                     if(ply.unit() != null){drawPlayerCursor(ply);}
                 });
             }
@@ -119,28 +121,39 @@ public class CuiWorldRenderer {
         Color shclr = new Color().set(unit.team.color).lerp(Color.black, 0.25f).a(alpha);
 
         Draw.alpha(alpha);
-        Draw.draw(Layer.flyingUnit +2, () ->{
+        Draw.draw(Layer.flyingUnit +2, () -> {
             if(Core.settings.getInt("cui-showUnitTextStyle") > 0){
                 int tstyle = Core.settings.getInt("cui-showUnitTextStyle");
                 String txt = "[red]";
                 if(tstyle == 1){
-                    txt  += Mathf.round(hp * 100) + "%[]";
+                    txt += Mathf.round(hp * 100) + "%[]";
                     if(shield > 0) txt += "\n" + CuiVars.decFor.format(unit.shield);
                 }else if(style == 2){
-                    txt  += CuiVars.decFor.format(unit.health) + "[]";
+                    txt += CuiVars.decFor.format(unit.health) + "[]";
                     if(shield > 0) txt += "\n" + CuiVars.decFor.format(unit.shield);
-                } else {
-                    txt  += (CuiVars.decFor.format(unit.health) + "[][white]/[][pink]"+ Math.round(unit.maxHealth) +"[]");
+                }else{
+                    txt += (CuiVars.decFor.format(unit.health) + "[][white]/[][pink]" + Math.round(unit.maxHealth) + "[]");
                     if(shield > 0) txt += "\n" + CuiVars.decFor.format(unit.shield);
                 }
 
                 drawLabel(unit.x, unit.y, txt, colour);
 
             }
-            if(stroke == 0) return;
+        });
+        if(stroke == 0) return;
+        Draw.draw(Layer.flyingUnit +1.99f, () ->{
             float yShield = y - offset + stroke, yShieldAlt = yShield + (stroke /2.5f);
             float yOff = y - offset;
+
             switch (style) {
+                case  10 -> { //diamonds, (don't remember which mod that used to do this so ughh yes)
+                    drawInner(Pal.darkishGray, 1f, false, x - (offset /1.5f), y - (offset /2), (width / 2f), unit.hitSize,  1);
+                    drawInner(colour, hp ,false, x - (offset /1.5f), y - (offset /2), (width / 2f), unit.hitSize,  1);
+                    if(shield > 0){
+                        drawInner(Pal.darkishGray, 1f, true, x + (offset /1.5f), y - (offset /2), (width / 2f), unit.hitSize,  1);
+                        drawInner(colour, shield ,true, x + (offset /1.5f), y - (offset /2), (width / 2f), unit.hitSize,  1);
+                    }
+                }
                 case 9 -> {//boarder - right
                     if(shield > 0)drawBoardedLine(colour, x + width, yShield, x - (width), yShield,x + offset + ((width * 2) * shield), yShield, x + offset, yShield, stroke, bg);
                     drawBoardedLine(colour, x + width, yOff, x - (width), yOff,x + offset + ((width * 2) * hp), yOff, x + offset, yOff, stroke, bg);
@@ -354,6 +367,48 @@ public class CuiWorldRenderer {
             }
         });
         Draw.reset();
+    }
+
+    public void drawInner(Color color, float fract, boolean flip, float x, float y, float width, float height, float parentAlpha){
+        if(fract < 0) return;
+
+        fract = Mathf.clamp(fract);
+        if(flip){
+            x += width;
+            width = -width;
+        }
+
+        float stroke = width * 0.35f;
+        float bh = height/2f;
+        Draw.color(color, parentAlpha);
+
+        float f1 = Math.min(fract * 2f, 1f), f2 = (fract - 0.5f) * 2f;
+
+        float bo = -(1f - f1) * (width - stroke);
+
+        Fill.quad(
+        x, y,
+        x + stroke, y,
+        x + width + bo, y + bh * f1,
+        x + width - stroke + bo, y + bh * f1
+        );
+
+        if(f2 > 0){
+            float bx = x + (width - stroke) * (1f - f2);
+            Fill.quad(
+            x + width, y + bh,
+            x + width - stroke, y + bh,
+            bx, y + height * fract,
+            bx + stroke, y + height * fract
+            );
+        }
+
+        Draw.reset();
+
+        if(flip){
+            width = -width;
+            x -= width;
+        }
     }
 
     public static void drawBoardedLine(Color color, float x, float y, float x2, float y2, float x3, float y3, float stoke, Color bg){

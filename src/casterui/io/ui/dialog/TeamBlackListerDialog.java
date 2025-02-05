@@ -23,6 +23,7 @@ import mindustry.ui.dialogs.*;
 import java.io.*;
 import java.util.*;
 
+import static arc.Core.bundle;
 import static casterui.CuiVars.*;
 import static mindustry.Vars.*;
 
@@ -33,7 +34,7 @@ public class TeamBlackListerDialog extends BaseDialog{
     public int sort = 0;
     public String sortTxt = "";
     private int write;
-    public static String headerSub[] = {"teams", "counter", "team"};
+    public static String headerSub[] = {"teams", "counter", "team", "cycle"};
 
 
     public TeamBlackListerDialog(){
@@ -60,6 +61,7 @@ public class TeamBlackListerDialog extends BaseDialog{
 
     public void show(int write){
         this.write = write;
+        this.title.setText(Core.bundle.get("cui-teamblacklister") + " - " + bundle.get("cui-filter" + write));
         show();
     }
 

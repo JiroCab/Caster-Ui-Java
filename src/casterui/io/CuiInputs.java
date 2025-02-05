@@ -78,6 +78,8 @@ public class CuiInputs {
         if(cuiKeyTap(toggle_cui_kill_switch)) settings.put("cui-killswitch", !settings.getBool("cui-killswitch")); //haha this will be one way but lulz
         if(cuiKeyTap(toggle_unit_Cmd_type)) settings.put("cui-unitCmdNonMv", !settings.getBool("cui-unitCmdNonMv"));
         if(cuiKeyTap(toggle_domination)) settings.put("cui-domination-toggle", !settings.getBool("cui-domination-toggle"));
+        if(cuiKeyTap(spectate_ignore_coreless)) settings.put("cui-cyclePlayersIgnoreNoCore", !settings.getBool("cui-cyclePlayersIgnoreNoCore"));
+        if(cuiKeyTap(filter_player_cursor)) settings.put("cui-useCycleFilter", !settings.getBool("cui-useCycleFilter"));
 
 
 
@@ -194,6 +196,9 @@ public class CuiInputs {
             if (p != player) ply.add(p);
         }
         ply.remove(player);
+        ply.removeAll(p -> CuiVars.hiddenCycleTeam[p.team().id]);
+        if(settings.getBool("cui-cyclePlayersIgnoreNoCore")) ply.removeAll(p->p.team().cores().size == 0);
+
 
         if (ply.size < 1) return;
         int number = playerNumber;

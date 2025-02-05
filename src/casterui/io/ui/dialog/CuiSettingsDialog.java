@@ -65,6 +65,7 @@ public class CuiSettingsDialog {
                 case 8 -> unitsCategory(table);
                 case 9 -> dominationSubCategory(table);
                 case 10 -> updateHeader(table);
+                case 11 -> cyclePlayerSubCategory(table);
                 default -> advanceCategory(table);
             }
         }
@@ -83,9 +84,15 @@ public class CuiSettingsDialog {
                 subTable.sliderPref("cui-playerTrackAlpha", 7, 0, 10, s -> s  > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
                 subTable.sliderPref("cui-playerTrackedAlpha", 10, 0, 10, s -> s > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
                 subTable.sliderPref("cui-playerIconSize", 35, 1, 100, String::valueOf);
+                subTable.checkPref("cui-useCycleFilter", true);
 
-                allCuiOptions.add(subTable);
+                subTable.pref(new CollapserSetting("cui-offset-div", 6));
+                subTable.pref(new CollapserSetting("cui-playerCycle-more", 11));
+                subTable.checkPref("cui-cyclePlayersIgnoreNoCore", true);
+
                 t.add(subTable);
+                allCuiOptions.addAll(subTable);
+
             }, CuiVars.animateCats , () ->tracking[0]).growX().row();
         }
 
@@ -95,12 +102,12 @@ public class CuiSettingsDialog {
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
                 //TODO: SAVE THESE AND LOAD THEM
-                t.button(bundle.get("cui-hiddenUnits"), Icon.eyeOffSmall,() -> showBanned(bundle.get("cui-hiddenUnits"), hiddenUnits)).tooltip(bundle.get("cui-hiddenInfo")).center().width(400f).top().row();
-                t.button(bundle.get("cui-hiddenCoreUnits"), Icon.cancel,() -> showBanned(bundle.get("cui-hiddenCoreUnits"), coreUnitsTypes, true)).tooltip(bundle.get("cui-hiddenCoreInfo")).center().width(400f).top().row();
-                t.button(bundle.get("cui-filterTeams"), Icon.eraserSmall,() ->{
+                t.button(bundle.get("cui-hiddenUnits"), Icon.eyeOffSmall,() -> showBanned(bundle.get("cui-hiddenUnits"), hiddenUnits)).tooltip(bundle.get("cui-hiddenInfo")).center().width(400f).height(40).top().row();
+                t.button(bundle.get("cui-hiddenCoreUnits"), Icon.cancel, () -> showBanned(bundle.get("cui-hiddenCoreUnits"), coreUnitsTypes, true)).tooltip(bundle.get("cui-hiddenCoreInfo")).center().width(400f).height(40).top().row();
+                t.button(bundle.format("cui-filterTeamsShort", bundle.get("cui-filter1")), Icon.eraserSmall, () ->{
                     TeamBlackListerDialog teamBlackListerDialog = new TeamBlackListerDialog();
                     teamBlackListerDialog.show(1);
-                }).marginLeft(14f).width(400f).scaling(Scaling.bounded).row();
+                }).height(40).marginLeft(14f).width(400f).scaling(Scaling.bounded).row();
 
                 //Counter table
                 subTable.checkPref("cui-ShowUnitTable", true);
@@ -135,7 +142,7 @@ public class CuiSettingsDialog {
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
                 //hp bars
-                subTable.sliderPref("cui-showUnitBarStyle", 7, 0, 9, s -> s == 0 ? "@off" :bundle.get("cui-unitshealtbar-style" + s));
+                subTable.sliderPref("cui-showUnitBarStyle", 7, 0, 10, s -> s == 0 ? "@off" :bundle.get("cui-unitshealtbar-style" + s));
                 subTable.sliderPref("cui-showUnitBarSize", 4, 0, 100, s -> s == 0 ? "@off" : decFor.format(s * 0.25f));
                 subTable.sliderPref("cui-showUnitBarAlpha", 10, 1, 10, s ->  s + "0%");
                 subTable.sliderPref("cui-showUnitTextStyle", 1, 0, 3, s -> s == 0 ? "@off" :bundle.get("cui-unittext-style" + s));
@@ -237,7 +244,7 @@ public class CuiSettingsDialog {
                 subTable.sliderPref("cui-domination-x", 0, -offsetMinMax , offsetMinMax, String::valueOf);
                 subTable.sliderPref("cui-domination-y", 0, -offsetMinMax , offsetMinMax, String::valueOf);
 
-                t.button(bundle.get("cui-filterTeams"), Icon.eraserSmall,() ->{
+                t.button(bundle.format("cui-filterTeams", bundle.get("cui-filter2")), Icon.eraser,() ->{
                     TeamBlackListerDialog teamBlackListerDialog = new TeamBlackListerDialog();
                     teamBlackListerDialog.show(2);
                 }).marginLeft(14f).width(400f).scaling(Scaling.bounded).row();
@@ -307,7 +314,7 @@ public class CuiSettingsDialog {
 
         public void dominationSubCategory(SettingsMenuDialog.SettingsTable table){
             boolean[] dominactionShown = {false};
-            table.button(bundle.get("cui-filterTeams"), Icon.eraserSmall,() ->{
+            table.button(bundle.format("cui-filterTeams", bundle.get("cui-filter0")), Icon.eraser,() ->{
                 TeamBlackListerDialog teamBlackListerDialog = new TeamBlackListerDialog();
                 teamBlackListerDialog.show(0);
             }).marginLeft(14f).width(400f).scaling(Scaling.bounded).row();
@@ -340,6 +347,13 @@ public class CuiSettingsDialog {
         public void updateHeader(SettingsMenuDialog.SettingsTable table){
             table.add(CuiVars.updateCheckTable).growX().center().row();
         }
+
+        public void cyclePlayerSubCategory(SettingsMenuDialog.SettingsTable table){
+            table.button(bundle.format("cui-filterTeams", bundle.get("cui-filter3")), Icon.eraser,() ->{
+                TeamBlackListerDialog teamBlackListerDialog = new TeamBlackListerDialog();
+                teamBlackListerDialog.show(3);
+            }).marginLeft(14f).width(400f).scaling(Scaling.bounded).row();
+        };
     }
 
 

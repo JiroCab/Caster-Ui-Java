@@ -52,8 +52,8 @@ public class CuiVars {
             countersSeparateTeams = false, countersCoreUnits = false, countersCoreFlagged = false, countersTotals = false,
             dominationVertical = false, dominationColoured = false, dominationIcons = false,
             showTeamItems = false, showDomination = false;
-    public static boolean[] hiddenTeamsDomination = new boolean[Team.all.length], hiddenTeamsUnits = new boolean[Team.all.length], hiddenTeamsItems = new boolean[Team.all.length];
-    public static boolean[][]  hiddenTeamList = {hiddenTeamsDomination, hiddenTeamsUnits, hiddenTeamsItems};
+    public static boolean[] hiddenTeamsDomination = new boolean[Team.all.length], hiddenTeamsUnits = new boolean[Team.all.length], hiddenTeamsItems = new boolean[Team.all.length], hiddenCycleTeam = new boolean[Team.all.length];
+    public static boolean[][]  hiddenTeamList = {hiddenTeamsDomination, hiddenTeamsUnits, hiddenTeamsItems, hiddenCycleTeam};
     public static Table updateCheckTable = new Table();
 
     public static void init(){
