@@ -1,36 +1,36 @@
 package casterui.io.ui;
 
-import arc.Core;
-import arc.graphics.Color;
+import arc.*;
+import arc.graphics.*;
 import arc.graphics.g2d.*;
-import arc.math.Mathf;
-import arc.math.geom.Vec2;
-import arc.scene.Group;
-import arc.scene.style.Drawable;
-import arc.scene.ui.Image;
-import arc.scene.ui.Label;
-import arc.scene.ui.layout.Table;
-import arc.struct.Seq;
+import arc.math.*;
+import arc.math.geom.*;
+import arc.scene.*;
+import arc.scene.style.*;
+import arc.scene.ui.*;
+import arc.scene.ui.layout.*;
+import arc.struct.*;
 import arc.util.*;
-import casterui.CuiVars;
-import casterui.io.ui.dialog.CuiSettingsDialog;
-import mindustry.Vars;
-import mindustry.core.UI;
-import mindustry.game.Team;
-import mindustry.game.Teams;
+import casterui.*;
+import casterui.io.ui.dialog.*;
+import mindustry.*;
+import mindustry.core.*;
+import mindustry.ctype.*;
+import mindustry.game.*;
 import mindustry.gen.*;
-import mindustry.logic.LAccess;
-import mindustry.type.Category;
-import mindustry.type.UnitType;
-import mindustry.ui.Styles;
-import mindustry.world.Tile;
-import mindustry.world.blocks.defense.turrets.Turret;
+import mindustry.logic.*;
+import mindustry.type.*;
+import mindustry.ui.*;
+import mindustry.world.*;
+import mindustry.world.blocks.defense.turrets.*;
+import mindustry.world.blocks.heat.HeatConductor.*;
 import mindustry.world.blocks.power.*;
-import mindustry.world.blocks.units.UnitFactory;
+import mindustry.world.blocks.units.*;
+import mindustry.world.meta.*;
 
-import java.text.DecimalFormat;
+import java.text.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.*;
 
 import static arc.Core.settings;
 import static casterui.CuiVars.*;
@@ -321,11 +321,26 @@ public class CuiFragment {
                     }
                 }
                 if(mouseBuilding.block instanceof Turret)blockTable.label(() -> "[accent]"+  decFor.format(mouseBuilding.sense(LAccess.ammo)) + "[white]/[orange]"+ ((Turret) mouseBuilding.block).maxAmmo).row();
-                if(settings.getBool("cui-ShowBlockHealth") && mouseBuilding.lastAccessed != null){
-                    blockTable.table(a-> a.label(() -> mouseBuilding.lastAccessed).pad(1f));
+                if(mouseBuilding.getPayload() != null){
+                    @Nullable  UnlockableContent uc = mouseBuilding.getPayload().content();
+                    if(uc != null){
+                        blockTable.table(a-> {
+                            a.image(() -> uc.fullIcon).tooltip(uc.localizedName).size(iconSizes).pad(1f).row();
+                        }).row();
+                    }
                 }
-                //TODO: heat, block constructors, Payload
+                if(mouseBuilding instanceof HeatConductorBuild hb){
+                    if(hb.heat >= 1){
+                        blockTable.table(a-> {
+                            a.label(() -> StatUnit.heatUnits.icon + decFor.format(hb.heat) ).pad(1f);
+                        }).row();
+                    }
+                }
 
+
+                if(settings.getBool("cui-BlockInfoLastPlayer") && mouseBuilding.lastAccessed != null){
+                    blockTable.table(a-> a.label(() -> mouseBuilding.lastAccessed).pad(1f)).row();
+                }
             }
         }
         //endregion

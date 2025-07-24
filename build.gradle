@@ -1,29 +1,35 @@
 plugins {
     id 'java'
     id("fr.xpdustry.toxopid") version "3.2.0"
+    id 'maven-publish'
 }
 
 version '1.0'
 
 targetCompatibility = 8
-sourceCompatibility = JavaVersion.VERSION_16
+sourceCompatibility = JavaVersion.VERSION_17
 
 sourceSets.main.java.srcDirs = ["src"]
+
+import fr.xpdustry.toxopid.spec.ModPlatform
 
 repositories{
     mavenCentral()
     maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
     maven { url 'https://jitpack.io' }
+    anukenJitpack()
 }
 
 ext{
     //the build number that this mod is made for
-    mindustryVersion = 'v146'
+    mindustryVersion = 'v150'
     jabelVersion = "93fde537c7"
+    //windows sucks
+    isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
     sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
 }
 
-import fr.xpdustry.toxopid.spec.ModPlatform
+
 toxopid {
     compileVersion.set("$mindustryVersion")
     runtimeVersion.set("$mindustryVersion")

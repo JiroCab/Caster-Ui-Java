@@ -1,29 +1,18 @@
 package casterui.io;
 
-import arc.Core;
-import arc.KeyBinds;
-import arc.KeyBinds.*;
-import arc.func.*;
-import arc.input.KeyCode;
+import arc.*;
 import arc.math.geom.*;
-import arc.scene.*;
-import arc.scene.event.*;
-import arc.struct.Seq;
-import arc.util.*;
-import casterui.CuiVars;
-import mindustry.Vars;
-import mindustry.game.Teams;
+import arc.struct.*;
+import casterui.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
-import mindustry.input.Binding;
-import mindustry.input.DesktopInput;
-import mindustry.world.Build;
-import mindustry.world.blocks.storage.CoreBlock;
+import mindustry.input.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
 import static arc.Core.*;
 import static casterui.io.CuiBinding.*;
 import static mindustry.Vars.*;
+import static mindustry.Vars.control;
 
 public class CuiInputs {
     public boolean tracking = false, keepMouseTracking = false;
@@ -40,73 +29,72 @@ public class CuiInputs {
         if(settings.getBool("cui-respectDialog") && scene.hasDialog()) return;
         if (state.isMenu()) return;
 
-        if(cuiKeyTap(toggle_cui_menu) && !settings.getBool("cui-hideWithMenus")) CuiVars.globalHidden = !CuiVars.globalHidden;
+        if(Core.input.keyDown(toggle_cui_menu) && !settings.getBool("cui-hideWithMenus")) CuiVars.globalHidden = !CuiVars.globalHidden;
         else if(settings.getBool("cui-hideWithMenus")) CuiVars.globalHidden = ui.hudfrag.shown;
 
-        if(cuiKeyTap(change_teams)) CuiVars.teamManger.show();
-        if(cuiKeyTap(toggle_unit_hp_bars)) settings.put("cui-showUnitBar", !settings.getBool("cui-showUnitBar"));
-        if(cuiKeyTap(toggle_player_cursor)) settings.put("cui-TrackPlayerCursor", !settings.getBool("cui-TrackPlayerCursor"));
-        if(cuiKeyTap(toggle_track_logic)){
+        if(Core.input.keyTap(change_teams)) CuiVars.teamManger.show();
+        if(Core.input.keyTap(toggle_unit_hp_bars)) settings.put("cui-showUnitBar", !settings.getBool("cui-showUnitBar"));
+        if(Core.input.keyTap(toggle_player_cursor)) settings.put("cui-TrackPlayerCursor", !settings.getBool("cui-TrackPlayerCursor"));
+        if(Core.input.keyTap(toggle_track_logic)){
             if(settings.getInt("cui-logicLineAlpha") == 0) settings.put("cui-logicLineAlpha", settings.getInt("cui-logicLineAlphaPreferred", 100));
             else{
                 settings.put("cui-logicLineAlphaPreferred", settings.getInt("cui-logicLineAlpha"));
                 settings.put("cui-logicLineAlpha", 0);
         }}
-        if(cuiKeyTap(toggle_unit_cmd)){
+        if(Core.input.keyTap(toggle_unit_cmd)){
             if(settings.getInt("cui-unitscommands") == 0) settings.put("cui-unitscommands", settings.getInt("cui-unitscommandsPreferred", 1));
             else{
                 settings.put("cui-unitscommandsPreferred", settings.getInt("cui-unitscommands"));
                 settings.put("cui-unitscommands", 0);
         }}
-        if(cuiKeyTap(toggle_shorten_items_info)) settings.put("cui-BlockInfoShortenItems", !settings.getBool("cui-BlockInfoShortenItems"));
-        if(cuiKeyTap(toggle_block_hp)) settings.put("cui-ShowBlockHealth", !settings.getBool("cui-ShowBlockHealth"));
-        if(cuiKeyTap(toggle_units_player_table_controls)) settings.put("cui-playerunitstablecontols", !settings.getBool("cui-playerunitstablecontols"));
-        if(cuiKeyTap(toggle_table_core_units)) settings.put("cui-unitsTableCoreUnits", !settings.getBool("cui-unitsTableCoreUnits"));
-        if(cuiKeyTap(toggle_table_summarize_players)) settings.put("cui-playerTableSummarizePlayers", !settings.getBool("cui-playerTableSummarizePlayers"));
-        if(cuiKeyTap(toggle_team_items)) settings.put("cui-ShowTeamItems", !settings.getBool("cui-ShowTeamItems"));
-        if(cuiKeyTap(toggle_shorten_team_items)) settings.put("cui-TeamItemsShortenItems", !settings.getBool("cui-TeamItemsShortenItems"));
-        if(cuiKeyTap(toggle_factory_style)){
+        if(Core.input.keyTap(toggle_shorten_items_info)) settings.put("cui-BlockInfoShortenItems", !settings.getBool("cui-BlockInfoShortenItems"));
+        if(Core.input.keyTap(toggle_block_hp)) settings.put("cui-ShowBlockHealth", !settings.getBool("cui-ShowBlockHealth"));
+        if(Core.input.keyTap(toggle_units_player_table_controls)) settings.put("cui-playerunitstablecontols", !settings.getBool("cui-playerunitstablecontols"));
+        if(Core.input.keyTap(toggle_table_core_units)) settings.put("cui-unitsTableCoreUnits", !settings.getBool("cui-unitsTableCoreUnits"));
+        if(Core.input.keyTap(toggle_table_summarize_players)) settings.put("cui-playerTableSummarizePlayers", !settings.getBool("cui-playerTableSummarizePlayers"));
+        if(Core.input.keyTap(toggle_team_items)) settings.put("cui-ShowTeamItems", !settings.getBool("cui-ShowTeamItems"));
+        if(Core.input.keyTap(toggle_shorten_team_items)) settings.put("cui-TeamItemsShortenItems", !settings.getBool("cui-TeamItemsShortenItems"));
+        if(Core.input.keyTap(toggle_factory_style)){
             if(settings.getInt("cui-showFactoryProgressStyle") == 1) settings.put("cui-showFactoryProgressStyle", settings.getInt("cui-showFactoryProgressStylePreferred", 2));
             else{
                 settings.put("cui-showFactoryProgressStylePreferred", settings.getInt("cui-showFactoryProgressStyle"));
                 settings.put("cui-showFactoryProgressStyle", 1);
         }}
-        if(cuiKeyTap(toggle_alerts_circle)) settings.put("cui-ShowAlertsCircles", !settings.getBool("cui-ShowAlertsCircles"));
-        if(cuiKeyTap(toggle_alerts_circle_reverse_growth)) settings.put("cui-alertReverseGrow", !settings.getBool("cui-alertReverseGrow"));
-        if(cuiKeyTap(toggle_alerts_toast)) settings.put("cui-ShowAlerts", !settings.getBool("cui-ShowAlerts"));
-        if(cuiKeyTap(toggle_alerts_toast_bottom)) settings.put("cui-AlertsUseBottom", !settings.getBool("cui-AlertsUseBottom"));
-        if(cuiKeyTap(toggle_cui_kill_switch)) settings.put("cui-killswitch", !settings.getBool("cui-killswitch")); //haha this will be one way but lulz
-        if(cuiKeyTap(toggle_unit_Cmd_type)) settings.put("cui-unitCmdNonMv", !settings.getBool("cui-unitCmdNonMv"));
-        if(cuiKeyTap(toggle_domination)) settings.put("cui-domination-toggle", !settings.getBool("cui-domination-toggle"));
-        if(cuiKeyTap(spectate_ignore_coreless)) settings.put("cui-cyclePlayersIgnoreNoCore", !settings.getBool("cui-cyclePlayersIgnoreNoCore"));
-        if(cuiKeyTap(filter_player_cursor)) settings.put("cui-useCycleFilter", !settings.getBool("cui-useCycleFilter"));
+        if(Core.input.keyTap(toggle_alerts_circle)) settings.put("cui-ShowAlertsCircles", !settings.getBool("cui-ShowAlertsCircles"));
+        if(Core.input.keyTap(toggle_alerts_circle_reverse_growth)) settings.put("cui-alertReverseGrow", !settings.getBool("cui-alertReverseGrow"));
+        if(Core.input.keyTap(toggle_alerts_toast)) settings.put("cui-ShowAlerts", !settings.getBool("cui-ShowAlerts"));
+        if(Core.input.keyTap(toggle_alerts_toast_bottom)) settings.put("cui-AlertsUseBottom", !settings.getBool("cui-AlertsUseBottom"));
+        if(Core.input.keyTap(toggle_unit_Cmd_type)) settings.put("cui-unitCmdNonMv", !settings.getBool("cui-unitCmdNonMv"));
+        if(Core.input.keyTap(toggle_domination)) settings.put("cui-domination-toggle", !settings.getBool("cui-domination-toggle"));
+        if(Core.input.keyTap(spectate_ignore_coreless)) settings.put("cui-cyclePlayersIgnoreNoCore", !settings.getBool("cui-cyclePlayersIgnoreNoCore"));
+        if(Core.input.keyTap(filter_player_cursor)) settings.put("cui-useCycleFilter", !settings.getBool("cui-useCycleFilter"));
 
 
 
 
         /*TODO: something more elegant? */
-        if(cuiKeyTap(map_player_1) && CuiVars.mappedPlayers.get(1) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(1);
-        if(cuiKeyTap(map_player_2) && CuiVars.mappedPlayers.get(2) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(2);
-        if(cuiKeyTap(map_player_3) && CuiVars.mappedPlayers.get(3) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(3);
-        if(cuiKeyTap(map_player_4) && CuiVars.mappedPlayers.get(4) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(4);
-        if(cuiKeyTap(map_player_5) && CuiVars.mappedPlayers.get(5) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(5);
-        if(cuiKeyTap(map_player_6) && CuiVars.mappedPlayers.get(6) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(6);
-        if(cuiKeyTap(map_player_7) && CuiVars.mappedPlayers.get(7) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(7);
-        if(cuiKeyTap(map_player_8) && CuiVars.mappedPlayers.get(8) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(8);
-        if(cuiKeyTap(map_player_9) && CuiVars.mappedPlayers.get(9) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(9);
+        if(Core.input.keyDown(map_player_1) && CuiVars.mappedPlayers.get(1) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(1);
+        if(Core.input.keyDown(map_player_2) && CuiVars.mappedPlayers.get(2) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(2);
+        if(Core.input.keyDown(map_player_3) && CuiVars.mappedPlayers.get(3) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(3);
+        if(Core.input.keyDown(map_player_4) && CuiVars.mappedPlayers.get(4) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(4);
+        if(Core.input.keyDown(map_player_5) && CuiVars.mappedPlayers.get(5) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(5);
+        if(Core.input.keyDown(map_player_6) && CuiVars.mappedPlayers.get(6) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(6);
+        if(Core.input.keyDown(map_player_7) && CuiVars.mappedPlayers.get(7) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(7);
+        if(Core.input.keyDown(map_player_8) && CuiVars.mappedPlayers.get(8) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(8);
+        if(Core.input.keyDown(map_player_9) && CuiVars.mappedPlayers.get(9) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(9);
 
-        if (scene.hasField()) return;
+        if (!settings.getBool("cui-trackwhileChatting") && scene.hasField()) return;
         tracking = false;
 
         float cameraFloat = 0.085F; //TODO:ALLOW THIS TO BE CHANGED
         if (!settings.getBool("smoothcamera")){ cameraFloat = 1;}
 
-        if(cuiKeyTap(spectate_next_player)) cyclePlayers(true);
-        if(cuiKeyTap(spectate_previous_player)) cyclePlayers(false);
-        if(cuiKeyTap(spectate_next_core)) cycleCore(true);
-        if(cuiKeyTap(spectate_previous_core)) cycleCore(false);
+        if(Core.input.keyTap(spectate_next_player)) cyclePlayers(true);
+        if(Core.input.keyTap(spectate_previous_player)) cyclePlayers(false);
+        if(Core.input.keyTap(spectate_next_core)) cycleCore(true);
+        if(Core.input.keyTap(spectate_previous_core)) cycleCore(false);
 
-        if (CuiVars.lastCoreDestroyEvent != null && cuiKeyDown(last_destroyed_core) && !tracking){
+        if (CuiVars.lastCoreDestroyEvent != null && Core.input.keyDown(last_destroyed_core) && !tracking){
             if(control.input instanceof DesktopInput input) input.panning = true;
             stopTracking();
 
@@ -122,19 +110,19 @@ public class CuiInputs {
         }
 
         if(state.isPlaying() && !tracking){
-            boolean move = CuiVars.rebindDialog.cuiKeyBinds.get(move_camera).key == KeyCode.unknown || cuiKeyDown(move_camera);
-            boolean save = CuiVars.rebindDialog.cuiKeyBinds.get(save_camera).key != null && cuiKeyDown(save_camera);
+            boolean move = isUnSet(move_camera)|| Core.input.keyDown(move_camera);
+            boolean save = isUnSet(save_camera) && Core.input.keyDown(save_camera);
             if(move){
-                if(cuiKeyTap(map_camera_1)) handSavedCams(1, save);
-                else if(cuiKeyTap(map_camera_2)) handSavedCams(2, save);
-                else if(cuiKeyTap(map_camera_3)) handSavedCams(3, save);
-                else if(cuiKeyTap(map_camera_4)) handSavedCams(4, save);
-                else if(cuiKeyTap(map_camera_5)) handSavedCams(5, save);
-                else if(cuiKeyTap(map_camera_6)) handSavedCams(6, save);
-                else if(cuiKeyTap(map_camera_7)) handSavedCams(7, save);
-                else if(cuiKeyTap(map_camera_8)) handSavedCams(8, save);
-                else if(cuiKeyTap(map_camera_9)) handSavedCams(9, save);
-                else if(cuiKeyTap(map_camera_10)) handSavedCams(10, save);
+                if(Core.input.keyDown(map_camera_1)) handSavedCams(1, save);
+                else if(Core.input.keyDown(map_camera_2)) handSavedCams(2, save);
+                else if(Core.input.keyDown(map_camera_3)) handSavedCams(3, save);
+                else if(Core.input.keyDown(map_camera_4)) handSavedCams(4, save);
+                else if(Core.input.keyDown(map_camera_5)) handSavedCams(5, save);
+                else if(Core.input.keyDown(map_camera_6)) handSavedCams(6, save);
+                else if(Core.input.keyDown(map_camera_7)) handSavedCams(7, save);
+                else if(Core.input.keyDown(map_camera_8)) handSavedCams(8, save);
+                else if(Core.input.keyDown(map_camera_9)) handSavedCams(9, save);
+                else if(Core.input.keyDown(map_camera_10)) handSavedCams(10, save);
             }
 
 
@@ -153,8 +141,8 @@ public class CuiInputs {
             //workaround for when in multiplayer, sometimes respawning puts you in 0,0 during the animation before moving your unit
             if (CuiVars.clickedPlayer != null && (CuiVars.clickedPlayer.unit() == null || CuiVars.clickedPlayer.unit().x == 0 && CuiVars.clickedPlayer.unit().y == 0) && CuiVars.clickedPlayer.team().data().hasCore()) trackingType = 3;
             if (CuiVars.clickedPlayer != null && CuiVars.clickedPlayer.unit() != null && (CuiVars.clickedPlayer.unit().x != 0 && CuiVars.clickedPlayer.unit().y != 0)) trackingType = 1;
-            if (cuiKeyDown(track_cursor) && settings.getBool("cui-playerHoldTrackMouse")) trackingType = 2;
-            if (cuiKeyTap(track_cursor) && !settings.getBool("cui-playerHoldTrackMouse")) keepMouseTracking = !keepMouseTracking;
+            if (Core.input.keyDown(track_cursor) && settings.getBool("cui-playerHoldTrackMouse")) trackingType = 2;
+            if (Core.input.keyDown(track_cursor) && !settings.getBool("cui-playerHoldTrackMouse")) keepMouseTracking = !keepMouseTracking;
             if (keepMouseTracking && !settings.getBool("cui-playerHoldTrackMouse")) trackingType = 2;
             if (!keepMouseTracking && !settings.getBool("cui-playerHoldTrackMouse") && CuiVars.clickedPlayer.unit() != null) trackingType = 1;
             if (!keepMouseTracking && !settings.getBool("cui-playerHoldTrackMouse") && CuiVars.clickedPlayer.unit() == null) trackingType = 3;
@@ -242,21 +230,13 @@ public class CuiInputs {
     }
 
     public void startTracking(){
-        if((Math.abs(input.axis(Binding.move_x)) > 0 || Math.abs(input.axis(Binding.move_y)) > 0 || input.keyTap(Binding.mouse_move) || input.keyTap(Binding.pan)) && (!scene.hasField())){
+        boolean focus = settings.getBool("cui-trackOnLostFocus") ,feild = settings.getBool("cui-trackwhileChatting") && !scene.hasField();
+        if((Math.abs(Core.input.axis(Binding.moveX)) > 0 || Math.abs(input.axis(Binding.moveY)) > 0 || input.keyTap(Binding.mouseMove) || input.keyTap(Binding.pan)) && (focus)){
             stopTracking();
             return;
         }
 
         if(control.input instanceof DesktopInput input) input.panning = true;
     }
-
-    public boolean cuiKeyTap(KeyBind key){
-        return CuiVars.rebindDialog.cuiKeyBinds.get(key).key != null && input.keyTap(CuiVars.rebindDialog.cuiKeyBinds.get(key).key);
-    }
-
-    public boolean cuiKeyDown(KeyBind key){
-        return CuiVars.rebindDialog.cuiKeyBinds.get(key).key != null && input.keyDown(CuiVars.rebindDialog.cuiKeyBinds.get(key).key);
-    }
-
-
+    
 }
