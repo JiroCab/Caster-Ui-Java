@@ -1,39 +1,33 @@
 package casterui;
 
-import arc.Core;
-import arc.Graphics;
-import arc.graphics.Pixmap;
-import arc.graphics.Pixmaps;
+import arc.*;
+import arc.graphics.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
-import arc.struct.*;
 import arc.util.*;
-import casterui.io.CuiInputs;
-import casterui.io.ui.CuiFragment;
-import casterui.io.ui.CuiWorldRenderer;
+import casterui.io.*;
+import casterui.io.ui.*;
 import casterui.io.ui.dialog.*;
 import casterui.util.*;
-import mindustry.Vars;
+import mindustry.*;
 import mindustry.game.*;
-import mindustry.gen.Player;
-import mindustry.gen.Unit;
-import mindustry.mod.Mods;
-import mindustry.ui.Fonts;
-import mindustry.world.Tile;
-import mindustry.world.blocks.storage.CoreBlock;
+import mindustry.gen.*;
+import mindustry.mod.*;
+import mindustry.ui.*;
+import mindustry.world.*;
+import mindustry.world.blocks.storage.*;
 
-import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Map;
+import java.text.*;
+import java.util.*;
 
 import static arc.Core.settings;
+import static casterui.io.CuiBinding.toggle_cui_kill_switch;
 
 public class CuiVars {
     public static CuiWorldRenderer renderer = new CuiWorldRenderer();
     public static CuiFragment fragment = new CuiFragment();
     public static CuiInputs inputs = new CuiInputs();
     public static CuiTeamMangerDialog teamManger = new CuiTeamMangerDialog();
-    public static CuiRebindDialog rebindDialog = new CuiRebindDialog();
     public static CuiUpdateChecker updateChecker = new CuiUpdateChecker();
 
     public static boolean initialized = false, globalHidden = true, fastUpdate = false, drawRally = false, globalShow = true, animateCats = Core.settings.getBool("cui-animateSettings");
@@ -57,10 +51,10 @@ public class CuiVars {
     public static Table updateCheckTable = new Table();
 
     public static void init(){
+        CuiBinding.init();
         updateChecker.run();
         CuiSettingsDialog.buildCategory();
         renderer.worldRenderer();
-        rebindDialog.load();
         if(Core.settings.getBool("cui-minimalCursor")) overrideCursors();
         animateCats = Core.settings.getBool("cui-animateSettings");
         updateHiddenTeams();
@@ -85,6 +79,7 @@ public class CuiVars {
 
     public static void update(){
         globalShow = !Core.settings.getBool("cui-killswitch");
+        if(Core.input.keyTap(toggle_cui_kill_switch) && (globalShow || settings.getBool("cui-killswitchEnables"))) settings.put("cui-killswitch", !settings.getBool("cui-killswitch")); //haha this will be one way but lulz
         if (!globalShow) return;
         inputs.update();
         fragment.UpdateTables();

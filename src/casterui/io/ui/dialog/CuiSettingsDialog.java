@@ -2,15 +2,11 @@ package casterui.io.ui.dialog;
 
 import arc.*;
 import arc.graphics.*;
-import arc.math.*;
-import arc.scene.actions.*;
 import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.struct.*;
 import arc.util.*;
 import casterui.*;
-import casterui.util.*;
-import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
@@ -89,6 +85,8 @@ public class CuiSettingsDialog {
                 subTable.pref(new CollapserSetting("cui-offset-div", 6));
                 subTable.pref(new CollapserSetting("cui-playerCycle-more", 11));
                 subTable.checkPref("cui-cyclePlayersIgnoreNoCore", true);
+                subTable.checkPref("cui-trackOnLostFocus", true);
+                subTable.checkPref("cui-trackwhileChatting", false);
 
                 t.add(subTable);
                 allCuiOptions.addAll(subTable);
@@ -284,7 +282,14 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-minimalCursor", false);
 
                 allCuiOptions.add(subTable);
-                t.button(bundle.get("keybind.title"), Icon.move,() -> CuiVars.rebindDialog.show()).tooltip(bundle.get("cui-hiddenInfo")).center().width(400f).top().row();
+                t.button(bundle.get("keybind.title"), Icon.move,() ->{
+                    ui.controls.show();
+                    //This is prob bad but oh well
+                    TextField search = ui.controls.cont.find(ff -> ff instanceof  TextField);
+                    search.setText("ui");
+                    scene.setKeyboardFocus(search);
+                    scene.keyTyped('c');
+                }).tooltip(bundle.get("cui-hiddenInfo")).center().width(400f).top().row();
                 t.add(subTable);
             }, CuiVars.animateCats , () ->inputs[0]).growX().row();
         }
@@ -301,6 +306,7 @@ public class CuiSettingsDialog {
                 subTable.sliderPref("cui-unitsPlayerTableUpdateRate", 10, 1, 100, String::valueOf);
                 subTable.sliderPref("cui-TeamItemsUpdateRate", 2, 1, 3, s -> s == 1 ? "Fast" :  s == 2 ? "Normal" : "Slow");
                 subTable.checkPref("cui-animateSettings", true);
+                subTable.checkPref("cui-killswitchEnables", false);
 
                 allCuiOptions.add(subTable);
                 t.button("@cui-rebuild", Icon.export, () -> {

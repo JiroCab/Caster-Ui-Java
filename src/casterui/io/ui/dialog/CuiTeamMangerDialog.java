@@ -83,7 +83,7 @@ public class CuiTeamMangerDialog extends BaseDialog {
 
             header.label(() -> lastTeam != null && lastPlayer != null ? Core.bundle.format( "cui-team-manger.last", lastPlayer.name, lastTeam)  : "@cui-team-manger.no-last").left().pad(15f);
             header.label(() -> Core.bundle.format("cui-team-manger.info", selectedPlayer.name(), selectedTeam.name.equals("") ? "[#" + selectedTeam.color + "]" + selectedPlayer.id + "[]" : "[white]" + selectedTeam.localized() + selectedTeam.emoji )).right().pad(15f);
-        } else header.label( () -> Core.bundle.format("cui-team-manger.tip", (selectedTeam != null ?  selectedPlayer.name() :  Vars.player.name), CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.spectate_next_player).key, CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.spectate_previous_player).key));
+        } else header.label( () -> Core.bundle.format("cui-team-manger.tip", (selectedTeam != null ?  selectedPlayer.name() :  Vars.player.name), CuiBinding.spectate_next_player.value.key, CuiBinding.spectate_previous_player.value.key));
         teamTable.row();
 
 
@@ -124,16 +124,16 @@ public class CuiTeamMangerDialog extends BaseDialog {
 
     public void mapListener(Runnable callback){
         keyDown(key -> {
-            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_1).key) mapPlayer( selectedPlayer,  1);
-            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_2).key) mapPlayer( selectedPlayer,  2);
-            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_3).key) mapPlayer( selectedPlayer,  3);
-            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_4).key) mapPlayer( selectedPlayer,  4);
-            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_5).key) mapPlayer( selectedPlayer,  5);
-            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_6).key) mapPlayer( selectedPlayer,  6);
-            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_7).key) mapPlayer( selectedPlayer,  7);
-            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_8).key) mapPlayer( selectedPlayer,  8);
-            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_9).key) mapPlayer( selectedPlayer,  9);
-            if(key == CuiVars.rebindDialog.cuiKeyBinds.get(CuiBinding.map_player_10).key) mapPlayer( selectedPlayer,  9);
+            if(key == CuiBinding.map_player_1.value.key) mapPlayer( selectedPlayer,  1);
+            if(key == CuiBinding.map_player_2.value.key) mapPlayer( selectedPlayer,  2);
+            if(key == CuiBinding.map_player_3.value.key) mapPlayer( selectedPlayer,  3);
+            if(key == CuiBinding.map_player_4.value.key) mapPlayer( selectedPlayer,  4);
+            if(key == CuiBinding.map_player_5.value.key) mapPlayer( selectedPlayer,  5);
+            if(key == CuiBinding.map_player_6.value.key) mapPlayer( selectedPlayer,  6);
+            if(key == CuiBinding.map_player_7.value.key) mapPlayer( selectedPlayer,  7);
+            if(key == CuiBinding.map_player_8.value.key) mapPlayer( selectedPlayer,  8);
+            if(key == CuiBinding.map_player_9.value.key) mapPlayer( selectedPlayer,  9);
+            if(key == CuiBinding.map_player_10.value.key) mapPlayer( selectedPlayer,  9);
 
             callback.run();
         });

@@ -1,9 +1,9 @@
 package casterui;
 
-import arc.Events;
-import arc.util.Log;
-import mindustry.game.EventType;
-import mindustry.mod.Mod;
+import arc.*;
+import arc.util.*;
+import mindustry.game.*;
+import mindustry.mod.*;
 
 public class CuiMain extends Mod {
 
