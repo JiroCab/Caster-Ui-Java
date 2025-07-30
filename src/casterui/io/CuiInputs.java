@@ -152,6 +152,7 @@ public class CuiInputs {
             if (keepMouseTracking && !settings.getBool("cui-playerHoldTrackMouse")) trackingType = 2;
             if (!keepMouseTracking && !settings.getBool("cui-playerHoldTrackMouse") && CuiVars.clickedPlayer.unit() != null) trackingType = 1;
             if (!keepMouseTracking && !settings.getBool("cui-playerHoldTrackMouse") && CuiVars.clickedPlayer.unit() == null) trackingType = 3;
+            if(trackingType == 3 && (CuiVars.clickedPlayer == null ||CuiVars.clickedPlayer.bestCore() == null)) trackingType = 4;
 
             /* so many if statements, enjoy >;3c */
             switch (trackingType) {
