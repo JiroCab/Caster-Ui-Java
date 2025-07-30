@@ -242,7 +242,8 @@ public class CuiInputs {
             focus = settings.getBool("cui-trackOnLostFocus") ,
             feild = !settings.getBool("cui-trackwhileChatting") && scene.hasField(),
             mmPan = ui.minimapfrag.shown() && input.keyTap(KeyCode.mouseRight),
-            move =  Math.abs(input.axis(Binding.move_x)) > 0 || Math.abs(input.axis(Binding.move_y)) > 0  || input.justTouched(),
+            //input.justTouched() crashes mobile!
+            move =  Math.abs(input.axis(Binding.move_x)) > 0 || Math.abs(input.axis(Binding.move_y)) > 0,
             cam = input.keyTap(Binding.mouse_move) || input.keyTap(Binding.pan);
         ;
 
