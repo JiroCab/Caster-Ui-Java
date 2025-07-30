@@ -28,13 +28,22 @@ public class CuiUpdateChecker{
                 return;
             }
 
-            Jval release = releases.get(0);
+            String prefix = "v7-";
             String modVersion = mod.meta.version;
             modVersion = (modVersion.contains(".") ? modVersion : modVersion + ".0");
-            CuiVars.nextVersion = Strings.parseFloat(release.getString("tag_name").replace("v", ""));
+
+            releases.retainAll(r -> r.getString("tag_name").startsWith(prefix));
+            if(releases.isEmpty()){
+                Log.info("Cui is up to date! ^w^ (c:" + modVersion + " r: n/a | " + prefix + ")");
+                return;
+            }
+            Jval release =  releases.get(0);
+
+            String nextVersion= release.getString("tag_name").replace(prefix, "");
+            CuiVars.nextVersion = Strings.parseFloat(nextVersion);
 
             if(Strings.parseFloat(modVersion) >= CuiVars.nextVersion){
-                Log.info("Cui is up to date! ^w^ (c" + modVersion + " r" + Strings.parseFloat(release.getString("tag_name").replace("v", "")) + ")");
+                Log.info("Cui is up to date! ^w^ (c:" + modVersion + " r:" + nextVersion+ " | " + prefix + ")");
                 return;
             }
             out = true;

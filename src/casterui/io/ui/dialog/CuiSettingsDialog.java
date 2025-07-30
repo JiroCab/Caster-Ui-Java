@@ -2,15 +2,11 @@ package casterui.io.ui.dialog;
 
 import arc.*;
 import arc.graphics.*;
-import arc.math.*;
-import arc.scene.actions.*;
 import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.struct.*;
 import arc.util.*;
 import casterui.*;
-import casterui.util.*;
-import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
@@ -85,6 +81,11 @@ public class CuiSettingsDialog {
                 subTable.sliderPref("cui-playerTrackedAlpha", 10, 0, 10, s -> s > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
                 subTable.sliderPref("cui-playerIconSize", 35, 1, 100, String::valueOf);
                 subTable.checkPref("cui-useCycleFilter", true);
+
+                subTable.pref(new CollapserSetting("cui-offset-div", 6));
+                subTable.checkPref("cui-trackwhileChatting", true);
+                subTable.checkPref("cui-trackwhileMap", true);
+                subTable.checkPref("cui-trackwhileDialog", true);
 
                 subTable.pref(new CollapserSetting("cui-offset-div", 6));
                 subTable.pref(new CollapserSetting("cui-playerCycle-more", 11));
@@ -301,6 +302,7 @@ public class CuiSettingsDialog {
                 subTable.sliderPref("cui-unitsPlayerTableUpdateRate", 10, 1, 100, String::valueOf);
                 subTable.sliderPref("cui-TeamItemsUpdateRate", 2, 1, 3, s -> s == 1 ? "Fast" :  s == 2 ? "Normal" : "Slow");
                 subTable.checkPref("cui-animateSettings", true);
+                subTable.checkPref("cui-killswitchEnables", false);
 
                 allCuiOptions.add(subTable);
                 t.button("@cui-rebuild", Icon.export, () -> {
@@ -325,6 +327,7 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-domination-raw", false);
                 subTable.checkPref("cui-domination-core", false);
                 subTable.checkPref("cui-domination-percent", false);
+                subTable.checkPref("cui-domination-graph", false);
 
                 subTable.pref(new CollapserSetting("cui-offset-div", 6));
 
@@ -338,6 +341,7 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-domination-units", false);
                 subTable.checkPref("cui-domination-effect", false);
                 subTable.checkPref("cui-domination-logic", false);
+
 
                 allCuiOptions.add(subTable);
                 t.add(subTable).row();

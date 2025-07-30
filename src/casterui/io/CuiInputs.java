@@ -1,24 +1,13 @@
 package casterui.io;
 
-import arc.Core;
-import arc.KeyBinds;
 import arc.KeyBinds.*;
-import arc.func.*;
-import arc.input.KeyCode;
+import arc.input.*;
 import arc.math.geom.*;
-import arc.scene.*;
-import arc.scene.event.*;
-import arc.struct.Seq;
-import arc.util.*;
-import casterui.CuiVars;
-import mindustry.Vars;
-import mindustry.game.Teams;
+import arc.struct.*;
+import casterui.*;
 import mindustry.game.Teams.*;
 import mindustry.gen.*;
-import mindustry.input.Binding;
-import mindustry.input.DesktopInput;
-import mindustry.world.Build;
-import mindustry.world.blocks.storage.CoreBlock;
+import mindustry.input.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
 
 import static arc.Core.*;
@@ -34,11 +23,12 @@ public class CuiInputs {
     public Vec2 out = new Vec2() ;
 
     public void update(){
-        if (settings.getBool("cui-respectCommandMode") && control.input.commandMode) return;
-        if (settings.getBool("cui-respectTyping") && (ui.chatfrag.shown() || scene.getKeyboardFocus() != null) || ui.consolefrag.shown())return;
-        if (settings.getBool("cui-respectLockInputs") && control.input.locked())return;
-        if(settings.getBool("cui-respectDialog") && scene.hasDialog()) return;
         if (state.isMenu()) return;
+        updateTracking();
+        if (settings.getBool("cui-respectLockInputs") && control.input.locked())return;
+        if (settings.getBool("cui-respectCommandMode") && control.input.commandMode) return;
+        if(settings.getBool("cui-respectDialog") && scene.hasDialog()) return;
+        if (settings.getBool("cui-respectTyping") && (ui.chatfrag.shown() || scene.getKeyboardFocus() != null) || ui.consolefrag.shown())return;
 
         if(cuiKeyTap(toggle_cui_menu) && !settings.getBool("cui-hideWithMenus")) CuiVars.globalHidden = !CuiVars.globalHidden;
         else if(settings.getBool("cui-hideWithMenus")) CuiVars.globalHidden = ui.hudfrag.shown;
@@ -96,16 +86,20 @@ public class CuiInputs {
         if(cuiKeyTap(map_player_9) && CuiVars.mappedPlayers.get(9) != null) CuiVars.clickedPlayer = CuiVars.mappedPlayers.get(9);
 
         if (scene.hasField()) return;
-        tracking = false;
-
-        float cameraFloat = 0.085F; //TODO:ALLOW THIS TO BE CHANGED
-        if (!settings.getBool("smoothcamera")){ cameraFloat = 1;}
-
         if(cuiKeyTap(spectate_next_player)) cyclePlayers(true);
         if(cuiKeyTap(spectate_previous_player)) cyclePlayers(false);
         if(cuiKeyTap(spectate_next_core)) cycleCore(true);
         if(cuiKeyTap(spectate_previous_core)) cycleCore(false);
+    }
 
+    public void updateTracking(){
+        if(!settings.getBool("cui-trackwhileChatting") &&((ui.chatfrag.shown() || scene.getKeyboardFocus() != null) || ui.consolefrag.shown())) return;
+        if(!settings.getBool("cui-trackwhileMap") && ui.minimapfrag.shown()) return;
+        if(!settings.getBool("cui-trackwhileDialog") && (!ui.minimapfrag.shown() && scene.hasDialog())) return;
+        tracking = false;
+
+        float cameraFloat = 0.085F; //TODO:ALLOW THIS TO BE CHANGED
+        if (!settings.getBool("smoothcamera")){ cameraFloat = 1;}
         if (CuiVars.lastCoreDestroyEvent != null && cuiKeyDown(last_destroyed_core) && !tracking){
             if(control.input instanceof DesktopInput input) input.panning = true;
             stopTracking();
@@ -148,7 +142,7 @@ public class CuiInputs {
 
         if (CuiVars.clickedPlayer != null && CuiVars.clickedPlayer.unit() != null && state.isPlaying() && !tracking){
             startTracking();
-            trackingType = 4;
+            trackingType = 3;
 
             //workaround for when in multiplayer, sometimes respawning puts you in 0,0 during the animation before moving your unit
             if (CuiVars.clickedPlayer != null && (CuiVars.clickedPlayer.unit() == null || CuiVars.clickedPlayer.unit().x == 0 && CuiVars.clickedPlayer.unit().y == 0) && CuiVars.clickedPlayer.team().data().hasCore()) trackingType = 3;
@@ -158,6 +152,7 @@ public class CuiInputs {
             if (keepMouseTracking && !settings.getBool("cui-playerHoldTrackMouse")) trackingType = 2;
             if (!keepMouseTracking && !settings.getBool("cui-playerHoldTrackMouse") && CuiVars.clickedPlayer.unit() != null) trackingType = 1;
             if (!keepMouseTracking && !settings.getBool("cui-playerHoldTrackMouse") && CuiVars.clickedPlayer.unit() == null) trackingType = 3;
+            if(trackingType == 3 && (CuiVars.clickedPlayer == null ||CuiVars.clickedPlayer.bestCore() == null)) trackingType = 4;
 
             /* so many if statements, enjoy >;3c */
             switch (trackingType) {
@@ -180,9 +175,8 @@ public class CuiInputs {
             }
 
         }
-
-
     }
+
     void handSavedCams(int num, boolean save){
         if(save) CuiVars.savedCameras[num] = new Vec2(player.mouseX(), player.mouseY());
         else if(CuiVars.savedCameras[num] != null && !CuiVars.savedCameras[num].isZero()) out.set(CuiVars.savedCameras[num]);
@@ -191,8 +185,11 @@ public class CuiInputs {
 
     void cyclePlayers(boolean increment){
         ply.clear();
+        boolean core = settings.getBool("cui-cyclePlayersIgnoreNoCore.name"), nu = settings.getBool("cui-hideNoUnitPlayers");
         for (Player p : Groups.player) {
-            if (settings.getBool("cui-hideNoUnitPlayers") && (p.unit() == null && !p.team().data().hasCore())) continue;
+            if(CuiVars.hiddenCycleTeam[p.team().id]) continue;
+            if(!core && p.team().cores().size <= 0) continue;
+            if (nu && (p.unit() == null && !p.team().data().hasCore())) continue;
             if (p != player) ply.add(p);
         }
         ply.remove(player);
@@ -242,7 +239,16 @@ public class CuiInputs {
     }
 
     public void startTracking(){
-        if((Math.abs(input.axis(Binding.move_x)) > 0 || Math.abs(input.axis(Binding.move_y)) > 0 || input.keyTap(Binding.mouse_move) || input.keyTap(Binding.pan)) && (!scene.hasField())){
+        boolean
+            focus = settings.getBool("cui-trackOnLostFocus") ,
+            feild = !settings.getBool("cui-trackwhileChatting") && scene.hasField(),
+            mmPan = ui.minimapfrag.shown() && input.keyTap(KeyCode.mouseRight),
+            //input.justTouched() crashes mobile!
+            move =  Math.abs(input.axis(Binding.move_x)) > 0 || Math.abs(input.axis(Binding.move_y)) > 0,
+            cam = input.keyTap(Binding.mouse_move) || input.keyTap(Binding.pan);
+        ;
+
+        if(move || cam || mmPan || feild){
             stopTracking();
             return;
         }

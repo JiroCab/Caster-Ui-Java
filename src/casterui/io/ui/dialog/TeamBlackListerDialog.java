@@ -6,26 +6,19 @@ import arc.math.*;
 import arc.scene.actions.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
-import arc.scene.ui.Label.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.*;
-import casterui.*;
 import mindustry.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.io.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
-import java.io.*;
-import java.util.*;
-
 import static arc.Core.bundle;
 import static casterui.CuiVars.*;
-import static mindustry.Vars.*;
+import static mindustry.Vars.ui;
 
 public class TeamBlackListerDialog extends BaseDialog{
     public Cell<ScrollPane> selectedPane, unselectedPane;
@@ -150,24 +143,7 @@ public class TeamBlackListerDialog extends BaseDialog{
         Table but = new Table(), but1 = new Table();
 
         but1.button("@back", Icon.left, this::hide).size(170f, 64f).tooltip("@cui-domination.tip");
-        but1.button("@defaults", Icon.exit, () -> {
-            hiddenTeamList[write] = new boolean[Team.all.length];
-            hiddenTeamList[write][0] = true;
-            setup();
-
-        }).size(170, 64f);
-        but1.button(Icon.export, this::exportOptions).size(60, 64f);
-        
-        but.button("@clear", Icon.trash, () -> {
-            hiddenTeamList[write] = new boolean[Team.all.length];
-            setup();
-        }).size(120, 64f);
-
-        but.button("@waves.spawn.all", Icon.move, () -> {
-            hiddenTeamList[write] = new boolean[Team.all.length];
-            for(int i = 0; i < Team.all.length; i++) hiddenTeamList[write][i] = true;
-            setup();
-        }).size(120, 64f);
+        but1.button("@waves.edit", Icon.export, this::exportOptions).size(150, 64f);
         sortTxt = Core.bundle.get("cui-teams-sort." + sort);
         but.button(Core.bundle.get("cui-teams-sort.base") + sortTxt, () -> {
             sort++;
@@ -200,6 +176,24 @@ public class TeamBlackListerDialog extends BaseDialog{
                 dialog.hide();
             }).disabled(Core.app.getClipboardText() == null || !Core.app.getClipboardText().startsWith("[")).marginLeft(12f).row();
 
+            t.button("@clear", Icon.trash, style, () -> {
+                hiddenTeamList[write] = new boolean[Team.all.length];
+                setup();
+                dialog.hide();
+            }).marginLeft(12f).row();
+
+            t.button("@waves.spawn.all", Icon.move, style, () -> {
+                hiddenTeamList[write] = new boolean[Team.all.length];
+                for(int i = 0; i < Team.all.length; i++) hiddenTeamList[write][i] = true;
+                setup();
+                dialog.hide();
+            }).marginLeft(12f).row();
+            t.button("@defaults", Icon.exit, style, () -> {
+                hiddenTeamList[write] = new boolean[Team.all.length];
+                hiddenTeamList[write][0] = true;
+                setup();
+                dialog.hide();
+            }).marginLeft(12f).row();
         });
 
         dialog.show();

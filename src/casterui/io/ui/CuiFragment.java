@@ -1,36 +1,38 @@
 package casterui.io.ui;
 
-import arc.Core;
-import arc.graphics.Color;
+import arc.*;
+import arc.graphics.*;
 import arc.graphics.g2d.*;
-import arc.math.Mathf;
-import arc.math.geom.Vec2;
-import arc.scene.Group;
-import arc.scene.style.Drawable;
-import arc.scene.ui.Image;
-import arc.scene.ui.Label;
-import arc.scene.ui.layout.Table;
-import arc.struct.Seq;
+import arc.math.*;
+import arc.math.geom.*;
+import arc.scene.*;
+import arc.scene.style.*;
+import arc.scene.ui.*;
+import arc.scene.ui.layout.*;
+import arc.struct.*;
 import arc.util.*;
-import casterui.CuiVars;
-import casterui.io.ui.dialog.CuiSettingsDialog;
-import mindustry.Vars;
-import mindustry.core.UI;
-import mindustry.game.Team;
-import mindustry.game.Teams;
+import casterui.io.ui.dialog.*;
+import mindustry.*;
+import mindustry.core.*;
+import mindustry.ctype.*;
+import mindustry.game.*;
+import mindustry.game.Teams.*;
 import mindustry.gen.*;
-import mindustry.logic.LAccess;
-import mindustry.type.Category;
-import mindustry.type.UnitType;
-import mindustry.ui.Styles;
-import mindustry.world.Tile;
-import mindustry.world.blocks.defense.turrets.Turret;
+import mindustry.graphics.*;
+import mindustry.logic.*;
+import mindustry.type.*;
+import mindustry.ui.*;
+import mindustry.world.*;
+import mindustry.world.blocks.defense.turrets.*;
+import mindustry.world.blocks.heat.HeatConductor.*;
 import mindustry.world.blocks.power.*;
-import mindustry.world.blocks.units.UnitFactory;
+import mindustry.world.blocks.units.*;
+import mindustry.world.meta.*;
 
-import java.text.DecimalFormat;
+import java.text.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map.*;
+import java.util.concurrent.atomic.*;
 
 import static arc.Core.settings;
 import static casterui.CuiVars.*;
@@ -58,7 +60,7 @@ public class CuiFragment {
     Seq<Integer> alignSides = Seq.with(Align.bottom, Align.bottomLeft, Align.bottomRight, Align.top, Align.topLeft, Align.topRight, Align.center, Align.left, Align.right);
     public int[][] blockCats = new int[Team.all.length][Category.all.length + 4];
     public int worldBlocks;
-    public String[] dominationIconList = {Iconc.host + "", Iconc.turret + "", Iconc.production + "", Iconc.distribution + "", Iconc.liquid + "", Iconc.power + "", Iconc.defense + "", Iconc.crafting + "", Iconc.units + "", Iconc.effect + "", Iconc.logic + "", Iconc.home + "",Iconc.map + "", Iconc.list + ""};
+    public String[] dominationIconList = {Iconc.host + "", Iconc.turret + "", Iconc.production + "", Iconc.distribution + "", Iconc.liquid + "", Iconc.power + "", Iconc.defense + "", Iconc.crafting + "", Iconc.units + "", Iconc.effect + "", Iconc.logic + "", Iconc.home + "",Iconc.map + "", Iconc.list + "", Iconc.statusElectrified + ""};
 
 
     public void BuildTables(Group parent){
@@ -153,7 +155,7 @@ public class CuiFragment {
                     int style = settings.getInt("cui-unitsPlayerTableStyle"), tabSize = settings.getInt("cui-unitsPlayerTableSize");
                     if(countersTotals){
                         int total = 0;
-                        for (Map.Entry<Short, Integer> entry : teamUnits.entrySet()) total += entry.getValue();
+                        for (Entry<Short, Integer> entry : teamUnits.entrySet()) total += entry.getValue();
 
                         if(total > 0){
                             makeIcon(style, total, team, Icon.units.getRegion(), "@wavemode.counts", true);
@@ -162,7 +164,7 @@ public class CuiFragment {
                         }
 
                     }
-                    for (Map.Entry<Short, Integer> entry : teamUnits.entrySet()) {
+                    for (Entry<Short, Integer> entry : teamUnits.entrySet()) {
                         Short u = entry.getKey();
                         Integer i = entry.getValue();
                         UnitType unit = Vars.content.unit(u);
@@ -198,7 +200,7 @@ public class CuiFragment {
 
                 playersTable.add(new Image(playerIcon).setScaling(Scaling.bounded)).size(playerIconSize).left().with( w -> w.tapped( () -> setTrackPlayer(player)));
 
-                if (!Core.settings.getBool("cui-playerTableSummarizePlayers")) {
+                if (!settings.getBool("cui-playerTableSummarizePlayers")) {
                     Label playerName = new Label(() -> player.name);
                     playerName.tapped( () -> setTrackPlayer(player));
                     playersTable.add(playerName);
@@ -301,8 +303,10 @@ public class CuiFragment {
 
                     String sign = power > 0 ? "[stat]+" : "[red]";
 
-                    blockTable.label(() -> Core.bundle.get("cui-block-info.power") + ": "+  sign + decFor.format(power)).row();
-                    if(mouseBuilding.block instanceof Battery || mouseBuilding.block instanceof PowerNode || mouseBuilding.block instanceof BeamNode) blockTable.label(() -> "[stat]"+ Math.round(mouseBuilding.sense(LAccess.powerNetStored))+ "[white]/[accent]" + Math.round(mouseBuilding.sense(LAccess.powerNetCapacity)));
+                    blockTable.label(() -> Iconc.power + ": "+  sign + formatAmount(power)).row();
+                    if(mouseBuilding.block instanceof Battery || mouseBuilding.block instanceof PowerNode || mouseBuilding.block instanceof BeamNode) {
+                        blockTable.label(() -> "[stat]" +formatAmount(graphs.getBatteryStored(), 0) + "/" + formatAmount(graphs.getTotalBatteryCapacity(), 0));
+                    }
                 }
                 if (mouseBuilding.items != null && mouseBuilding.items.total() > 0) blockTable.add(blockItemTable).row();
                 if (mouseBuilding.liquids != null) blockTable.add(blockLiquidTable).row();
@@ -321,10 +325,20 @@ public class CuiFragment {
                     }
                 }
                 if(mouseBuilding.block instanceof Turret)blockTable.label(() -> "[accent]"+  decFor.format(mouseBuilding.sense(LAccess.ammo)) + "[white]/[orange]"+ ((Turret) mouseBuilding.block).maxAmmo).row();
-                if(settings.getBool("cui-ShowBlockHealth") && mouseBuilding.lastAccessed != null){
-                    blockTable.table(a-> a.label(() -> mouseBuilding.lastAccessed).pad(1f));
+                if(mouseBuilding.getPayload() != null){
+                    @Nullable UnlockableContent uc = mouseBuilding.getPayload().content();
+                    if(uc != null){
+                        blockTable.table(a-> a.image(() -> uc.fullIcon).tooltip(uc.localizedName).size(iconSizes).pad(1f).row()).row();
+                    }
                 }
-                //TODO: heat, block constructors, Payload
+                if(mouseBuilding instanceof HeatConductorBuild hb){
+                    if(hb.heat >= 1) blockTable.table(a -> a.label(() -> StatUnit.heatUnits.icon + decFor.format(hb.heat)).pad(1f)).row();
+                }
+
+                if(settings.getBool("cui-BlockInfoLastPlayer") && mouseBuilding.lastAccessed != null){
+                    blockTable.table(a-> a.label(() -> mouseBuilding.lastAccessed).pad(1f)).row();
+                }
+
 
             }
         }
@@ -351,7 +365,7 @@ public class CuiFragment {
         if (settings.getBool("cui-ShowTeamItems")) {
             int teamItemsMax = settings.getInt("cui-TeamItemsRow");
 
-            for (Teams.TeamData team : Vars.state.teams.active) {
+            for (TeamData team : Vars.state.teams.active) {
                 if (team.core() == null) continue;
                 if(hiddenTeamsItems[team.team.id]) continue;
                 Table sub = colouredTable(team.team.color, team.team.color.a * (settings.getInt("cui-TeamItemsAlpha") * 0.1f));
@@ -372,7 +386,7 @@ public class CuiFragment {
 
     public void buildDominationTable(){
         dominationTable.clear();
-        CuiVars.updateSettings(false); // array only setting update on each rebuild
+        updateSettings(false); // array only setting update on each rebuild
 
         int trans = settings.getInt("cui-domination-trans");
 
@@ -400,6 +414,20 @@ public class CuiFragment {
         dominationTable.add(iconTab).grow();
         if(dominationVertical)dominationTable.row();
 
+
+        HashMap<Integer, PowerGraph> pgo = new HashMap<>();
+        Seq<PowerGraphUpdaterc> pgs = Groups.powerGraph.copy();
+        pgs.sort(p -> Math.round(p.graph().getPowerBalance() * 60f)).reverse();
+
+
+        for(PowerGraphUpdaterc pg : pgs){
+            if(!pgo.containsKey(pg.graph().all.peek().team.id)){
+                pgo.put(pg.graph().all.peek().team.id, pg.graph());
+            }
+        }
+
+        pgs.sort(p -> Math.round(p.graph().getPowerBalance()));
+
         for (int t = 0; t < (Team.all.length); t++) {
             if(blockCats[t][0] == 0) continue;
             Table tab = dominationColoured ? colouredTable(Team.get(t).color, trans * 0.1f) : new Table();
@@ -424,19 +452,36 @@ public class CuiFragment {
                 //if(!dominationSettings[i]) continue;
                 if(!dominationVertical) tab.row();
 
-                String cnt = blockCats[t][i] + "";
+                if(i == 14){
+                    @Nullable PowerGraph graph = pgo.get(t);
+                    Bar pBar;
+                    if(graph == null) {
+                        pBar = new BarHelper(() -> "n", () -> Pal.power, () -> 0);
+                    }else {
+                        int finalT = t;
+                        pBar = new BarHelper(
+                            () -> formatAmount(graph.getPowerBalance() * 60),
+                            () -> new Color().set(Pal.power).lerp(Team.get(finalT).color, 0.5f),
+                            () -> graph.getSatisfaction()
+                        );
+                    };
+                    tab.add(pBar);
+                }else{
+                    String cnt = blockCats[t][i] + "";
 
-                if(i == 12){
-                    double per = ((double) blockCats[t][12] /worldBlocks) * 100f;
-                    cnt = (per >= 10 ? Math.round(per)  : decForMini.format(per)) + "%";
+                    if(i == 12){
+                        double per = ((double)blockCats[t][12] / worldBlocks) * 100f;
+                        cnt = (per >= 10 ? Math.round(per) : decForMini.format(per)) + "%";
+                    }
+                    Label rawTxt = new Label(cnt);
+                    rawTxt.setAlignment(Align.center);
+
+                    if(rawTxt.getMinHeight() > size[1]) size[1] = rawTxt.getMinHeight();
+                    if(rawTxt.getMinWidth() > size[0]) size[0] = rawTxt.getMaxWidth();
+
+                    equlize.add(rawTxt);
+                    tab.add(rawTxt);
                 }
-                Label rawTxt = new Label(cnt);
-                rawTxt.setAlignment(Align.center);
-
-                if(rawTxt.getMinHeight() > size[1]) size[1] = rawTxt.getMinHeight();
-                if(rawTxt.getMinWidth() > size[0]) size[0] = rawTxt.getMaxWidth();
-                equlize.add(rawTxt);
-                tab.add(rawTxt);
             }
 
 
@@ -503,5 +548,42 @@ public class CuiFragment {
         if(yPer) fy = Mathf.lerp( Core.graphics.getHeight(), 0,  Math.abs((y -100)/100)) * yp;
 
         tab.moveBy(fx, fy);
+    }
+
+    public static String formatAmount(float number){
+        return formatAmount(number, 1);
+    }
+    public static String formatAmount(float number, int decimals){
+        //prevent things like bars displaying erroneous representations of casted infinities
+        if(number == Float.MAX_VALUE) return "∞";
+        if(number == Float.MIN_VALUE) return "-∞";
+
+        float mag = Math.abs(number);
+        String sign = number < 0 ? "-" : "";
+        if(decimals <= -1 ){
+            if(mag >= 1_000_000_000){
+                return sign + Math.round(mag / 1_000_000_000f) + "[gray]" + UI.billions + "[]";
+            }else if(mag >= 1_000_000){
+                return sign + Math.round(mag / 1_000_000f) + "[gray]" + UI.millions + "[]";
+            }else if(mag >= 10_000){
+                return sign + Math.round(number / 1000) + "[gray]" + UI.thousands + "[]";
+            }else if(mag >= 1000){
+                return sign + Math.round(mag / 1000f) + "[gray]" + UI.thousands + "[]";
+            }else{
+                return Math.round(number) + "";
+            }
+        } else {
+            if(mag >= 1_000_000_000){
+                return sign + Strings.fixed(mag / 1_000_000_000f, decimals) + "[gray]" + UI.billions + "[]";
+            }else if(mag >= 1_000_000){
+                return sign + Strings.fixed(mag / 1_000_000f, decimals) + "[gray]" + UI.millions + "[]";
+            }else if(mag >= 10_000){
+                return sign + Strings.fixed(number / 1000, decimals) + "[gray]" + UI.thousands + "[]";
+            }else if(mag >= 1000){
+                return sign + Strings.fixed(mag / 1000f, decimals) + "[gray]" + UI.thousands + "[]";
+            }else{
+                return Math.round(number) + "";
+            }
+        }
     }
 }

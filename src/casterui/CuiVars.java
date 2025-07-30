@@ -1,32 +1,27 @@
 package casterui;
 
-import arc.Core;
-import arc.Graphics;
-import arc.graphics.Pixmap;
-import arc.graphics.Pixmaps;
+import arc.*;
+import arc.graphics.*;
 import arc.math.geom.*;
 import arc.scene.ui.layout.*;
-import arc.struct.*;
 import arc.util.*;
-import casterui.io.CuiInputs;
-import casterui.io.ui.CuiFragment;
-import casterui.io.ui.CuiWorldRenderer;
+import casterui.io.*;
+import casterui.io.ui.*;
 import casterui.io.ui.dialog.*;
 import casterui.util.*;
-import mindustry.Vars;
+import mindustry.*;
 import mindustry.game.*;
-import mindustry.gen.Player;
-import mindustry.gen.Unit;
-import mindustry.mod.Mods;
-import mindustry.ui.Fonts;
-import mindustry.world.Tile;
-import mindustry.world.blocks.storage.CoreBlock;
+import mindustry.gen.*;
+import mindustry.mod.*;
+import mindustry.ui.*;
+import mindustry.world.*;
+import mindustry.world.blocks.storage.*;
 
-import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Map;
+import java.text.*;
+import java.util.*;
 
 import static arc.Core.settings;
+import static casterui.io.CuiBinding.toggle_cui_kill_switch;
 
 public class CuiVars {
     public static CuiWorldRenderer renderer = new CuiWorldRenderer();
@@ -46,7 +41,7 @@ public class CuiVars {
     public static Vec2[] savedCameras = new Vec2[11];
 
     public static DecimalFormat decFor = new DecimalFormat("#.##"), decForMini = new DecimalFormat("#.#");
-    public static boolean[] dominationSettings = new boolean[14];
+    public static boolean[] dominationSettings = new boolean[15];
     public static boolean
             showBlockInfo = false, showCountersUnits = false, showCountersPlayers = false, showCountersButton = false,
             countersSeparateTeams = false, countersCoreUnits = false, countersCoreFlagged = false, countersTotals = false,
@@ -85,6 +80,7 @@ public class CuiVars {
 
     public static void update(){
         globalShow = !Core.settings.getBool("cui-killswitch");
+        if(inputs.cuiKeyTap(toggle_cui_kill_switch) && (globalShow || settings.getBool("cui-killswitchEnables"))) settings.put("cui-killswitch", !settings.getBool("cui-killswitch")); //haha this will be one way but lulz
         if (!globalShow) return;
         inputs.update();
         fragment.UpdateTables();
@@ -147,6 +143,7 @@ public class CuiVars {
         dominationSettings[11] = settings.getBool("cui-domination-core");
         dominationSettings[12] = settings.getBool("cui-domination-percent");
         dominationSettings[13] = settings.getBool("cui-domination-raw");
+        dominationSettings[14] = settings.getBool("cui-domination-graph");
 
         if(!full) return;
 
@@ -177,7 +174,5 @@ public class CuiVars {
             }
         }
     }
-
-
 
 }
