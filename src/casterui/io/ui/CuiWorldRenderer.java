@@ -147,11 +147,11 @@ public class CuiWorldRenderer {
 
             switch (style) {
                 case  10 -> { //diamonds, (don't remember which mod that used to do this so ughh yes)
-                    drawInner(Pal.darkishGray, 1f, false, x - (offset /1.5f), y - (offset /2), (width / 2f), unit.hitSize,  1);
-                    drawInner(colour, hp ,false, x - (offset /1.5f), y - (offset /2), (width / 2f), unit.hitSize,  1);
+                    drawInner(Pal.darkishGray, 1f, false, x - (offset /1.5f), y - (offset /2), (width / 2f), unit.hitSize,  0.7f);
+                    drawInner(colour, hp ,false, x - (offset /1.5f), y - (offset /2), (width / 2f), unit.hitSize,  0.8f);
                     if(shield > 0){
-                        drawInner(Pal.darkishGray, 1f, true, x + (offset /1.5f), y - (offset /2), (width / 2f), unit.hitSize,  1);
-                        drawInner(colour, shield ,true, x + (offset /1.5f), y - (offset /2), (width / 2f), unit.hitSize,  1);
+                        drawInner(Pal.darkishGray, 1f, true, x + (offset /1.5f), y - (offset /2), (width / 2f), unit.hitSize,  0.7f);
+                        drawInner(colour, shield ,true, x + (offset /1.5f), y - (offset /2), (width / 2f), unit.hitSize,  0.8f);
                     }
                 }
                 case 9 -> {//boarder - right
