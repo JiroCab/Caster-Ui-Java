@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - v7-main
   workflow_call:
 
 jobs:
