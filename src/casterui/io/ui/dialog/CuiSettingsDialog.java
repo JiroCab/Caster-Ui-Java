@@ -2,11 +2,14 @@ package casterui.io.ui.dialog;
 
 import arc.*;
 import arc.graphics.*;
+import arc.graphics.g2d.*;
 import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.struct.*;
 import arc.util.*;
 import casterui.*;
+import mindustry.*;
+import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
@@ -25,8 +28,8 @@ public class CuiSettingsDialog {
     public static Seq<SettingsMenuDialog.SettingsTable> allCuiOptions = new Seq<>();
     public static ObjectSet<UnitType>hiddenUnits = new ObjectSet<>(), coreUnitsTypes = new ObjectSet<>();
     public static float commonHeight = 60f;
-    private static final int cursorStyles = 8, offsetMinMax  = 200;
-    static DecimalFormat decFor = new DecimalFormat("#.##");
+    private static final int cursorStyles = 8, offsetMinMax  = 200, fontScaleMax = 60;
+    static DecimalFormat decFor = new DecimalFormat("#.##"), decForS = new DecimalFormat("#.#");
 
     //Foo's complaint categories
     public static class CollapserSetting extends SettingsMenuDialog.SettingsTable.Setting{
@@ -112,18 +115,29 @@ public class CuiSettingsDialog {
 
                 //Counter table
                 subTable.checkPref("cui-ShowUnitTable", true);
-                subTable.checkPref("cui-ShowPlayerList", true);
-                subTable.checkPref("cui-hideNoUnitPlayers", true);
-                subTable.sliderPref("cui-unitsPlayerTableStyle", 0, 0, 1, s -> bundle.get("cui-unitsplayer-style" + s));
-                subTable.sliderPref("cui-unitsIconSize", 32, 1, 100, String::valueOf);
+
+                subTable.pref(new CollapserSetting("cui-offset-div", 6));
+
                 subTable.checkPref("cui-unitFlagCoreUnitHides", true);
                 subTable.checkPref("cui-separateTeamsUnit", true);
                 subTable.checkPref("cui-teamtotalunitcount", true);
+                subTable.sliderPref("cui-unitsPlayerTableStyle", 0, 0, 2, s -> bundle.get("cui-unitsplayer-style" + s));
                 subTable.sliderPref("cui-unitsPlayerTableSize", 6, 1, 20, String::valueOf);
-                subTable.checkPref("cui-playerunitstablecontols", false);
+
+                subTable.pref(new CollapserSetting("cui-offset-div", 6));
+
+                subTable.checkPref("cui-ShowPlayerList", true);
+                subTable.checkPref("cui-hideNoUnitPlayers", true);
+
+                subTable.pref(new CollapserSetting("cui-offset-div", 6));
+
+                subTable.checkPref("cui-playerunitstablecontols", true);
+                subTable.checkPref("cui-playerunitstablecstoptracking", mobile);
                 subTable.sliderPref("cui-buttonSize", 40, 1, 100, String::valueOf);
 
                 subTable.pref(new CollapserSetting("cui-offset-div", 6));
+                subTable.sliderPref("cui-unitsIconSize", 32, 1, 100, String::valueOf);
+                subTable.sliderPref("cui-unitsPlayerTableFont", 20, 0, fontScaleMax,  s-> "x" + decForS.format(s == 0 ? 0.01f : s/20f) + "x");
                 subTable.sliderPref("cui-PlayerUnitsTableSide", 1, 0, 8, s -> bundle.get("cui-side"+s));
                 subTable.sliderPref("cui-playerunitstablestyle", 0, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
                 subTable.sliderPref("cui-playerunitstables-x", 0, -offsetMinMax , offsetMinMax, String::valueOf);
@@ -226,22 +240,25 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-TeamItemsShortenItems", true);
                 subTable.sliderPref("cui-TeamItemsAlpha", 8, 0, 10, s -> s  > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
                 subTable.sliderPref("cui-TeamItemsRow", 6, 0, 10, s -> s +1 + "");
+                subTable.sliderPref("cui-TeamItemsIconStyle", 0, 0, 2, s -> bundle.get("cui-unitsplayer-style" + s));
 
                 subTable.pref(new CollapserSetting("cui-offset-div", 6));
                 subTable.sliderPref("cui-TeamItemsSide", 8, 0, 8, s -> bundle.get("cui-side"+s));
                 subTable.sliderPref("cui-TeamItems-x", 0, -offsetMinMax , offsetMinMax, String::valueOf );
                 subTable.sliderPref("cui-TeamItems-y", 0, -offsetMinMax , offsetMinMax, String::valueOf);
-//                subTable.checkPref("cui-TeamItems-x-abs", false);
-//                subTable.checkPref("cui-TeamItems-y-abs", false);
+                subTable.sliderPref("cui-TeamItems-icon-size", 20, 0, fontScaleMax,  s-> "x" + decForS.format(s == 0 ? 0.01f : s/20f));
+                subTable.sliderPref("cui-TeamItems-font-size", 20, 0, fontScaleMax,  s-> "x" + decForS.format(s == 0 ? 0.01f : s/20f));
 
                 subTable.pref(new CollapserSetting("cui-cat-div-counter", 6));
-                subTable.checkPref("cui-domination-toggle", false);
+                subTable.checkPref("cui-domination-toggle", true);
                 subTable.checkPref("cui-domination-vertical", false);
                 subTable.checkPref("cui-domination-TeamIcons", true);
-                subTable.sliderPref("cui-domination-trans", 8, 0, 10, s -> s  > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
                 subTable.pref(new CollapserSetting("cui-domination-more", 9));
 
+                subTable.pref(new CollapserSetting("cui-cat-div-counter", 6));
+                subTable.sliderPref("cui-domination-trans", 8, 0, 10, s -> s  > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
                 subTable.sliderPref("cui-domination-side", 0, 0, 8, s -> bundle.get("cui-side"+s));
+                subTable.sliderPref("cui-domination-font-size", 20, 0, fontScaleMax,  s-> "x" + decForS.format(s == 0 ? 0.01f : s/20f));
                 subTable.sliderPref("cui-domination-x", 0, -offsetMinMax , offsetMinMax, String::valueOf);
                 subTable.sliderPref("cui-domination-y", 0, -offsetMinMax , offsetMinMax, String::valueOf);
 
@@ -260,25 +277,40 @@ public class CuiSettingsDialog {
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
 
+                subTable.checkPref("cui-hideWithMenus", false);
                 subTable.checkPref("cui-respectCommandMode", true);
                 subTable.checkPref("cui-respectTyping", false);
                 subTable.checkPref("cui-respectLockInputs", true);
                 subTable.checkPref("cui-respectDialog", true);
-                subTable.checkPref("cui-hideWithMenus", true);
                 subTable.checkPref("cui-auto-toggle-menu", true);
 
                 subTable.pref(new CollapserSetting("cui-category-div", 6));
 
                 subTable.sliderPref("cui-maxZoom", 12, 0, 125, s -> {
-                    if(s == 12) return "@off";
+                    if(s == 12){
+                        if(renderer.maxZoom !=  6) renderer.maxZoom = 6f;
+                        return "@off";
+                    }
                     float f = s * 0.5f;
                     if(s == 0) f = 0.01f;
+                    if(f <= renderer.minZoom){
+                        renderer.maxZoom = renderer.minZoom;
+                        return "[darkgray]" + decFor.format(f) + "x \n[scarlet]" + bundle.get("cui-zoom-unbalance-in");
+                    }
                     renderer.maxZoom = f;
                     return decFor.format(f) + "x";
                 }); //Nearly every ui mod changes this lmao
                 subTable.sliderPref("cui-minZoom", 3, 1, 125, s -> {
-                    if(s == 3) return "@off";
+                    if(s == 3){
+                        if(renderer.maxZoom != 1.5f)renderer.minZoom = 1.5f;
+                        return "@off";
+                    }
                     float f = s * 0.5f;
+                    if(f >= renderer.maxZoom){
+                        renderer.minZoom = renderer.maxZoom;
+                        return "[darkgray]" + decFor.format(f) + "x \n[scarlet]" + bundle.get("cui-zoom-unbalance-out");
+                    }
+
                     renderer.minZoom = f;
                     return decFor.format(f) + "x";
                 });
@@ -299,6 +331,7 @@ public class CuiSettingsDialog {
             table.button("@setting.cui-advance-category.name", Icon.settings, Styles.togglet, () -> advanceHudShown[0] = !advanceHudShown[0]).marginLeft(14f).growX().height(commonHeight).checked(a -> advanceHudShown[0]).padTop(5f).row();
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
+                subTable.pref(new CollapserSetting("cui-offset-div", 6));
                 subTable.sliderPref("cui-unitsPlayerTableUpdateRate", 10, 1, 100, String::valueOf);
                 subTable.sliderPref("cui-TeamItemsUpdateRate", 2, 1, 3, s -> s == 1 ? "Fast" :  s == 2 ? "Normal" : "Slow");
                 subTable.checkPref("cui-animateSettings", true);
@@ -323,11 +356,15 @@ public class CuiSettingsDialog {
             table.button("@setting.cui-domination-category.name", Icon.export, Styles.togglet, () -> dominactionShown[0] = !dominactionShown[0]).marginLeft(14f).width(400f).height(commonHeight).checked(a -> dominactionShown[0]).padTop(5f).scaling(Scaling.bounded).row();
             table.collapser( t -> {
                 SettingsMenuDialog.SettingsTable subTable = new SettingsMenuDialog.SettingsTable();
-                subTable.checkPref("cui-domination-totals", false);
+                subTable.checkPref("cui-domination-totals", true);
                 subTable.checkPref("cui-domination-raw", false);
-                subTable.checkPref("cui-domination-core", false);
-                subTable.checkPref("cui-domination-percent", false);
+                subTable.checkPref("cui-domination-core", true);
+                subTable.checkPref("cui-domination-percent", true);
+
+                subTable.pref(new CollapserSetting("cui-offset-div", 6));
+
                 subTable.checkPref("cui-domination-graph", false);
+                subTable.checkPref("cui-domination-battery", false);
 
                 subTable.pref(new CollapserSetting("cui-offset-div", 6));
 
@@ -357,7 +394,7 @@ public class CuiSettingsDialog {
                 TeamBlackListerDialog teamBlackListerDialog = new TeamBlackListerDialog();
                 teamBlackListerDialog.show(3);
             }).marginLeft(14f).width(400f).scaling(Scaling.bounded).row();
-        };
+        }
     }
 
 
@@ -392,7 +429,13 @@ public class CuiSettingsDialog {
                 bd.hide();
                 Log.info("Caster-ui present 1 loaded!");
             });
-        });
+        }).row();
+
+        Label lol = new Label(Core.bundle.get("settings.cui-preset.lol"));
+        lol.setAlignment(Align.center);
+        lol.setWrap(true);
+        bd.cont.add(lol).row();
+
         bd.show();
     }
 
@@ -544,6 +587,5 @@ public class CuiSettingsDialog {
             }
         }
     }
-
-
+    
 }

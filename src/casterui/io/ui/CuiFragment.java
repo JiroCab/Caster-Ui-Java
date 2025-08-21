@@ -11,6 +11,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import casterui.*;
 import casterui.io.ui.dialog.*;
 import mindustry.*;
 import mindustry.core.*;
@@ -60,7 +61,7 @@ public class CuiFragment {
     Seq<Integer> alignSides = Seq.with(Align.bottom, Align.bottomLeft, Align.bottomRight, Align.top, Align.topLeft, Align.topRight, Align.center, Align.left, Align.right);
     public int[][] blockCats = new int[Team.all.length][Category.all.length + 4];
     public int worldBlocks;
-    public String[] dominationIconList = {Iconc.host + "", Iconc.turret + "", Iconc.production + "", Iconc.distribution + "", Iconc.liquid + "", Iconc.power + "", Iconc.defense + "", Iconc.crafting + "", Iconc.units + "", Iconc.effect + "", Iconc.logic + "", Iconc.home + "",Iconc.map + "", Iconc.list + "", Iconc.statusElectrified + ""};
+    public String[] dominationIconList = {Iconc.host + "", Iconc.turret + "", Iconc.production + "", Iconc.distribution + "", Iconc.liquid + "", Iconc.power + "", Iconc.defense + "", Iconc.crafting + "", Iconc.units + "", Iconc.effect + "", Iconc.logic + "", Iconc.home + "",Iconc.map + "", Iconc.list + "", Iconc.statusElectrified + "", Iconc.blockBattery + ""};
 
 
     public void BuildTables(Group parent){
@@ -123,6 +124,7 @@ public class CuiFragment {
             if (showCountersUnits) controlTable.button(Icon.admin, Styles.defaulti, () -> settings.put("cui-unitsTableCoreUnits", !settings.getBool("cui-unitsTableCoreUnits"))).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.core-units.tooltip");
             if (showCountersPlayers) controlTable.button(Icon.host, Styles.defaulti, () -> settings.put("cui-playerTableSummarizePlayers", !settings.getBool("cui-playerTableSummarizePlayers"))).pad(1).width(buttonSize).height(buttonSize).tooltip("@units-table.button.compact-player-list.tooltip");
         }
+        if(showStopTrackingButton)controlTable.button(Icon.cancel, Styles.defaulti, () -> inputs.stopTracking()).pad(1).width(buttonSize).height(buttonSize);
 
 
         //endregion
@@ -132,6 +134,10 @@ public class CuiFragment {
             int[] icons = {0};
             //prevent  doubling of rows
             boolean[] newRow = {false};
+
+            int style = settings.getInt("cui-unitsPlayerTableStyle"), tabSize = settings.getInt("cui-unitsPlayerTableSize");
+            float fontSize =  settings.getInt("cui-unitsPlayerTableFont") /20f;
+            if(fontSize <= 0 ) fontSize = 0.01f;
 
             for (int id = 0 ; id < Team.all.length ; id++){
                 if(hiddenTeamsUnits[id]) continue;
@@ -152,13 +158,12 @@ public class CuiFragment {
 
                         teamUnits.merge(u.type.id, 1, Integer::sum);
                     }
-                    int style = settings.getInt("cui-unitsPlayerTableStyle"), tabSize = settings.getInt("cui-unitsPlayerTableSize");
                     if(countersTotals){
                         int total = 0;
                         for (Entry<Short, Integer> entry : teamUnits.entrySet()) total += entry.getValue();
 
                         if(total > 0){
-                            makeIcon(style, total, team, Icon.units.getRegion(), "@wavemode.counts", true);
+                            makeIcon(style, total, team, Icon.units.getRegion(), "@wavemode.counts", true, fontSize);
                             icons[0]++;
                             newRow[0] = false;
                         }
@@ -169,7 +174,7 @@ public class CuiFragment {
                         Integer i = entry.getValue();
                         UnitType unit = Vars.content.unit(u);
 
-                        makeIcon(style, i, unit, team);
+                        makeIcon(style, i, unit, team, fontSize);
 
                         if (icons[0] >= tabSize) {
                             unitTable.row();
@@ -307,6 +312,7 @@ public class CuiFragment {
                     if(mouseBuilding.block instanceof Battery || mouseBuilding.block instanceof PowerNode || mouseBuilding.block instanceof BeamNode) {
                         blockTable.label(() -> "[stat]" +formatAmount(graphs.getBatteryStored(), 0) + "/" + formatAmount(graphs.getTotalBatteryCapacity(), 0));
                     }
+                    blockTable.row();
                 }
                 if (mouseBuilding.items != null && mouseBuilding.items.total() > 0) blockTable.add(blockItemTable).row();
                 if (mouseBuilding.liquids != null) blockTable.add(blockLiquidTable).row();
@@ -336,6 +342,7 @@ public class CuiFragment {
                 }
 
                 if(settings.getBool("cui-BlockInfoLastPlayer") && mouseBuilding.lastAccessed != null){
+
                     blockTable.table(a-> a.label(() -> mouseBuilding.lastAccessed).pad(1f)).row();
                 }
 
@@ -363,7 +370,7 @@ public class CuiFragment {
         teamItemsTable.clear();
 
         if (settings.getBool("cui-ShowTeamItems")) {
-            int teamItemsMax = settings.getInt("cui-TeamItemsRow");
+            int teamItemsMax = settings.getInt("cui-TeamItemsRow"), iconPlace = settings.getInt("cui-TeamItemsIconStyle");
 
             for (TeamData team : Vars.state.teams.active) {
                 if (team.core() == null) continue;
@@ -371,18 +378,26 @@ public class CuiFragment {
                 Table sub = colouredTable(team.team.color, team.team.color.a * (settings.getInt("cui-TeamItemsAlpha") * 0.1f));
                 int[] itemTypes = {0};
                 team.core().items.each((item, amount) -> {
-                    sub.image(item.uiIcon).size(iconSizes).left();
-                    sub.label(() -> (!settings.getBool("cui-TeamItemsShortenItems") ? amount : UI.formatAmount(amount)) + " ");
+                    if (iconPlace == 1) {
+                        sub.stack(
+                            new Image(item.uiIcon),
+                            new Label((!settings.getBool("cui-TeamItemsShortenItems") ? amount : UI.formatAmount(amount)) + " ")
+                        ).fontScale(teamItemsFontSize).size(iconSizes * teamItemsIconSize).center();
+                    }else {
+                        if(iconPlace == 0)sub.label(() -> (!settings.getBool("cui-TeamItemsShortenItems") ? amount : UI.formatAmount(amount)) + " ").fontScale(teamItemsFontSize);
+                        sub.image(item.uiIcon).size(iconSizes * teamItemsIconSize).left();
+                        if(iconPlace == 2) sub.label(() -> (!settings.getBool("cui-TeamItemsShortenItems") ? amount : UI.formatAmount(amount)) + " ").fontScale(teamItemsFontSize);
+                    }
+
                     if (itemTypes[0] >= teamItemsMax) {
                         itemTypes[0] = 0;
                         sub.row();
                     } else itemTypes[0]++;
                 });
-                teamItemsTable.add(sub).growX().row();
+                teamItemsTable.add(sub).growX().padLeft(3f).padRight(3f).row();
             }
         }
     }
-
 
     public void buildDominationTable(){
         dominationTable.clear();
@@ -409,7 +424,7 @@ public class CuiFragment {
             if(rawTxt.getMinWidth() > size[0]) size[0] = rawTxt.getMaxWidth();
 
             equlize.add(rawTxt);
-            iconTab.add(rawTxt);
+            iconTab.add(rawTxt).fontScale(dominationFontSize);
         }
         dominationTable.add(iconTab).grow();
         if(dominationVertical)dominationTable.row();
@@ -433,7 +448,7 @@ public class CuiFragment {
             Table tab = dominationColoured ? colouredTable(Team.get(t).color, trans * 0.1f) : new Table();
             tab.defaults().pad(5f).grow().minWidth(size[0]).minHeight(size[1]).align(Align.center).scaling(Scaling.fill);
 
-            float[] tsize ={35, 20};
+            float[] tsize ={35 *dominationFontSize , 20 * dominationFontSize};
             if(dominationIcons){
                 Label team = new Label(Team.get(t).emoji.equals("") ? "[#" + Team.get(t).color + "]#"+ Team.get(t).id + "[]" :  "[white]" +Team.get(t).emoji );
                 team.setStyle(Styles.outlineLabel);
@@ -441,8 +456,10 @@ public class CuiFragment {
                 tab.add(team);
 
                 teamsizes.add(team);
-                if(team.getMinHeight() > tsize[1]) tsize[1] = team.getMinHeight();
-                if(team.getMinWidth() > tsize[0]) tsize[0] = team.getMinWidth();
+                team.setFontScale(dominationFontSize);
+                if(team.getPrefHeight() > tsize[1]) tsize[1] = team.getPrefHeight();
+                if(team.getMaxWidth() > tsize[0]) tsize[0] = team.getMaxWidth();
+
             }
 
             tab.defaults().minHeight(tsize[1]).minWidth(tsize[0]);
@@ -464,7 +481,21 @@ public class CuiFragment {
                             () -> new Color().set(Pal.power).lerp(Team.get(finalT).color, 0.5f),
                             () -> graph.getSatisfaction()
                         );
-                    };
+                    }
+                    tab.add(pBar);
+                }else if(i == 15){
+                    @Nullable PowerGraph graph = pgo.get(t);
+                    Bar pBar;
+                    if(graph == null) {
+                        pBar = new BarHelper(() -> "n", () -> Pal.power, () -> 0);
+                    }else {
+                        int finalT = t;
+                        pBar = new BarHelper(
+                            () -> formatAmount(graph.getLastPowerStored(), -1),
+                            () -> new Color().set(Pal.power).lerp(Team.get(finalT).color, 0.6f),
+                            () -> graph.getLastPowerStored() / graph.getLastCapacity()
+                        );
+                    }
                     tab.add(pBar);
                 }else{
                     String cnt = blockCats[t][i] + "";
@@ -479,6 +510,7 @@ public class CuiFragment {
                     if(rawTxt.getMinHeight() > size[1]) size[1] = rawTxt.getMinHeight();
                     if(rawTxt.getMinWidth() > size[0]) size[0] = rawTxt.getMaxWidth();
 
+                    rawTxt.setFontScale(CuiVars.dominationFontSize);
                     equlize.add(rawTxt);
                     tab.add(rawTxt);
                 }
@@ -491,8 +523,11 @@ public class CuiFragment {
             Arrays.fill(blockCats[t], 0);
         }
 
-        for (Label l : equlize) l.setSize(size[0], size[1]);
-        for (Label t : teamsizes) if (dominationVertical) t.setWidth(size[0]);
+        for (Label l : equlize){
+            l.setSize(size[0], size[1]);
+        }
+        for (Label t : teamsizes) if (dominationVertical) t.setWidth(size[0] + 3f);
+
         worldBlocks = 0;
 
     }
@@ -513,17 +548,17 @@ public class CuiFragment {
     }
 
 
-    public void makeIcon(int style, int i, UnitType unit, Team team){
-        makeIcon(style, i, team, unit.uiIcon, unit.name, false);
+    public void makeIcon(int style, int i, UnitType unit, Team team, float fontSize){
+        makeIcon(style, i, team, unit.uiIcon, unit.name, false, fontSize);
     }
 
-    public void makeIcon(int style, int i, Team team, TextureRegion icon, String name, boolean color){
+    public void makeIcon(int style, int i, Team team, TextureRegion icon, String name, boolean color, float fontSize){
         var img = new Image(new TextureRegion(icon));
         float fsize = color ? unitsIconSize * 0.85f:  unitsIconSize;
         if(color)img.setColor(team.color);
         if(style == 1){
             //TODO: anything above 1k is hard to see
-            Table countTable = new Table(t -> t.center().add(new Label(() -> "[#" + team.color.toString() + "]" + i + "[white]")).style(Styles.outlineLabel).scaling(Scaling.bounded).color(new Color(1, 1, 1, 0.85f)));
+            Table countTable = new Table(t -> t.center().add(new Label(() -> "[#" + team.color.toString() + "]" + i + "[white]")).style(Styles.outlineLabel).scaling(Scaling.bounded).color(new Color(1, 1, 1, 0.85f)).fontScale(fontSize));
             img.setSize(iconSizes);
             countTable.setColor(new Color(1, 1, 1, 0.85f));
             unitTable.stack(
@@ -532,8 +567,9 @@ public class CuiFragment {
                     countTable
             ).tooltip(name).size(fsize).scaling(Scaling.bounded).get();
         }else {
+            if(style == 0)unitTable.add(new Label(() -> "[#" + team.color.toString() + "]" + i + "[white]")).style(Styles.outlineLabel).fontScale(fontSize);
             unitTable.add(img).tooltip(name).size(fsize).scaling(Scaling.bounded).get();
-            unitTable.add(new Label(() -> "[#" + team.color.toString() + "]" + i + "[white]")).style(Styles.outlineLabel).get();
+            if(style == 2)unitTable.add(new Label(() -> "[#" + team.color.toString() + "]" + i + "[white]")).style(Styles.outlineLabel).fontScale(fontSize);
         }
     }
 

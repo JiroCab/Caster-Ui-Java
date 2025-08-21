@@ -24,7 +24,7 @@ import static arc.Core.settings;
 import static casterui.io.CuiBinding.toggle_cui_kill_switch;
 
 public class CuiVars {
-    public static CuiWorldRenderer renderer = new CuiWorldRenderer();
+    public static CuiWorldRenderer cuiRenderer = new CuiWorldRenderer();
     public static CuiFragment fragment = new CuiFragment();
     public static CuiInputs inputs = new CuiInputs();
     public static CuiTeamMangerDialog teamManger = new CuiTeamMangerDialog();
@@ -41,12 +41,13 @@ public class CuiVars {
     public static Vec2[] savedCameras = new Vec2[11];
 
     public static DecimalFormat decFor = new DecimalFormat("#.##"), decForMini = new DecimalFormat("#.#");
-    public static boolean[] dominationSettings = new boolean[15];
+    public static boolean[] dominationSettings = new boolean[16];
     public static boolean
-            showBlockInfo = false, showCountersUnits = false, showCountersPlayers = false, showCountersButton = false,
+            showBlockInfo = false, showCountersUnits = false, showCountersPlayers = false, showCountersButton = false, showStopTrackingButton = false,
             countersSeparateTeams = false, countersCoreUnits = false, countersCoreFlagged = false, countersTotals = false,
             dominationVertical = false, dominationColoured = false, dominationIcons = false,
             showTeamItems = false, showDomination = false;
+    public static float dominationFontSize = 0, teamItemsFontSize = 0, teamItemsIconSize = 0;
     public static boolean[] hiddenTeamsDomination = new boolean[Team.all.length], hiddenTeamsUnits = new boolean[Team.all.length], hiddenTeamsItems = new boolean[Team.all.length], hiddenCycleTeam = new boolean[Team.all.length];
     public static boolean[][]  hiddenTeamList = {hiddenTeamsDomination, hiddenTeamsUnits, hiddenTeamsItems, hiddenCycleTeam};
     public static Table updateCheckTable = new Table();
@@ -54,7 +55,7 @@ public class CuiVars {
     public static void init(){
         updateChecker.run();
         CuiSettingsDialog.buildCategory();
-        renderer.worldRenderer();
+        cuiRenderer.worldRenderer();
         rebindDialog.load();
         if(Core.settings.getBool("cui-minimalCursor")) overrideCursors();
         animateCats = Core.settings.getBool("cui-animateSettings");
@@ -65,7 +66,7 @@ public class CuiVars {
 
     public static void postInt(){
         fragment.clearTables();
-        renderer.circleQueue.clear();
+        cuiRenderer.circleQueue.clear();
         updateSettings(true);
 
         CuiVars.heldUnit = null;
@@ -144,6 +145,7 @@ public class CuiVars {
         dominationSettings[12] = settings.getBool("cui-domination-percent");
         dominationSettings[13] = settings.getBool("cui-domination-raw");
         dominationSettings[14] = settings.getBool("cui-domination-graph");
+        dominationSettings[15] = settings.getBool("cui-domination-battery");
 
         if(!full) return;
 
@@ -159,6 +161,18 @@ public class CuiVars {
         countersSeparateTeams = settings.getBool("cui-separateTeamsUnit");
         countersCoreUnits = settings.getBool("cui-unitsTableCoreUnits");
         countersTotals = settings.getBool("cui-teamtotalunitcount");
+        showStopTrackingButton = settings.getBool("cui-playerunitstablecstoptracking");
+
+        dominationFontSize = settings.getInt("cui-domination-font-size")  /20f;
+        teamItemsFontSize = settings.getInt("cui-TeamItems-font-size") /20f;
+        teamItemsIconSize = settings.getInt("cui-TeamItems-icon-size") /20f;
+
+        if(dominationFontSize <= 0) dominationFontSize = 0.01f;
+        if(teamItemsFontSize <= 0) teamItemsFontSize = 0.01f;
+        if(teamItemsIconSize <= 0) teamItemsIconSize = 0.01f;
+        float x= settings.getInt("cui-maxZoom"), n = settings.getInt("cui-minZoom") ;
+        if(x != 12) Vars.renderer.maxZoom =  x == 0 ? 0.01f : x * 0.5f;
+        if(n != 12) Vars.renderer.minZoom =  n == 0 ? 0.01f : n * 0.5f;
     }
 
     public static void updateHiddenTeams(){
