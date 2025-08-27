@@ -137,7 +137,7 @@ public class CuiSettingsDialog {
 
                 subTable.pref(new CollapserSetting("cui-offset-div", 6));
                 subTable.sliderPref("cui-unitsIconSize", 32, 1, 100, String::valueOf);
-                subTable.sliderPref("cui-unitsPlayerTableFont", 20, 0, fontScaleMax,  s-> "x" + decForS.format(s == 0 ? 0.01f : s/20f) + "x");
+                subTable.sliderPref("cui-unitsPlayerTableFont", 20, 0, fontScaleMax,  s-> "x" + decForS.format(s == 0 ? 0.01f : s/20f) );
                 subTable.sliderPref("cui-PlayerUnitsTableSide", 1, 0, 8, s -> bundle.get("cui-side"+s));
                 subTable.sliderPref("cui-playerunitstablestyle", 0, 0 , 9, s -> bundle.get("cui-blockinfostyle-s" + s ));
                 subTable.sliderPref("cui-playerunitstables-x", 0, -offsetMinMax , offsetMinMax, String::valueOf);
@@ -240,7 +240,7 @@ public class CuiSettingsDialog {
                 subTable.checkPref("cui-TeamItemsShortenItems", true);
                 subTable.sliderPref("cui-TeamItemsAlpha", 8, 0, 10, s -> s  > 0 ? s != 10 ? s + "0%" : "100%" : "@off");
                 subTable.sliderPref("cui-TeamItemsRow", 6, 0, 10, s -> s +1 + "");
-                subTable.sliderPref("cui-TeamItemsIconStyle", 0, 0, 2, s -> bundle.get("cui-unitsplayer-style" + s));
+                subTable.sliderPref("cui-TeamItemsIconStyle", 2, 0, 2, s -> bundle.get("cui-unitsplayer-style" + s));
 
                 subTable.pref(new CollapserSetting("cui-offset-div", 6));
                 subTable.sliderPref("cui-TeamItemsSide", 8, 0, 8, s -> bundle.get("cui-side"+s));
