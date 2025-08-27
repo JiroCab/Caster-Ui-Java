@@ -384,9 +384,9 @@ public class CuiFragment {
                             new Label((!settings.getBool("cui-TeamItemsShortenItems") ? amount : UI.formatAmount(amount)) + " ")
                         ).fontScale(teamItemsFontSize).size(iconSizes * teamItemsIconSize).center();
                     }else {
-                        if(iconPlace == 0)sub.label(() -> (!settings.getBool("cui-TeamItemsShortenItems") ? amount : UI.formatAmount(amount)) + " ").fontScale(teamItemsFontSize);
-                        sub.image(item.uiIcon).size(iconSizes * teamItemsIconSize).left();
                         if(iconPlace == 2) sub.label(() -> (!settings.getBool("cui-TeamItemsShortenItems") ? amount : UI.formatAmount(amount)) + " ").fontScale(teamItemsFontSize);
+                        sub.image(item.uiIcon).size(iconSizes * teamItemsIconSize).left();
+                        if(iconPlace == 0)sub.label(() -> (!settings.getBool("cui-TeamItemsShortenItems") ? amount : UI.formatAmount(amount)) + " ").fontScale(teamItemsFontSize);
                     }
 
                     if (itemTypes[0] >= teamItemsMax) {
