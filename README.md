@@ -1,3 +1,5 @@
+# Notice: This mod has been discontinued, BUT rushie plans to rewrite it for v8 for cleaner code and less spagetti after she finishes Nyfalis' Developemnt cycle 
+
 # Caster UI 
 
 - A Mindustry Java mod that aims to make the client a bit better for casting!
