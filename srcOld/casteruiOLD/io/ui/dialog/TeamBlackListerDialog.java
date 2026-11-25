@@ -1,4 +1,4 @@
-package casterui.io.ui.dialog;
+package casteruiOLD.io.ui.dialog;
 
 import arc.*;
 import arc.graphics.*;
@@ -6,25 +6,18 @@ import arc.math.*;
 import arc.scene.actions.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
-import arc.scene.ui.Label.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.*;
-import casterui.*;
 import mindustry.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.io.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
-import java.io.*;
-import java.util.*;
-
 import static arc.Core.bundle;
-import static casterui.CuiVars.*;
+import static casteruiOLD.CuiVars.*;
 import static mindustry.Vars.*;
 
 public class TeamBlackListerDialog extends BaseDialog{

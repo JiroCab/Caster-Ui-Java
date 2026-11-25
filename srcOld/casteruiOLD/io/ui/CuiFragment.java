@@ -1,4 +1,4 @@
-package casterui.io.ui;
+package casteruiOLD.io.ui;
 
 import arc.*;
 import arc.graphics.*;
@@ -11,8 +11,8 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import casterui.*;
-import casterui.io.ui.dialog.*;
+import casteruiOLD.*;
+import casteruiOLD.io.ui.dialog.*;
 import mindustry.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -33,7 +33,7 @@ import java.util.*;
 import java.util.concurrent.atomic.*;
 
 import static arc.Core.settings;
-import static casterui.CuiVars.*;
+import static casteruiOLD.CuiVars.*;
 
 public class CuiFragment {
     public Table

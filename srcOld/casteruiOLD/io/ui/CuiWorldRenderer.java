@@ -1,4 +1,4 @@
-package casterui.io.ui;
+package casteruiOLD.io.ui;
 
 import arc.Core;
 import arc.Events;
@@ -13,9 +13,9 @@ import arc.scene.ui.layout.Table;
 import arc.struct.Seq;
 import arc.util.*;
 import arc.util.pooling.Pools;
-import casterui.CuiVars;
-import casterui.util.CuiCircleObjectHelper;
-import casterui.util.CuiPointerHelper;
+import casteruiOLD.CuiVars;
+import casteruiOLD.util.CuiCircleObjectHelper;
+import casteruiOLD.util.CuiPointerHelper;
 import mindustry.Vars;
 import mindustry.ai.UnitCommand;
 import mindustry.ai.types.LogicAI;
@@ -538,7 +538,6 @@ public class CuiWorldRenderer {
     public void showBottomToast(Drawable icon, float size, String text, boolean bottom){
         float p = bottom ? -1 : 1;
         scheduleToast(() -> {
-            Sounds.message.play();
             Table table = new Table(Tex.button);
             table.update(() -> {
                 if(state.isMenu() || !ui.hudfrag.shown && Core.settings.getBool("cui-AlertsHideWithUi") || !Core.settings.getBool("cui-AlertsHideWithUi") && !CuiVars.globalHidden){

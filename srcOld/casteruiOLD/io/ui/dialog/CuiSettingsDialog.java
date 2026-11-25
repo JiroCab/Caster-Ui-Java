@@ -1,4 +1,4 @@
-package casterui.io.ui.dialog;
+package casteruiOLD.io.ui.dialog;
 
 import arc.*;
 import arc.graphics.*;
@@ -6,7 +6,7 @@ import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.struct.*;
 import arc.util.*;
-import casterui.*;
+import casteruiOLD.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;

@@ -1,29 +1,56 @@
 plugins {
     id 'java'
-    id("fr.xpdustry.toxopid") version "3.2.0"
+    id("com.xpdustry.toxopid") version "4.2.0"
     id 'maven-publish'
 }
 
 version '1.0'
 
-targetCompatibility = 8
-sourceCompatibility = JavaVersion.VERSION_17
+
+java{
+    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_17
+}
 
 sourceSets.main.java.srcDirs = ["src"]
 
-import fr.xpdustry.toxopid.spec.ModPlatform
+import com.xpdustry.toxopid.spec.ModPlatform
 
 repositories{
     mavenCentral()
+    //MindustryJavaModTemplate
+
+    //Downloads the server-release JAR file from Mindustry releases; does not use any real repository. Surprisingly, this is the most reliable option.
+    ivy{
+        url 'https://github.com/'
+        patternLayout{artifact '/[organisation]/[module]/releases/download/[revision]/dependencies.jar'}
+        metadataSources{ artifact() }
+    }
+
+    //"Latest" option to depend on BE builds.
+    ivy{
+        url 'https://github.com/'
+        patternLayout{artifact '/[organisation]/[module]/releases/download/master/[revision].jar'}
+        metadataSources{ artifact() }
+    }
+
+    //Do the same with jabel
+    ivy{
+        url 'https://github.com/'
+        patternLayout{artifact '/[organisation]/[module]/releases/download/[revision]/jabel.jar'}
+        metadataSources{ artifact() }
+    }
+
+    //Toxopid
     maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
+    maven{ url "https://maven.xpdustry.com/mindustry" }
     maven { url 'https://jitpack.io' }
-    anukenJitpack()
 }
+
 
 ext{
     //the build number that this mod is made for
-    mindustryVersion = 'v150'
-    jabelVersion = "93fde537c7"
+    mindustryVersion = 'v159.7'
     //windows sucks
     isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
     sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
@@ -36,19 +63,11 @@ toxopid {
     platforms.add(ModPlatform.DESKTOP)
 }
 
-//java 8 backwards compatibility flag
-allprojects{
-    tasks.withType(JavaCompile){
-        options.compilerArgs.addAll(['--release', '8'])
-    }
-}
 
 dependencies{
-    compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
-    compileOnly "com.github.anuken.mindustryjitpack:core:$mindustryVersion"
-
-    annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
+    compileOnly mindustryVersion == "be" ? "Anuken:MindustryBuilds:latest" : "Anuken:Mindustry:$mindustryVersion"
 }
+
 
 //force arc version
 configurations.all{
@@ -80,7 +99,7 @@ task jarAndroid{
 
 jar{
 
-    archiveFileName = "${project.archivesBaseName}Desktop.jar"
+    archiveFileName = "${project.name}Desktop.jar"
     from{
         configurations.runtimeClasspath.collect{ it.isDirectory() ? it : zipTree(it) }
     }
@@ -97,7 +116,7 @@ jar{
 task deploy(type: Jar){
     dependsOn jarAndroid
     dependsOn jar
-    archiveFileName = "${project.archivesBaseName}.jar"
+    archiveFileName = "${project.name}Desktop.jar"
 
     from{ [zipTree("$buildDir/libs/${project.archivesBaseName}Desktop.jar"), zipTree("$buildDir/libs/${project.archivesBaseName}Android.jar")] }
 

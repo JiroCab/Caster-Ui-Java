@@ -1,4 +1,4 @@
-package casterui.io.ui.dialog;
+package casteruiOLD.io.ui.dialog;
 
 import arc.*;
 import arc.graphics.g2d.*;
@@ -6,8 +6,8 @@ import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
-import casterui.*;
-import casterui.io.*;
+import casteruiOLD.*;
+import casteruiOLD.io.*;
 import mindustry.*;
 import mindustry.game.*;
 import mindustry.gen.*;
